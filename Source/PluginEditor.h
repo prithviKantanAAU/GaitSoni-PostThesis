@@ -84,7 +84,7 @@ private:
 			ui_tabSpec.status_SensorConnection.setText("Reqd. Sensors: ONLINE", dontSendNotification);
 			ui_tabSpec.status_SensorConnection.setColour
 			(ui_tabSpec.status_SensorConnection.textColourId, Colours::green);
-			if (!processor.isRecording_Sensor)				// WHY THE FUCK IS THIS HERE?
+			if (!processor.imuRecord.isRecording_Sensor)				// WHY THE FUCK IS THIS HERE?
 			{
 				ui_bmbf_gen.recordGaitParam.setButtonText("Rec Gait Param");
 				ui_bmbf_gen.recordGaitParam.setColour(ui_bmbf_gen.recordGaitParam.buttonColourId, Colours::red);

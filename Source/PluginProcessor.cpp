@@ -39,168 +39,6 @@ GaitSonificationAudioProcessor::~GaitSonificationAudioProcessor()
 	stopTimer();
 }
 
-// BEGIN IMU SENSOR RECORDING ------------------------------------------MOVE TO NEW CLASS
-void GaitSonificationAudioProcessor::startRecording_Sensor()
-{
-		// CREATE NEW FILEPATH FOR RECORDINGS
-		filePath_SensorRec = forRootDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
-		filePath_SensorRec = filePath_SensorRec.upToLastOccurrenceOf("\\", true, false);
-		filePath_SensorRec += String(exerciseMode_Present) + " - " 
-			+ String(gaitAnalysis.gaitParams.gaitParam_ObjectArray
-				[gaitAnalysis.gaitParams.activeGaitParam].name) + " - REC - " + getCurrentTime();
-		// FULL LOG
-		String sensorFileName = filePath_SensorRec + "\\Full Log.csv";
-		String sensorFileNameRaw = "";
-		CreateDirectory(filePath_SensorRec.toStdString().c_str(), NULL);
-		sensorRecording = fopen(sensorFileName.toStdString().c_str(), "w");
-
-		short bodyPartIndex = 0;
-
-		// RAW LOGS FOR ALL SENSORS
-		for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
-		{
-			if (gaitAnalysis.sensorInfo.isOnline[i])
-			{
-				bodyPartIndex = gaitAnalysis.sensorInfo.bodyLocation[i];
-				sensorFileNameRaw = filePath_SensorRec + "\\Raw IMU Data - " + String(bodyPartIndex) + ".csv";
-				rawSensorData[i] = fopen(sensorFileNameRaw.toStdString().c_str(), "w");
-			}
-		}
-		
-		// RESET TIME, ENABLE FLAG
-		timeElapsed_REC = 0;
-		isRecording_Sensor = true;
-}
-
-void GaitSonificationAudioProcessor::stopRecording_Sensor()
-{
-	//DISABLE FLAG, CLOSE FILES
-	isRecording_Sensor = false;
-	//MAIN LOG
-	fclose(sensorRecording);
-	//RAW LOGS
-	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
-	{
-		if (gaitAnalysis.sensorInfo.isOnline[i])
-		{
-			fclose(rawSensorData[i]);
-		}
-	}
-}
-
-void GaitSonificationAudioProcessor::writeSensorValue_ToFile(float value)
-{
-	std::string format_GP = "%f,%f,%f,%f,%s,%f,%s,%f,%s,%f,%f,%f,\n";
-	std::string format_RAW = "%f,%f,%f,%f,%f,%f,%f,\n";
-
-	//FULL LOG
-	switch (exerciseMode_Present)
-	{
-	case 2:
-		fprintf(sensorRecording,						//FID
-			format_GP.c_str(),							//Format Specifier
-			(float)exerciseMode_Present,						//Exercise Mode			// %f
-			timeElapsed_REC,							//Recording Timestamp	// %f
-			isPlaying ? 1.0 : 0.0,						//Is Playing?			// %f
-			isStandby ? 1.0 : 0.0,						//Is Standby?			// %f
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].name,	//Active MP Name		// %s
-			value,										//MP Value				// %f
-			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name,		//AP Name				// %s
-			isTargetDynamic ? dynamicTarget : 
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].target,	//Target				// %f
-			sequencer.currentMusic.baseBeats
-			[sequencer.index_baseBeat].name,			//Rhythm Name			// %s
-			gaitAnalysis.staticBalance_Div_Pitch,		//AP Multiplier			// %f
-			gaitAnalysis.staticBalance_Div_Roll,		//ML Multiplier			// %f
-			(float)gaitAnalysis.staticBalance_ZoneMap_Current	//Change Rate			// %f
-		);
-		break;
-	case 4:
-		fprintf(sensorRecording,						//FID
-			format_GP.c_str(),							//Format Specifier
-			(float)exerciseMode_Present,						//Exercise Mode			// %f
-			timeElapsed_REC,							//Recording Timestamp	// %f
-			isPlaying ? 1.0 : 0.0,						//Is Playing?			// %f
-			isStandby ? 1.0 : 0.0,						//Is Standby?			// %f
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].name,	//Active MP Name		// %s
-			value,										//MP Value				// %f
-			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name,					//AP Name				// %s
-			isTargetDynamic ? dynamicTarget :
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].target,	//Target				// %f
-			sequencer.currentMusic.baseBeats
-			[sequencer.index_baseBeat].name,			//Rhythm Name			// %s
-			gaitAnalysis.sitStand_Thresh_Sit,			//Sit Thresh			// %f
-			gaitAnalysis.sitStand_Thresh_Stand,			//Stand Thresh			// %f
-			0											//Blank			// %f
-		);
-		break;
-	case 5:
-		fprintf(sensorRecording,						//FID
-			format_GP.c_str(),							//Format Specifier
-			(float)exerciseMode_Present,						//Exercise Mode			// %f
-			timeElapsed_REC,							//Recording Timestamp	// %f
-			isPlaying ? 1.0 : 0.0,						//Is Playing?			// %f
-			isStandby ? 1.0 : 0.0,						//Is Standby?			// %f
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].name,	//Active MP Name		// %s
-			value,										//MP Value				// %f
-			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name,					//AP Name				// %s
-			isTargetDynamic ? dynamicTarget :
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].target,	//Target				// %f
-			sequencer.currentMusic.baseBeats
-			[sequencer.index_baseBeat].name,			//Rhythm Name			// %s
-			gaitAnalysis.isHalfTime ? 2.0 : 1.0,		//Timing Mode			// %f
-			gaitAnalysis.HS_IntervalTolerance,			//CoV Tolerance			// %f
-			0											//Blank			// %f
-		);
-		break;
-	default:
-		fprintf(sensorRecording,						//FID
-			format_GP.c_str(),							//Format Specifier
-			(float)exerciseMode_Present,						//Exercise Mode			// %f
-			timeElapsed_REC,							//Recording Timestamp	// %f
-			isPlaying ? 1.0 : 0.0,						//Is Playing?			// %f
-			isStandby ? 1.0 : 0.0,						//Is Standby?			// %f
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].name,	//Active MP Name		// %s
-			value,										//MP Value				// %f
-			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name,					//AP Name				// %s
-			isTargetDynamic ? dynamicTarget :
-			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].target,	//Target				// %f
-			sequencer.currentMusic.baseBeats
-			[sequencer.index_baseBeat].name,			//Rhythm Name			// %s
-			(float)gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].desiredBehavior,	//Desired Behavior		// %f
-			0,											//Blank					// %f
-			0											//Blank					// %f
-		);
-		break;
-	}
-
-	//RAW DATA
-	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
-	{
-		if (gaitAnalysis.sensorInfo.isOnline[i])
-		{
-			fprintf(rawSensorData[i], format_RAW.c_str(),
-				gaitAnalysis.sensors_OSCReceivers[i].acc[0],
-				gaitAnalysis.sensors_OSCReceivers[i].acc[1],
-				gaitAnalysis.sensors_OSCReceivers[i].acc[2],
-				gaitAnalysis.sensors_OSCReceivers[i].gyr[0],
-				gaitAnalysis.sensors_OSCReceivers[i].gyr[1],
-				gaitAnalysis.sensors_OSCReceivers[i].gyr[2],
-				gaitAnalysis.sensors_OSCReceivers[i].isMessageRecvd_smpl_z0);
-		}
-	}
-	
-}
-
 //FIRST TIME SET SENSOR PULSE INTERVALS, NEXT SIXTEENTH MUSIC PULSE TIME
 void GaitSonificationAudioProcessor::initializeClocking()
 {
@@ -347,103 +185,104 @@ void GaitSonificationAudioProcessor::stopMusic()
 		sequencer.resetCounters();
 		sequencer.resetMidiPlayback();
 		midiTicksElapsed = 0;
-		timeElapsed = 0;
+		timeElapsed_SONG = 0;
 		nextPulseTime = 0;
 		sequencer.musicPhase.resetPhase();
 	}
 }
 
+// HI RES TIMER CALLBACK - EVERY 1 MS
 void GaitSonificationAudioProcessor::hiResTimerCallback()
 {
+	// INCREMENT GLOBAL TIME AND CLOCK PULSES ELAPSED
 	gaitAnalysis.timeElapsed = globalTimeMs++/ 1000.0;
+	pulsesElapsed += 1;
+
+	// UPDATE SENSOR ONLINE STATUS EVERY 2 SECONDS
 	if (globalTimeMs % 2000 == 0)
 		gaitAnalysis.updateSensorStatus();
-	pulsesElapsed += 1;
+
+	// INCREMENT IMU RECORDING TIME IF ENABLED
+	if (imuRecord.isRecording_Sensor)
+		imuRecord.timeElapsed_REC += 0.001;
+	
+	// HANDLE SONG PLAYBACK
 	if (isPlaying)
 	{
-		clockCallback();
-		timeElapsed += 0.001;
+		// INCREMENT BASIC PLAYBACK COUNTERS
+		timeElapsed_SONG += 0.001;
 		dynamicTarget_phaseTime += 0.001;
 		pulsesElapsed = pulsesElapsed % 100;
-		if (musicMode == 1 || musicMode == 3)
 		midiTicksElapsed += ticksPerMS;
+		tapTempoCounter = min(1, tapTempoCounter + 0.001);		// Limit to 1
 
-		if (tapTempoCounter <= 1)
-			tapTempoCounter += 0.001;
+		// RUN MUSICAL CLOCK CALLBACK
+		clockCallback();
 
-		if(getSongProgress())					// TRUE if complete. 
+		// STOP MUSIC IF SONG COMPLETE
+		if(getSongProgress())
 			stopMusic();
 	}
-	if (isRecording_Sensor)
-		timeElapsed_REC += 0.001;
+	
+	// IF SAMPLE INTERVAL EXCEEDED, RUN SENSOR AND SONIFICATION CALLBACK
 	if (pulsesElapsed % pulseInterval_sensorCallback == 0)
 		sensorCallback();
 }
 
+// MUSIC CLOCK CALLBACK - EVERY 1 MS
 void GaitSonificationAudioProcessor::clockCallback()
 {
-	double clockPulseLength = 0;
-	double timeMeasure = 0;
-	switch (musicMode)
-	{
-	case 1: 
-		clockPulseLength = 70 * ticksPerMS;
-		timeMeasure = midiTicksElapsed;
-		break;
-	case 2:
-		clockPulseLength = 0.07;
-		timeMeasure = timeElapsed;
-		break;
-	case 3:
-		clockPulseLength = 70 * ticksPerMS;
-		timeMeasure = midiTicksElapsed;
-		break;
-	}
+	// INITIALIZE PULSE LENGTH AND MEASURED TIME
+	double clockPulseLength = 70 * ticksPerMS;
+	double timeMeasure = midiTicksElapsed;
 
+	// SET CLOCK STATE LOW IF HIGH FOR LONGER THAN 70 MS
 	if (clockTriggeredLast && (timeMeasure - lastPulseTime >= clockPulseLength))
 		triggerClock(false);
 
+	// IF CLOCK PULSE DUE, TRIGGER CLOCK
 	if (checkIfPulseDue())
 		triggerClock(true);
 
-	if (musicMode == 1 || musicMode == 3)
-	{
-		if (fetch_MusicInfo_Mode_MIDI())
-			infoMapped_CurrentPulse_MIDI = mapMusicInfo_Mode_MIDI();
-	}	
-
+	// IF NEW MIDI MESSAGE ON ANY TRACK, THEN MAP				//FETCHING FUNCTION TO SEQUENCER ?
+	if (fetch_MusicInfo_Mode_MIDI())
+		infoMapped_CurrentPulse_MIDI = mapMusicInfo_Mode_MIDI();
+	
+	// UPDATE MUSIC PHASE
 	sequencer.musicPhase.updatePhase();
 
 	// ADD CUEING MAPPING
 	dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
 }
 
-void GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_COMMON()
-{
-	//info_R_CSV[0] = sequencer.fetchNewMusicInfo(5, 1, 0);			// Riff Vel
-	//sequencer.fetchChordNoteVelocities(info_C_V_COMMON);						// Chord Vel
-	//info_CS_V_COMMON = sequencer.fetchNewMusicInfo(7, 1, 0);			// CS Vel
-}
-
+// CHECK FOR NEW MIDI EVENTS ON ALL TRACKS, RETURN TRUE IF A NEW EVENT IS TO BE HANDLED
 bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 {
-	bool isNew_MIDI_M =
-		sequencer.checkMIDIEventsDue(1, 1, false, ticksPerMS, midiTicksElapsed, info_M_MIDI
-			,audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
+	// CHECK NEW - Tracks 1, 2, 3 ,8 - PERC
+	bool isNew_MIDI_PERC_BASE =
+		sequencer.checkMIDIEventsDue(4, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
+			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
+
+	// CHECK NEW - Track 4 - Chords
 	bool isNew_MIDI_C =
 		sequencer.checkMIDIEventsDue(2, 4, true, ticksPerMS, midiTicksElapsed, info_C_MIDI
 			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-	bool isNew_MIDI_R = 
+	if (isNew_MIDI_C) arrangeChordNotes_Asc(info_C_MIDI, 8);					// Arrange in ASC Order
+
+	// CHECK NEW - Track 5 - Bassline
+	bool isNew_MIDI_R =
 		sequencer.checkMIDIEventsDue(3, 1, true, ticksPerMS, midiTicksElapsed, info_R_MIDI
 			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-	info_R_MIDI[0] = sequencer.midiNoteLimit(info_R_MIDI[0],
-		mixerSettings.var_noteMin[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1],
-		mixerSettings.var_noteMax[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1]);
-	if (isNew_MIDI_C) arrangeChordNotes_Asc(info_C_MIDI, 8);
-	// CHECK PERC EVENTS NEW
-	bool isNew_MIDI_PERC_BASE = 
-		sequencer.checkMIDIEventsDue(4, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
-			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
+	if (isNew_MIDI_R)															// Limit Note Range
+		info_R_MIDI[0] = sequencer.midiNoteLimit(info_R_MIDI[0],
+			mixerSettings.var_noteMin[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1],
+			mixerSettings.var_noteMax[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1]);
+
+	// CHECK NEW - Track 6 - Main Melody
+	bool isNew_MIDI_M =
+		sequencer.checkMIDIEventsDue(1, 1, false, ticksPerMS, midiTicksElapsed, info_M_MIDI
+			,audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
+	
 	bool isNew_MIDI_PERC_SnareFlurry = false;
 	if (audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name == "Snare Flurry")
 	{
@@ -451,27 +290,14 @@ bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 		isNew_MIDI_PERC_SnareFlurry = sequencer.checkMIDIEventsDue(6, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
 			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
 	}
-	return isNew_MIDI_M || isNew_MIDI_C || isNew_MIDI_R || isNew_MIDI_PERC_BASE || isNew_MIDI_PERC_SnareFlurry;
-}
-void GaitSonificationAudioProcessor::map_MusicInfo_Mode_COMMON()
-{
-	dspFaust.setParamValue(faustStrings.CV1.c_str(), info_C_V_COMMON[0]);
-	dspFaust.setParamValue(faustStrings.CV2.c_str(), info_C_V_COMMON[1]);
-	dspFaust.setParamValue(faustStrings.CV3.c_str(), info_C_V_COMMON[2]);
-	dspFaust.setParamValue(faustStrings.CV4.c_str(), info_C_V_COMMON[3]);
-	
-	dspFaust.setParamValue(faustStrings.CSV.c_str(),	info_CS_V_COMMON);
-	dspFaust.setParamValue(faustStrings.CurrentStyle.c_str(), 0);
-
-	short muteVal = 0;
-	for (int i = 0; i < 8; i++)
-	{
-		std::string paramAddress = faustStrings.getTrackMuteString(i);
-		muteVal = muteValuesManual[i];
-		dspFaust.setParamValue(paramAddress.c_str(), muteVal);
-	}
+	return isNew_MIDI_M 
+		|| isNew_MIDI_C 
+		|| isNew_MIDI_R 
+		|| isNew_MIDI_PERC_BASE 
+		|| isNew_MIDI_PERC_SnareFlurry;
 }
 
+// MAP 
 bool GaitSonificationAudioProcessor::mapMusicInfo_Mode_MIDI()
 {
 	if (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name == "Foot Drum")
@@ -525,7 +351,7 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	applySequencerSonifications();*/
 	}
 
-	if (isRecording_Sensor)
+	if (imuRecord.isRecording_Sensor)
 		writeSensorValue_ToFile(gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[gaitAnalysis.gaitParams.activeGaitParam].currentValue);
 }
@@ -541,6 +367,7 @@ void GaitSonificationAudioProcessor::applySequencerSonifications()
 float GaitSonificationAudioProcessor::getCurrentMappingValue()
 {
 	short activeGaitParam = gaitAnalysis.gaitParams.activeGaitParam;
+	String mp_Name = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].name;
 	float targetValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].target;
 	short desiredBehavior = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].desiredBehavior;
 	float range = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].maxVal
@@ -554,7 +381,7 @@ float GaitSonificationAudioProcessor::getCurrentMappingValue()
 	int numQuantLevels = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].quantLevels;
 	float smoothingFc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc;
 
-	if (gaitAnalysis.gaitParams.activeGaitParam == 6)									// STATIC PROJECTION
+	if (mp_Name == "Trunk Projection Zone")							// STATIC PROJECTION
 	{
 		if (!soniMappingCompute.isSoniSource_Slider)
 			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
@@ -580,47 +407,25 @@ float GaitSonificationAudioProcessor::getCurrentMappingValue()
 		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue_SliderSource(soniMappingCompute.soniVal_Slider,targetValue, functionParamSet));
 }
 
-void GaitSonificationAudioProcessor::onStartMusic()
-{
-	dspFaust.start();
-	initializeTrackGains();
-}
-
-void GaitSonificationAudioProcessor::applyMasterGain(float value)
-{
-	mixerSettings.masterGain = value;
-	std::string address = faustStrings.baseName + faustStrings.MasterVol;
-	dspFaust.setParamValue(address.c_str(), value);
-}
-
 void GaitSonificationAudioProcessor::triggerClock(bool polarity)
 {
 	std::string masterClockAddress = faustStrings.baseName + faustStrings.MasterClock;
 	if (polarity == true)
 	{
-		//FAUST SET ON
-		handleNewClockPulse();
+		// FAUST SET ON
+		sequencer.incrementPulseCounter();
 		dspFaust.setParamValue(masterClockAddress.c_str(), 1.0);
 		lastPulseTime = nextPulseTime;
-		switch (musicMode)
-		{
-		case 1:
-			nextPulseTime += midiTickIncrement;
-			break;
-		case 2:
-			nextPulseTime += interPulseIntervalMs * 0.001;
-			break;
-		case 3:
-			nextPulseTime += midiTickIncrement;
-			break;
-		}
+		nextPulseTime += midiTickIncrement;
 		clockTriggeredLast = true;
 
+		// RESET CALIBRATION OF DYNAMIC TARGET ON LAST BEAT // MERGE WITH EMPH PHASE?
 		if (isTargetDynamic && isCalibrated_dynTargetPhase && sequencer.barsElapsed_withinMeasure == 3)
 		{
 			isCalibrated_dynTargetPhase = false;
 		}
 
+		// RECALIBRATE DYNAMIC TARGET PHASE ON FIRST BEAT // MERGE WITH EMPH PHASE?
 		if (isTargetDynamic && !isCalibrated_dynTargetPhase && sequencer.barsElapsed_withinMeasure == 0)
 		{
 			dynamicTarget_phaseTime = 0;
@@ -635,21 +440,6 @@ void GaitSonificationAudioProcessor::triggerClock(bool polarity)
 	}
 }
 
-void GaitSonificationAudioProcessor::handleNewClockPulse()
-{
-	sequencer.incrementPulseCounter();
-	fetch_MusicInfo_Mode_COMMON();
-
-	map_MusicInfo_Mode_COMMON();
-}
-
-void GaitSonificationAudioProcessor::toggleTrackMuteManual(bool muted, short trackIndex)
-{
-	int val = muted ? 1 : 0;
-	muteValuesManual[trackIndex] = val;
-}
-
-//==============================================================================
 const String GaitSonificationAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -711,7 +501,6 @@ void GaitSonificationAudioProcessor::changeProgramName (int index, const String&
 {
 }
 
-//==============================================================================
 void GaitSonificationAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
@@ -763,12 +552,6 @@ void GaitSonificationAudioProcessor::processBlock (AudioBuffer<float>& buffer, M
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
@@ -777,7 +560,6 @@ void GaitSonificationAudioProcessor::processBlock (AudioBuffer<float>& buffer, M
     }
 }
 
-//==============================================================================
 bool GaitSonificationAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
@@ -788,7 +570,6 @@ AudioProcessorEditor* GaitSonificationAudioProcessor::createEditor()
     return new GaitSonificationAudioProcessorEditor (*this);
 }
 
-//==============================================================================
 void GaitSonificationAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
@@ -802,8 +583,6 @@ void GaitSonificationAudioProcessor::setStateInformation (const void* data, int 
     // whose contents will have been created by the getStateInformation() call.
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new GaitSonificationAudioProcessor();

@@ -2,6 +2,7 @@
 #include <ctime>
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OSC_Class.h"
+#include "imuRecording.h"
 #include "GaitAnalysis.h"
 #include "DspFaust.h"
 #include "Sequencer.h"
@@ -18,21 +19,6 @@ public:
 	GaitSonificationAudioProcessor();
 	~GaitSonificationAudioProcessor();
 
-	// Returns Current Time
-	String getCurrentTime()
-	{
-		time_t rawtime;
-		struct tm * timeinfo;
-		char buffer[80];
-
-		time(&rawtime);
-		timeinfo = localtime(&rawtime);
-
-		strftime(buffer, sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-		std::string str(buffer);
-
-		return String(str);
-	}
 	int globalTimeMs = 0;										// Time since program start (milliseconds)
 	// Playback Controls //
 	short musicMode = 1;										// Music Playback Mode 
@@ -48,17 +34,124 @@ public:
 
 	// Sensor Logging //										// MOVE TO OWN CLASS!!
 
-	Time currentDateTime;										// Current Date and Time
-	FILE *sensorRecording;										// File Obj - Movement Parameter + Sensor Log
-	FILE *rawSensorData[3];										// File Obj - Raw IMU Data
-	File forRootDirectory;										// File Obj - To get Solution Root Dir						
-	String filePath_SensorRec = "";								// File Path - MP + Sensor Log
-	String filePath_SensorRec_RAW = "";							// File Path - Raw IMU Data
-	bool isRecording_Sensor = false;							// Flag - is sensor logging enabled?
-	float timeElapsed_REC = 0;									// Time Elapsed - Sensor Logging
-	void startRecording_Sensor();								// Start sensor logging
-	void stopRecording_Sensor();								// Stop sensor logging
-	void writeSensorValue_ToFile(float value);					// Write present value
+	imuRecording imuRecord;										// IMU Recording Class Object
+	
+	// Start sensor logging															
+	void startRecording_Sensor()								
+	{
+		// CREATE NEW FILEPATH FOR RECORDINGS
+		imuRecord.filePath_SensorRec = imuRecord.forRootDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
+		imuRecord.filePath_SensorRec = imuRecord.filePath_SensorRec.upToLastOccurrenceOf("\\", true, false);
+		imuRecord.filePath_SensorRec += String(exerciseMode_Present) + " - "
+			+ String(gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[gaitAnalysis.gaitParams.activeGaitParam].name) + " - REC - " + imuRecord.getCurrentTime();
+		// FULL LOG
+		String sensorFileName = imuRecord.filePath_SensorRec + "\\Full Log.csv";
+		String sensorFileNameRaw = "";
+		CreateDirectory(imuRecord.filePath_SensorRec.toStdString().c_str(), NULL);
+		imuRecord.sensorRecording = fopen(sensorFileName.toStdString().c_str(), "w");
+		short bodyPartIndex = 0;
+
+		// RAW LOGS FOR ALL SENSORS
+		for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
+		{
+			if (gaitAnalysis.sensorInfo.isOnline[i])
+			{
+				bodyPartIndex = gaitAnalysis.sensorInfo.bodyLocation[i];
+				sensorFileNameRaw = imuRecord.filePath_SensorRec + "\\Raw IMU Data - " + String(bodyPartIndex) + ".csv";
+				imuRecord.rawSensorData[i] = fopen(sensorFileNameRaw.toStdString().c_str(), "w");
+			}
+		}
+
+		// RESET TIME, ENABLE FLAG
+		imuRecord.timeElapsed_REC = 0;
+		imuRecord.isRecording_Sensor = true;
+	}
+	
+	// Stop sensor logging
+	void stopRecording_Sensor()
+	{
+		//DISABLE FLAG, CLOSE FILES
+		imuRecord.isRecording_Sensor = false;
+		//MAIN LOG
+		fclose(imuRecord.sensorRecording);
+		//RAW LOGS
+		for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
+		{
+			if (gaitAnalysis.sensorInfo.isOnline[i])
+			{
+				fclose(imuRecord.rawSensorData[i]);
+			}
+		}
+	}
+	
+	// Write Present Line of Sensor Log
+	void writeSensorValue_ToFile(float value)
+	{
+		// CONSTANT COLUMNS
+		imuRecord.currentRow_FullLog_FLOAT[0] = (float)exerciseMode_Present;
+		imuRecord.currentRow_FullLog_FLOAT[1] = imuRecord.timeElapsed_REC;
+		imuRecord.currentRow_FullLog_FLOAT[2] = isPlaying ? 1.0 : 0.0;
+		imuRecord.currentRow_FullLog_FLOAT[3] = isStandby ? 1.0 : 0.0;
+		imuRecord.currentRow_FullLog_STRING[0] = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[gaitAnalysis.gaitParams.activeGaitParam].name;
+		imuRecord.currentRow_FullLog_FLOAT[4] = value;
+		imuRecord.currentRow_FullLog_STRING[1] = audioParams.audioParam_ObjectArray
+			[audioParams.activeAudioParam].name;
+		imuRecord.currentRow_FullLog_FLOAT[5] = isTargetDynamic ? dynamicTarget :
+			gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[gaitAnalysis.gaitParams.activeGaitParam].target;
+		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.baseBeats
+			[sequencer.index_baseBeat].name;
+
+		// EXERCISE DEPENDENT COLUMNS
+		switch (exerciseMode_Present)
+		{
+		case 2:		// SB
+			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.staticBalance_Div_Pitch;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Roll;
+			imuRecord.currentRow_FullLog_FLOAT[8] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
+			break;
+		case 3:		// DB
+			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.staticBalance_Div_Pitch;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Roll;
+			imuRecord.currentRow_FullLog_FLOAT[8] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
+			break;
+		case 4:		// STS - JERK
+			imuRecord.currentRow_FullLog_FLOAT[6] = 0;
+			imuRecord.currentRow_FullLog_FLOAT[7] = 0;
+			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			break;
+		case 5:		// STS - ANGLE
+			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.sitStand_Thresh_Sit;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.sitStand_Thresh_Stand;
+			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			break;
+		case 6:		// GAIT - RHYTHM
+			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.isHalfTime ? 2.0 : 1.0;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.HS_IntervalTolerance;
+			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			break;
+		}
+
+		imuRecord.writeToLog_Line_FullLog();
+
+		//RAW DATA
+		for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
+		{
+			if (gaitAnalysis.sensorInfo.isOnline[i])
+			{
+				imuRecord.currentRow_RawLog_FLOAT[0] = gaitAnalysis.sensors_OSCReceivers[i].acc[0];
+				imuRecord.currentRow_RawLog_FLOAT[1] = gaitAnalysis.sensors_OSCReceivers[i].acc[1];
+				imuRecord.currentRow_RawLog_FLOAT[2] = gaitAnalysis.sensors_OSCReceivers[i].acc[2];
+				imuRecord.currentRow_RawLog_FLOAT[3] = gaitAnalysis.sensors_OSCReceivers[i].gyr[0];
+				imuRecord.currentRow_RawLog_FLOAT[4] = gaitAnalysis.sensors_OSCReceivers[i].gyr[1];
+				imuRecord.currentRow_RawLog_FLOAT[5] = gaitAnalysis.sensors_OSCReceivers[i].gyr[2];
+				imuRecord.currentRow_RawLog_FLOAT[6] = gaitAnalysis.sensors_OSCReceivers[i].isMessageRecvd_smpl_z0;
+				imuRecord.writeToLog_Line_RAW(i);
+			}
+		}
+	}
 
 	// Gait Analysis //
 
@@ -141,7 +234,7 @@ public:
 	};
 
 	double interPulseIntervalMs = 0.0;							// Tempo Dependent - Expected Pulse Time INC
-	float timeElapsed = 0.0;									// PLAYBACK Time Elapsed
+	float timeElapsed_SONG = 0.0;								// PLAYBACK Time Elapsed
 	int pulsesElapsed = 0;										// Hi Res Clock Pulses Elapsed
 	double lastPulseTime = 0.0;									// Last 16th Pulse Time
 	double nextPulseTime = 0.0;									// Next 16th Pulse Time
@@ -155,19 +248,7 @@ public:
 	// Check - 16th Note Pulse Due?? Only for timekeeping, no more clocking
 	bool checkIfPulseDue()										
 	{
-		double timeMeasure = 0;
-		switch (musicMode)
-		{
-		case 1:
-			timeMeasure = midiTicksElapsed;
-			break;
-		case 2:
-			timeMeasure = timeElapsed;
-			break;
-		case 3:
-			timeMeasure = midiTicksElapsed;
-			break;
-		}
+		double timeMeasure = midiTicksElapsed;
 		if (timeMeasure >= nextPulseTime)
 			return true;
 		else return false;
@@ -179,7 +260,14 @@ public:
 
 	MixerSettings mixerSettings;								//Mixer Settings -> Sequencer
 	DspFaust dspFaust;											//DSPFaust Obj -> Sequencer
-	void onStartMusic();										//Start DSPFaust, Initialize Gain -> Sequencer
+	FaustStrings faustStrings;									// Faust Address Strings -> To Sequencer?
+	
+	//Start DSPFaust, Initialize Gain -> Sequencer
+	void onStartMusic()										
+	{
+		dspFaust.start();
+		initializeTrackGains();
+	}
 	void setFilename(String name);								//Load File, Start Playback
 	void initializeTrackGains();								//Variants, Mutes, Master EQ -> Sequencer
 	void setTrackGains(int trackIndex, float value);			//Set Variant Gain Offset, Put in DSPFaust -> Sequencer
@@ -188,7 +276,6 @@ public:
 	// Music Sequencing
 
 	Sequencer sequencer;										//Sequencer Object
-	void handleNewClockPulse();									//Increment Music Counters, Fetch CMR Info
 
 	/////////////////////////////////////////////// TO SEQUENCER /////////////////////////////////////////////////
 
@@ -205,17 +292,26 @@ public:
 	float info_C_MIDI[8] = { 0.0 };
 	float info_CS_MIDI[8] = { 0.0 };
 
-	void fetch_MusicInfo_Mode_COMMON();
 	bool fetch_MusicInfo_Mode_MIDI();
 	bool infoMapped_CurrentPulse_MIDI = false;
-	void map_MusicInfo_Mode_COMMON();
 	bool mapMusicInfo_Mode_MIDI();
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void toggleTrackMuteManual(bool muted, short trackNum);				//Toggle Mute Status -> Sequencer
+	//Toggle Mute Status -> Sequencer
+	void toggleTrackMuteManual(bool muted, short trackNum)				
+	{
+		int val = muted ? 1 : 0;
+		muteValuesManual[trackNum] = val;
+	}
 	short muteValuesManual[8] = { 0 };									//Track Mute Status For DspFaust -> Sequencer
-	void applyMasterGain(float value);									//Set Master Gain -> Sequencer		
+	//Set Master Gain -> Sequencer		
+	void applyMasterGain(float value)
+	{
+		mixerSettings.masterGain = value;
+		std::string address = faustStrings.baseName + faustStrings.MasterVol;
+		dspFaust.setParamValue(address.c_str(), value);
+	}
 	void switchInstVariant(int trackIndex, int newVariant);				//Set New Variant -> Sequencer
 	void applyCurrentVariantEQ(int trackIndex);							//Apply Variant EQ -> Sequencer
 	void applyCurrentVariantComp(int trackIndex);						//Apply Variant Comp -> Sequencer
@@ -253,8 +349,7 @@ public:
 	float dynamicTarget = 0;											// Dyn Target Value -> SoniMappingCompute
 	float dynamicTarget_phaseTime = 0;									// Dyn Target Phase Time -> SoniMappingCompute
 	bool isCalibrated_dynTargetPhase = false;							// is Dyn Target Calibrated? -> SoniMappingCompute
-	FaustStrings faustStrings;											// Faust Address Strings -> To Sequencer?
-
+	
 	bool isCalibrating = false;											// Is MP Calibrating? -> GaitAnalysis?
 
 	// UNWANTED // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

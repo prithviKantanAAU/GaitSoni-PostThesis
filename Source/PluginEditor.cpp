@@ -229,7 +229,7 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	{
 		if (processor.gaitAnalysis.areRequiredSensorsOnline())
 		{
-			if (!processor.isRecording_Sensor)
+			if (!processor.imuRecord.isRecording_Sensor)
 			{
 				processor.startRecording_Sensor();
 				ui_bmbf_gen.recordGaitParam.setButtonText("Stop Rec");
@@ -445,7 +445,7 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 
 	if (box == &ui_bmbf_gen.exerciseMode)
 	{
-		if (processor.isRecording_Sensor)
+		if (processor.imuRecord.isRecording_Sensor)
 		{
 			processor.stopRecording_Sensor();
 			ui_bmbf_gen.recordGaitParam.setButtonText("Rec Gait Param");
