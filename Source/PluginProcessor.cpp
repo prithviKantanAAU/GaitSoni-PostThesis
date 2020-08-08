@@ -1,17 +1,7 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
+// CONSTRUCTOR - INITIALIZATIONS AND START TIMER
 GaitSonificationAudioProcessor::GaitSonificationAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -32,170 +22,18 @@ GaitSonificationAudioProcessor::GaitSonificationAudioProcessor()
 	startTimer(1);	
 }
 
-//DESTRUCTOR - STOP DSPFAUST AND TIMER
+// DESTRUCTOR - STOP DSPFAUST AND TIMER
 GaitSonificationAudioProcessor::~GaitSonificationAudioProcessor()
 {
 	dspFaust.stop();
 	stopTimer();
 }
 
-//FIRST TIME SET SENSOR PULSE INTERVALS, NEXT SIXTEENTH MUSIC PULSE TIME
-void GaitSonificationAudioProcessor::initializeClocking()
-{
-	pulseInterval_sensorCallback = 1000 / gaitAnalysis.sensorInfo.IMU_SampleRate;
-	nextPulseTime += interPulseIntervalMs * 0.001;
-}
-
-// FIRST TIME INITIALIZE MUTES, VARIANTS, MASTER GAIN, MAP
-void GaitSonificationAudioProcessor::initializeTrackGains()
-{
-	for (int i = 0; i < 8; i++)
-	{
-		setTrackMutes(i, 1);
-		switchInstVariant(i, mixerSettings.currentVariant[sequencer.index_baseBeat][i]);
-	}
-	applyMasterGain(mixerSettings.masterGain);
-	dspFaust.setParamValue(faustStrings.MasterEQ_1_Q.c_str(), 0.7);
-	dspFaust.setParamValue(faustStrings.MasterEQ_2_Q.c_str(), 0.7);
-}
-
-// MAP CURRENT VARIANT GAIN - SINGLE TRACK
-void GaitSonificationAudioProcessor::applyCurrentVariantGain(int trackIndex)
-{
-	std::string address = "";
-	float gain = 0;
-	short variantNum = mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex] - 1;
-	address = faustStrings.getTrackGainString(trackIndex);
-	gain = mixerSettings.trackGains[trackIndex][variantNum]
-		+ mixerSettings.trackGain_Offsets[sequencer.index_baseBeat][trackIndex];
-	dspFaust.setParamValue(address.c_str(), gain);
-}
-
-// APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)
-void GaitSonificationAudioProcessor::setTrackGains(int trackIndex, float value)
-{
-	mixerSettings.trackGain_Offsets[sequencer.index_baseBeat][trackIndex] = value;
-	applyCurrentVariantGain(trackIndex);
-}
-
-// APPLY AND MAP MUTE VALUE - SINGLE TRACK
-void GaitSonificationAudioProcessor::setTrackMutes(int trackIndex, int value)
-{
-	std::string address = faustStrings.baseName + faustStrings.trackMutes[trackIndex];
-	dspFaust.setParamValue(address.c_str(), value);
-}
-
-// APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)
-void GaitSonificationAudioProcessor::applyCurrentVariantEQ(int trackIndex)
-{
-	short variantNum = mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex] - 1;
-	float value = 0;
-	bool toMap = true;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-				std::string address = faustStrings.FetchEQ_String(trackIndex, i, j);
-				value = mixerSettings.fetchEQValue(variantNum, trackIndex, i, j);
-				dspFaust.setParamValue(address.c_str(), value);
-		}
-	}
-}
-
-// APPLY AND MAP VARIANT COMP - SINGLE TRACK (on Variant Change)
-void GaitSonificationAudioProcessor::applyCurrentVariantComp(int trackIndex)
-{
-	std::string address = "";
-	float value = 0;
-	int currentRhythm = sequencer.index_baseBeat;
-	short variantNum = mixerSettings.currentVariant[currentRhythm][trackIndex] - 1;
-	for (int j = 0; j < 4; j++)		//Param ID
-	{
-		address = faustStrings.FetchComp_String(trackIndex, j);
-		value = mixerSettings.fetchCompValue(variantNum, trackIndex, j);
-		dspFaust.setParamValue(address.c_str(), value);
-	}
-}
-
-// SWITCH INSTRUMENT VARIANT - SINGLE TRACK
-void GaitSonificationAudioProcessor::switchInstVariant(int trackIndex, int newVariant)
-{
-	// UPDATE MIXER SETTINGS WITH NEW SETTING
-	int currentRhythm = sequencer.index_baseBeat;
-	mixerSettings.currentVariant[currentRhythm][trackIndex] = newVariant;
-	//MAP VARIANT TO FAUST
-	// CHANNEL SETTINGS
-	applyCurrentVariantGain(trackIndex);
-	applyCurrentVariantComp(trackIndex);
-	applyCurrentVariantEQ(trackIndex);
-	// VARIANT NUMBER
-	std::string address = faustStrings.baseName + faustStrings.trackVariant_Base + std::to_string(trackIndex + 1);
-	dspFaust.setParamValue(address.c_str(), mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex]);
-}
-
-// LOAD MIDI SONG FILE
-void GaitSonificationAudioProcessor::setFilename(String name)
-{
-	stopMusic();
-	sequencer.loadNewFile_MIDI(name);							// Load MIDI Song File from PATH
-	togglePlayPause();
-}
-
-// HANDLE TAP TEMPO BUTTON PRESS
-void GaitSonificationAudioProcessor::handleTapTempoPress()
-{
-	float newTempo = 0;
-	if (tapTempoCounter >= 1.0)
-	{
-		tapTempoCounter = 0;
-	}
-	else
-	{
-		newTempo = 60 / tapTempoCounter;
-		setTempo(newTempo);
-		tapTempoCounter = 0;
-	}
-}
-
-// PAUSE OR PLAY IF FILE HAS BEEN LOADED
-void GaitSonificationAudioProcessor::togglePlayPause()
-{
-	if (isPlaying)
-	{
-		dspFaust.stop();
-		isPlaying = false;
-	}
-	else
-	{
-		if (sequencer.isFileLoaded)
-			{
-				onStartMusic();
-				isPlaying = true;
-			}
-	}
-}
-
-// STOP MUSIC, RESET COUNTERS AND TIME
-void GaitSonificationAudioProcessor::stopMusic()
-{
-	if (isPlaying)
-	{
-		isPlaying = false;
-		dspFaust.stop();
-		sequencer.resetCounters();
-		sequencer.resetMidiPlayback();
-		midiTicksElapsed = 0;
-		timeElapsed_SONG = 0;
-		nextPulseTime = 0;
-		sequencer.musicPhase.resetPhase();
-	}
-}
-
 // HI RES TIMER CALLBACK - EVERY 1 MS
 void GaitSonificationAudioProcessor::hiResTimerCallback()
 {
 	// INCREMENT GLOBAL TIME AND CLOCK PULSES ELAPSED
-	gaitAnalysis.timeElapsed = globalTimeMs++/ 1000.0;
+	gaitAnalysis.timeElapsed = globalTimeMs++ / 1000.0;
 	pulsesElapsed += 1;
 
 	// UPDATE SENSOR ONLINE STATUS EVERY 2 SECONDS
@@ -205,7 +43,7 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 	// INCREMENT IMU RECORDING TIME IF ENABLED
 	if (imuRecord.isRecording_Sensor)
 		imuRecord.timeElapsed_REC += 0.001;
-	
+
 	// HANDLE SONG PLAYBACK
 	if (isPlaying)
 	{
@@ -220,10 +58,10 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 		clockCallback();
 
 		// STOP MUSIC IF SONG COMPLETE
-		if(getSongProgress())
+		if (getSongProgress())
 			stopMusic();
 	}
-	
+
 	// IF SAMPLE INTERVAL EXCEEDED, RUN SENSOR AND SONIFICATION CALLBACK
 	if (pulsesElapsed % pulseInterval_sensorCallback == 0)
 		sensorCallback();
@@ -247,7 +85,7 @@ void GaitSonificationAudioProcessor::clockCallback()
 	// IF NEW MIDI MESSAGE ON ANY TRACK, THEN MAP				//FETCHING FUNCTION TO SEQUENCER ?
 	if (fetch_MusicInfo_Mode_MIDI())
 		infoMapped_CurrentPulse_MIDI = mapMusicInfo_Mode_MIDI();
-	
+
 	// UPDATE MUSIC PHASE
 	sequencer.musicPhase.updatePhase();
 
@@ -255,7 +93,280 @@ void GaitSonificationAudioProcessor::clockCallback()
 	dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
 }
 
-// CHECK FOR NEW MIDI EVENTS ON ALL TRACKS, RETURN TRUE IF A NEW EVENT IS TO BE HANDLED
+// COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
+void GaitSonificationAudioProcessor::sensorCallback()
+{
+	// UPDATE IMU BUFFERS FOR ALL ACTIVE SENSORS
+	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
+		if (gaitAnalysis.sensorInfo.isOnline[i])
+			gaitAnalysis.sensors_OSCReceivers[i].updateBuffers();
+
+	// COMPUTE CHOSEN MOVEMENT PARAM
+	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);
+
+	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS
+	if (pulsesElapsed % 3000 == 0)
+		gaitAnalysis.calibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
+
+	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
+	if (isStandby) mapVal = 0;
+	else
+		mapVal = jlimit(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].minVal,
+			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].maxVal,
+			getCurrentMappingValue());
+
+	// CHECK MUSIC PLAYBACK
+	if (isPlaying)
+	{
+		// CHECK AP TYPE
+		switch (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type)
+		{
+		case 1:	// AUDIO - BASED
+			dspFaust.setParamValue(soniAddress_Primary.c_str(), mapVal);
+			break;
+		case 2: // SEQUENCER - BASED
+			applySequencerSonifications();
+			break;
+		}
+	}
+
+	// IF SENSOR RECORDING ENABLED, WRITE PRESENT LINE TO FILE
+	if (imuRecord.isRecording_Sensor)
+		writeSensorValue_ToFile(gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[gaitAnalysis.gaitParams.activeGaitParam].currentValue);
+}
+
+// COMPUTE PRESENT AP VALUE
+float GaitSonificationAudioProcessor::getCurrentMappingValue()
+{
+	// LOAD SONIFICATION-RELATED PARAMS TO LOCAL VARIABLES
+	short activeGaitParam = gaitAnalysis.gaitParams.activeGaitParam;
+	String mp_Name = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].name;
+	float targetValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].target;
+	short desiredBehavior = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].desiredBehavior;
+	float range = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].maxVal
+		- gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].minVal;
+	float currentValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[activeGaitParam].currentValue;
+	float toleranceBW = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].toleranceBW;
+	float order_MappingFunc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].mappingOrder;
+	int numQuantLevels = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].quantLevels;
+	float smoothingFc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc;
+
+	// SEPARATE FOR 2D PROJECTION ZONE
+	if (mp_Name == "Trunk Projection Zone")
+	{
+		if (!soniMappingCompute.isSoniSource_Slider)
+			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
+			[(int)gaitAnalysis.gaitParams.gaitParam_ObjectArray[2].currentValue - 1];
+		else
+			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
+			[(int)(soniMappingCompute.soniVal_Slider * 5)];
+	}
+
+	// IF NOT 2D PROJECTION, CHECK AND HANDLE DYNAMIC TARGET SCENARIO
+	else
+		if (isTargetDynamic)
+		{
+			targetValue = soniMappingCompute.getDynamicTarget(targetValue, soniMappingCompute.movementFunc_Order,
+				tempo, dynamicTarget_phaseTime);
+			dynamicTarget = targetValue;
+			toleranceBW = soniMappingCompute.movement_ErrorTolerance;
+		}
+
+	// COMBINE SONI PARAMS INTO ARRAY TO SEND SONIMAPPINGCOMPUTE
+	float functionParamSet[6] = { order_MappingFunc, toleranceBW, numQuantLevels, smoothingFc, range, desiredBehavior };
+
+	// CHECK IF SLIDER SONIFICATION ENABLED, ELSE OPERATE ON PRESENT MP VALUE
+	if (!soniMappingCompute.isSoniSource_Slider)
+		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue(currentValue, targetValue, functionParamSet));
+	else
+		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue_SliderSource(soniMappingCompute.soniVal_Slider, targetValue, functionParamSet));
+}
+
+// TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE
+void GaitSonificationAudioProcessor::triggerClock(bool polarity)
+{
+	std::string masterClockAddress = faustStrings.baseName + faustStrings.MasterClock;
+	if (polarity == true)
+	{
+		// FAUST SET ON
+		sequencer.incrementPulseCounter();
+		dspFaust.setParamValue(masterClockAddress.c_str(), 1.0);
+		lastPulseTime = nextPulseTime;
+		nextPulseTime += midiTickIncrement;
+		clockTriggeredLast = true;
+	}
+	else
+	{
+		//FAUST SET OFF
+		dspFaust.setParamValue(masterClockAddress.c_str(), 0);
+		clockTriggeredLast = false;
+	}
+}
+
+// APPLY SEQUENCER SONIFICATIONS ON COMPUTED AP VALUE
+void GaitSonificationAudioProcessor::applySequencerSonifications()
+{
+	switch (audioParams.activeAudioParam)
+	{
+
+	}
+}
+
+// FIRST TIME SET SENSOR PULSE INTERVALS, NEXT SIXTEENTH MUSIC PULSE TIME
+void GaitSonificationAudioProcessor::initializeClocking()
+{
+	pulseInterval_sensorCallback = 1000 / gaitAnalysis.sensorInfo.IMU_SampleRate;
+	nextPulseTime += interPulseIntervalMs * 0.001;
+}
+
+// FIRST TIME INITIALIZE MUTES, VARIANTS, MASTER GAIN, MAP-----------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::initializeTrackGains()
+{
+	for (int i = 0; i < 8; i++)
+	{
+		setTrackMutes(i, 1);
+		switchInstVariant(i, mixerSettings.currentVariant[sequencer.index_baseBeat][i]);
+	}
+	applyMasterGain(mixerSettings.masterGain);
+	dspFaust.setParamValue(faustStrings.MasterEQ_1_Q.c_str(), 0.7);
+	dspFaust.setParamValue(faustStrings.MasterEQ_2_Q.c_str(), 0.7);
+}
+
+// MAP CURRENT VARIANT GAIN - SINGLE TRACK---------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::applyCurrentVariantGain(int trackIndex)
+{
+	std::string address = "";
+	float gain = 0;
+	short variantNum = mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex] - 1;
+	address = faustStrings.getTrackGainString(trackIndex);
+	gain = mixerSettings.trackGains[trackIndex][variantNum]
+		+ mixerSettings.trackGain_Offsets[sequencer.index_baseBeat][trackIndex];
+	dspFaust.setParamValue(address.c_str(), gain);
+}
+
+// APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)---MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::setTrackGains(int trackIndex, float value)
+{
+	mixerSettings.trackGain_Offsets[sequencer.index_baseBeat][trackIndex] = value;
+	applyCurrentVariantGain(trackIndex);
+}
+
+// APPLY AND MAP MUTE VALUE - SINGLE TRACK---------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::setTrackMutes(int trackIndex, int value)
+{
+	std::string address = faustStrings.baseName + faustStrings.trackMutes[trackIndex];
+	dspFaust.setParamValue(address.c_str(), value);
+}
+
+// APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)-------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::applyCurrentVariantEQ(int trackIndex)
+{
+	short variantNum = mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex] - 1;
+	float value = 0;
+	bool toMap = true;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+				std::string address = faustStrings.FetchEQ_String(trackIndex, i, j);
+				value = mixerSettings.fetchEQValue(variantNum, trackIndex, i, j);
+				dspFaust.setParamValue(address.c_str(), value);
+		}
+	}
+}
+
+// APPLY AND MAP VARIANT COMP - SINGLE TRACK (on Variant Change)-----------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::applyCurrentVariantComp(int trackIndex)
+{
+	std::string address = "";
+	float value = 0;
+	int currentRhythm = sequencer.index_baseBeat;
+	short variantNum = mixerSettings.currentVariant[currentRhythm][trackIndex] - 1;
+	for (int j = 0; j < 4; j++)		//Param ID
+	{
+		address = faustStrings.FetchComp_String(trackIndex, j);
+		value = mixerSettings.fetchCompValue(variantNum, trackIndex, j);
+		dspFaust.setParamValue(address.c_str(), value);
+	}
+}
+
+// SWITCH INSTRUMENT VARIANT - SINGLE TRACK--------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::switchInstVariant(int trackIndex, int newVariant)
+{
+	// UPDATE MIXER SETTINGS WITH NEW SETTING
+	int currentRhythm = sequencer.index_baseBeat;
+	mixerSettings.currentVariant[currentRhythm][trackIndex] = newVariant;
+	//MAP VARIANT TO FAUST
+	// CHANNEL SETTINGS
+	applyCurrentVariantGain(trackIndex);
+	applyCurrentVariantComp(trackIndex);
+	applyCurrentVariantEQ(trackIndex);
+	// VARIANT NUMBER
+	std::string address = faustStrings.baseName + faustStrings.trackVariant_Base + std::to_string(trackIndex + 1);
+	dspFaust.setParamValue(address.c_str(), mixerSettings.currentVariant[sequencer.index_baseBeat][trackIndex]);
+}
+
+// LOAD MIDI SONG FILE-----------------------------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::setFilename(String name)
+{
+	stopMusic();
+	sequencer.loadNewFile_MIDI(name);							// Load MIDI Song File from PATH
+	togglePlayPause();
+}
+
+// HANDLE TAP TEMPO BUTTON PRESS ------------------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::handleTapTempoPress()
+{
+	float newTempo = 0;
+	if (tapTempoCounter >= 1.0)
+	{
+		tapTempoCounter = 0;
+	}
+	else
+	{
+		newTempo = 60 / tapTempoCounter;
+		setTempo(newTempo);
+		tapTempoCounter = 0;
+	}
+}
+
+// PAUSE OR PLAY IF FILE HAS BEEN LOADED-----------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::togglePlayPause()
+{
+	if (isPlaying)
+	{
+		dspFaust.stop();
+		isPlaying = false;
+	}
+	else
+	{
+		if (sequencer.isFileLoaded)
+			{
+				onStartMusic();
+				isPlaying = true;
+			}
+	}
+}
+
+// STOP MUSIC, RESET COUNTERS AND TIME-------------------------------------MOVE TO SEQUENCER
+void GaitSonificationAudioProcessor::stopMusic()
+{
+	if (isPlaying)
+	{
+		isPlaying = false;
+		dspFaust.stop();
+		sequencer.resetCounters();
+		sequencer.resetMidiPlayback();
+		midiTicksElapsed = 0;
+		timeElapsed_SONG = 0;
+		nextPulseTime = 0;
+		sequencer.musicPhase.resetPhase();
+	}
+}
+
+// CHECK FOR NEW MIDI EVENTS ON ALL TRACKS, RETURN TRUE IF NEW EVENT-------MOVE TO SEQUENCER
 bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 {
 	// CHECK NEW - Tracks 1, 2, 3 ,8 - PERC
@@ -283,6 +394,7 @@ bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 		sequencer.checkMIDIEventsDue(1, 1, false, ticksPerMS, midiTicksElapsed, info_M_MIDI
 			,audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
 	
+	// SNARE FLURRY - HANDLE IF ACTIVE
 	bool isNew_MIDI_PERC_SnareFlurry = false;
 	if (audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name == "Snare Flurry")
 	{
@@ -290,6 +402,7 @@ bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 		isNew_MIDI_PERC_SnareFlurry = sequencer.checkMIDIEventsDue(6, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
 			, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
 	}
+
 	return isNew_MIDI_M 
 		|| isNew_MIDI_C 
 		|| isNew_MIDI_R 
@@ -297,9 +410,10 @@ bool GaitSonificationAudioProcessor::fetch_MusicInfo_Mode_MIDI()
 		|| isNew_MIDI_PERC_SnareFlurry;
 }
 
-// MAP 
+// MAP MIDI INFO - MODIFY--------------------------------------------------MOVE TO SEQUENCER
 bool GaitSonificationAudioProcessor::mapMusicInfo_Mode_MIDI()
 {
+	// Will be rewritten in SEQUENCER
 	if (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name == "Foot Drum")
 	{
 		info_PERC_V_COMMON[0] = 9;
@@ -329,117 +443,7 @@ bool GaitSonificationAudioProcessor::mapMusicInfo_Mode_MIDI()
 	return true;
 }
 
-void GaitSonificationAudioProcessor::sensorCallback()
-{
-	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
-		if (gaitAnalysis.sensorInfo.isOnline[i])
-		gaitAnalysis.sensors_OSCReceivers[i].updateBuffers();						//UPDATE BUFFERS
-
-	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);	//COMPUTE MOVEMENT PARAM
-	if (pulsesElapsed % 3000 == 0)
-		gaitAnalysis.calibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
-	
-	mapVal = jlimit(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].minVal,
-					audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].maxVal,
-		getCurrentMappingValue());
-	if (isPlaying)
-	{
-	mapVal = isStandby ? 0 : mapVal;
-	if(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type == 1)
-	dspFaust.setParamValue(soniAddress_Primary.c_str(),mapVal); // Map Primary Sonification
-	/*if (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type == 2)
-	applySequencerSonifications();*/
-	}
-
-	if (imuRecord.isRecording_Sensor)
-		writeSensorValue_ToFile(gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[gaitAnalysis.gaitParams.activeGaitParam].currentValue);
-}
-
-void GaitSonificationAudioProcessor::applySequencerSonifications()
-{
-	switch (audioParams.activeAudioParam)
-	{
-		
-	}
-}
-
-float GaitSonificationAudioProcessor::getCurrentMappingValue()
-{
-	short activeGaitParam = gaitAnalysis.gaitParams.activeGaitParam;
-	String mp_Name = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].name;
-	float targetValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].target;
-	short desiredBehavior = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].desiredBehavior;
-	float range = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].maxVal
-		- gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].minVal;
-
-	float currentValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[activeGaitParam].currentValue;
-
-	float toleranceBW = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].toleranceBW;
-	float order_MappingFunc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].mappingOrder;
-	int numQuantLevels = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].quantLevels;
-	float smoothingFc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc;
-
-	if (mp_Name == "Trunk Projection Zone")							// STATIC PROJECTION
-	{
-		if (!soniMappingCompute.isSoniSource_Slider)
-			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
-			[(int)gaitAnalysis.gaitParams.gaitParam_ObjectArray[2].currentValue - 1];
-		else
-			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
-			[(int)(soniMappingCompute.soniVal_Slider * 5)];
-	}
-
-	if (isTargetDynamic)
-	{
-		targetValue = soniMappingCompute.getDynamicTarget(targetValue, soniMappingCompute.movementFunc_Order,
-															tempo,dynamicTarget_phaseTime);
-		dynamicTarget = targetValue;
-		toleranceBW = soniMappingCompute.movement_ErrorTolerance;
-	}
-	
-	float functionParamSet[6] = {order_MappingFunc, toleranceBW, numQuantLevels, smoothingFc, range, desiredBehavior};
-
-	if (!soniMappingCompute.isSoniSource_Slider)
-		return jlimit((float)0,(float)1,soniMappingCompute.computeParamValue(currentValue, targetValue, functionParamSet));
-	else
-		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue_SliderSource(soniMappingCompute.soniVal_Slider,targetValue, functionParamSet));
-}
-
-void GaitSonificationAudioProcessor::triggerClock(bool polarity)
-{
-	std::string masterClockAddress = faustStrings.baseName + faustStrings.MasterClock;
-	if (polarity == true)
-	{
-		// FAUST SET ON
-		sequencer.incrementPulseCounter();
-		dspFaust.setParamValue(masterClockAddress.c_str(), 1.0);
-		lastPulseTime = nextPulseTime;
-		nextPulseTime += midiTickIncrement;
-		clockTriggeredLast = true;
-
-		// RESET CALIBRATION OF DYNAMIC TARGET ON LAST BEAT // MERGE WITH EMPH PHASE?
-		if (isTargetDynamic && isCalibrated_dynTargetPhase && sequencer.barsElapsed_withinMeasure == 3)
-		{
-			isCalibrated_dynTargetPhase = false;
-		}
-
-		// RECALIBRATE DYNAMIC TARGET PHASE ON FIRST BEAT // MERGE WITH EMPH PHASE?
-		if (isTargetDynamic && !isCalibrated_dynTargetPhase && sequencer.barsElapsed_withinMeasure == 0)
-		{
-			dynamicTarget_phaseTime = 0;
-			isCalibrated_dynTargetPhase = true;
-		}
-	}
-	else
-	{
-		//FAUST SET OFF
-		dspFaust.setParamValue(masterClockAddress.c_str(), 0);
-		clockTriggeredLast = false;
-	}
-}
-
+//=========================================================================================================
 const String GaitSonificationAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -480,7 +484,6 @@ double GaitSonificationAudioProcessor::getTailLengthSeconds() const
 int GaitSonificationAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int GaitSonificationAudioProcessor::getCurrentProgram()
@@ -503,14 +506,10 @@ void GaitSonificationAudioProcessor::changeProgramName (int index, const String&
 
 void GaitSonificationAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
 }
 
 void GaitSonificationAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -542,21 +541,11 @@ void GaitSonificationAudioProcessor::processBlock (AudioBuffer<float>& buffer, M
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
     }
 }
 
@@ -572,15 +561,10 @@ AudioProcessorEditor* GaitSonificationAudioProcessor::createEditor()
 
 void GaitSonificationAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
 }
 
 void GaitSonificationAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
 }
 
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()

@@ -1,8 +1,5 @@
 #pragma once
-
 #define barsInMelMeasure 4
-#define melMeasuresInMovement 8
-#define barsInPercMeasure 1
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MusicInfoRead.h"
@@ -13,29 +10,26 @@
 class Sequencer
 {
 public:
-
 	Sequencer();
 	~Sequencer();
-	void initialize();
-	void resetCounters();
 	MusicPhaseCalc musicPhase;
-	Random randGen;
 	ScaleTonicTrans scaleTonicTrans;
-	short musicMode = 1;
-	bool isFileLoaded = false;
-	int currentScale = 1;
-	short currentMotif = 0;
-
-	void checkMeasureEnd();
-	void updateCurrentSelection();
-
-	int fetchNewRandomIndex(int range);
-
 	MusicInfoRead currentMusic;
 	MidiTrack_Drum* percObj;
-
-	int numActiveFiles = 1;
+	Random randGen;
 	
+	void resetCounters();
+	short musicMode = 1;
+	bool isFileLoaded = false;
+	short index_baseBeat = 0;
+	
+	// FETCH RANDOM INDEX IN INTEGER RANGE SPECIFIED
+	int fetchNewRandomIndex(int range)
+	{
+		return randGen.nextInt(range - 1);
+	}
+
+	// LOAD NEW MIDI SONG FILE
 	void loadNewFile_MIDI(String name)
 	{
 		currentMusic.loadMidiFile(name);
@@ -43,15 +37,13 @@ public:
 			isFileLoaded = true;
 	}
 
-	//Counters
-	int pulsesElapsed = 0;	int beatsElapsed; 	int barsElapsed;
-	int pulsesElapsedWithinBeat = 0;
-	int currentMelodicMeasure; 
-	int beatsElapsed_withinBar; int beatsElapsed_withinBar_Z1;
-	int barsElapsed_withinMeasure; int measuresElapsed_withinMovement;
-	int sixteenthCounter_withinMeasure; int sixteenthCounter_withinBar;
-	bool barJustCompleted = false;
+	// BEAT AND BAR COUNTERS
+	int pulsesElapsed = -1;	
+	int beatsElapsed = -1; 	
+	int barsElapsed = -1;
+	int beatsElapsed_withinBar = 0;
 
+	// SET RHYTHM TIMING MODE DEPENDING ON SONG NAME
 	void setTimingMode(String path)
 	{
 		if (path.contains("3by4"))
@@ -72,6 +64,7 @@ public:
 			isTripletMode = false;
 			is3by4Mode = false;
 		}
+		// SET SELECTED RHYTHM TO FIRST CHOICE WITH APPROPRIATE TIMING MODE
 		for (int i = 0; i < currentMusic.drum_numBase; i++)
 		{
 			if (currentMusic.drum_beatTypes[i] == timingMode)
@@ -81,18 +74,18 @@ public:
 			}
 		}
 	}
-	short timingMode = 0;
+
+	// TIMING MODE
 	int ticksPerMeasure = 15360;
+	short beatsInBar_TimingMode[10] = { 4, 4, 3 };
+	short timingMode = 0;
 	bool is3by4Mode = false;
 	bool isTripletMode = false;
-	bool barCompleted = false;
-	bool percMeasureCompleted = false;
-	bool melMeasureCompleted = false;
-	bool fileCompleted = false;
 
-	//Clock Increment
+	// INCREMENT BAR AND BEAT COUNTERS
 	void incrementPulseCounter();
-	short nextVoiceIndex[4] = { 0 };
+	
+	// RESET MIDI PLAYBACK (EVENT COUNTERS TO ZERO)
 	void resetMidiPlayback()
 	{
 		for (int i = 0; i < 4; i++)
@@ -102,70 +95,25 @@ public:
 		}
 	};
 	
+	// MIDI EVENT HANDLING
+	short nextVoiceIndex[4] = { 0 };
 	double nextEventTimeStamp[8] = { 0 };
 	bool checkMIDIEventsDue(int trackIndex, short numVoices, bool freqOnly,
 		double ticksPerMs, double ticksElapsed, float *trackInfoArray, String APName);
 
-	//File Switch
-	void openNextFile()
-	{
-		resetCounters();
-	}
-
-	bool lastBarCondition = false;
-	//Randomized Indices
-	short songStructureIndex = 0;
-	short index_baseBeat = 0;
-	short index_layer_Fixed = 0;
-	short index_layer_Random = 0;
-	short hh_Index_Fixed = 0;
-	short hh_Index_Random = 0;
-	short hhIndex;
-	short riffVelIndex;
-	short riffOctIndex;
-	short stabsIndex;
-	short arpVelIndex;
-	short arpDegIndex;
-	short crashIndex;
+	// UPDATE CHOSEN RHYTHM WITH NEXT
 	void nextRhythm(short musicMode) 
 	{
-		switch (musicMode)
-		{
-		case 1:
-			index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
-			break;
-		case 3:
-			index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
-			break;
-		}
+		index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
 	};
 
-	short scales[10][10] =
-	{
-		{-1,0,2,4,5,7,9,11,12,14},		//Major
-		{-2,0,2,3,5,7,8,10,12,14},		//Minor
-		{-2,0,1,3,5,7,8,10,12,13},		//Phrygian
-		{-2,0,2,3,5,7,9,10,12,14},		//Dorian
-		{-2,0,2,4,5,7,9,10,12,14},		//Mixolydian
-		{-1,0,2,4,6,7,9,11,12,14}		//Lydian
-	};
-
-	short chord_2nds[8] = {4,	3,	4,	3,	4,	4,	3,	7};
-	short chord_3rds[8] = {7,	7,	7,	7,	7,	7,	7,	12};
-	short chord_4ths[8] = {12,	12,	11,	10,	10,	14,	14,	19};
-
+	// SCALE AND TONIC TRANSFORMATIONS
 	short scaleID_ORIG = 0;
 	short scaleID_TRANS = 0;
 	short tonicOffset_ORIG = 0;
 	short tonicOffset_TRANS = 0;
 
-	int getMelodyMidiValue(short activeScale, short tonic, short octave, short activeNoteDegree, short lowerlim_MIDI, short upperlim_MIDI)
-	{
-		int activeInterval = scales[activeScale][activeNoteDegree];
-		int preliminaryMidiValue = tonic + 12 * octave + activeInterval;
-		return midiNoteLimit(preliminaryMidiValue,lowerlim_MIDI,upperlim_MIDI);
-	};
-
+	// OCTAVE LIMIT MIDI NOTE WITHIN TWO BOUNDS
 	int midiNoteLimit(short prelimValue, short lowerlim_MIDI, short upperlim_MIDI)
 	{
 		bool tooLow = lowerlim_MIDI > prelimValue; short tooLow_num = tooLow ? 1 : 0;
@@ -175,23 +123,9 @@ public:
 		return prelimValue + 12 * octavesUnder - 12 * octavesOver;
 	};
 
-	void fetchChordFreqs(int *chordMIDIArray, short tonic, short activeScale, short chordDegree, short chordType, short chordsOctave, short *lowerlims_MIDI, short *upperlims_MIDI)
-	{
-		int activeDegree = scales[activeScale][chordDegree];
-		short incs[3] = { 0 };
-		incs[0] = chord_2nds[chordType];
-		incs[1] = chord_3rds[chordType];
-		incs[2] = chord_4ths[chordType];
-
-		chordMIDIArray[0] = midiNoteLimit(tonic + 12 * chordsOctave + activeDegree, lowerlims_MIDI[0], upperlims_MIDI[0]);
-		for (int i = 1; i <=3; i++)
-			chordMIDIArray[i] = midiNoteLimit(chordMIDIArray[0] + incs[i - 1], lowerlims_MIDI[i], upperlims_MIDI[i]);
-		
-	};
-
+	// RESET PERC MIDI OBJECTS WHEN RHYTHM CHANGED
 	void resetPercMIDIOnChange(double midiTicksElapsed)
 	{
-		//int ticksPerMeasure = 16 * currentMusic.midi_ticksPerBeat;
 		midiTicksElapsed -= (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
 		currentMusic.baseBeats[index_baseBeat].Idx_nextEvent = 0;
 
@@ -205,6 +139,7 @@ public:
 		}
 	};
 
+	// COOK LOADED MIDI VELOCITY TO DSPFAUST COMPATIBLE
 	float cookMIDIVel(float midiVel, short trackIndex, String APName)
 	{
 		float output = 0;

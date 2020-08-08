@@ -33,7 +33,6 @@ public:
 	float timeTotal_Song = 0;									// Song Time Left	-> TO SEQUENCER
 
 	// Sensor Logging //										// MOVE TO OWN CLASS!!
-
 	imuRecording imuRecord;										// IMU Recording Class Object
 	
 	// Start sensor logging															
@@ -242,7 +241,6 @@ public:
 	double ticksPerMS = 0.0;									// MIDI Ticks per ms
 	double midiTicksElapsed = 0.0;								// #MIDI Ticks elapsed
 	int midiTickIncrement = 240;								// MIDI Tick Increment per 16th note
-
 	void initializeClocking();									// Basic Clocking Init
 	
 	// Check - 16th Note Pulse Due?? Only for timekeeping, no more clocking
@@ -349,7 +347,6 @@ public:
 	float dynamicTarget = 0;											// Dyn Target Value -> SoniMappingCompute
 	float dynamicTarget_phaseTime = 0;									// Dyn Target Phase Time -> SoniMappingCompute
 	bool isCalibrated_dynTargetPhase = false;							// is Dyn Target Calibrated? -> SoniMappingCompute
-	
 	bool isCalibrating = false;											// Is MP Calibrating? -> GaitAnalysis?
 
 	// UNWANTED // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

@@ -1,100 +1,46 @@
 #include "Sequencer.h"
 
+// CONSTRUCTOR - INITIALIZE
 Sequencer::Sequencer()
 {
-	initialize();
+	resetCounters();
 }
 
+// DESTRUCTOR
 Sequencer::~Sequencer()
 {}
 
-void Sequencer::initialize()
-{
-	resetCounters();
-	songStructureIndex = 0;
-}
-
+// RESET TIMING COUNTERS AND EVENT COUNTERS
 void Sequencer::resetCounters()
 {
 	pulsesElapsed = 0;
 	beatsElapsed = 0;
 	barsElapsed = 0;
-	currentMelodicMeasure = 1;
 	beatsElapsed_withinBar = 0;
-	barsElapsed_withinMeasure = 0;
-	measuresElapsed_withinMovement = 0;
-	sixteenthCounter_withinMeasure = 0;
-	sixteenthCounter_withinBar = 0;
 	currentMusic.baseBeats[index_baseBeat].Idx_nextEvent = 0;
 }
 
+// INCREMENT SIXTEENTH PULSE COUNTER, CHECK BEAT AND BAR COMPLETION
 void Sequencer::incrementPulseCounter()
 {
-	int beatsInBar = 4;
-	switch (timingMode)
-	{
-	case 0:
-	{
-		beatsInBar = 4;
-		pulsesElapsed++;
-		break;
-	}
-	case 1:
-	{
-		beatsInBar = 4;
-		pulsesElapsed += pulsesElapsed % 4 == 3 ? 2 : 1;
-		break;
-	}
-	case 2:
-	{
-		beatsInBar = 3;
-		pulsesElapsed += pulsesElapsed % 16 >= 11 ? 5 : 1;
-		break;
-	}
-	}
+	// CHECK BEATS IN BAR, INCREMENT SIXTEENTH PULSE COUNTER
+	int beatsInBar = beatsInBar_TimingMode[timingMode];
+	pulsesElapsed++;
 	
-	//Increment Global Counters
-	if ((pulsesElapsed - 1) % 4 == 0 && pulsesElapsed > 4)
-	beatsElapsed++;
-	if ((pulsesElapsed - 1) % 16 == 0 && pulsesElapsed > 16)
-	barsElapsed++;
-	if ((pulsesElapsed - 1) % 64 == 0 && pulsesElapsed > 64)
-	currentMelodicMeasure++;
-
-	//Increment Positional Counters
-	beatsElapsed_withinBar = beatsElapsed % beatsInBar;
-	barsElapsed_withinMeasure = barsElapsed % barsInMelMeasure;
-	lastBarCondition = (barsElapsed_withinMeasure == 3);
-
-	//Update Local Musical Time Counters
-	sixteenthCounter_withinMeasure = (pulsesElapsed - 1) % 64;
-	sixteenthCounter_withinBar = (pulsesElapsed - 1) % 16;
-
-	checkMeasureEnd();
-	updateCurrentSelection();
-}
-
-void Sequencer::checkMeasureEnd()
-{
-	//Update Booleans
-	barCompleted = ((pulsesElapsed - 1) % 16 == 0);
-	melMeasureCompleted = ((pulsesElapsed - 1) % 64 == 0);
-	percMeasureCompleted = ((pulsesElapsed - 1) % 128 == 0);
-	//fileCompleted = (currentMelodicMeasure == 25);
-	//currentMelodicMeasure = currentMelodicMeasure > 24 ? 1 : currentMelodicMeasure; // RESET
-}
-
-void Sequencer::updateCurrentSelection()
-{
-	if (barCompleted)
+	// CHECK IF BEAT COMPLETED
+	if ((pulsesElapsed - 1) % 4 == 0)
 	{
-		percMeasureCompleted = false;
+		beatsElapsed++;
+		beatsElapsed_withinBar = beatsElapsed % beatsInBar;
+	}
+
+	// CHECK IF BAR COMPLETED
+	if ((pulsesElapsed - 1) % 16 == 0)
+	{
+		barsElapsed++;
 		musicPhase.resetPhase();
 		musicPhase.isEvenBar = (barsElapsed % 2 == 1);
 	}
-
-	if (melMeasureCompleted)
-		melMeasureCompleted = false;
 }
 
 bool Sequencer::checkMIDIEventsDue(int trackIndex, short numVoices, bool freqOnly, 
@@ -268,9 +214,4 @@ bool Sequencer::checkMIDIEventsDue(int trackIndex, short numVoices, bool freqOnl
 		}
 	}
 	return true;
-}
-
-int Sequencer::fetchNewRandomIndex(int range)
-{
-	return randGen.nextInt(range - 1);
 }

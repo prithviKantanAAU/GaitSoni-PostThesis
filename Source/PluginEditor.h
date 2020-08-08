@@ -191,6 +191,7 @@ private:
 		addAndMakeVisible(ui_musiCon_gen.rhythm_SetNext);
 		addAndMakeVisible(ui_musiCon_gen.song_LoadFile);
 		addAndMakeVisible(ui_musiCon_gen.tempo_Tap);
+		addAndMakeVisible(ui_musiCon_gen.tempo_Slider);
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Prev);
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Now);
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Next);
@@ -297,12 +298,6 @@ private:
 	//Real time update of a) Song remaining time and b) Ring box positions
 	void updateTimeLabels()				
 	{
-		ui_musiCon_gen.song_BarBeat_Counter.setText(
-			"Music Clock: " +
-			String(processor.sequencer.currentMelodicMeasure) + " . " +
-			String(processor.sequencer.barsElapsed_withinMeasure + 1) + " . " +
-			String(processor.sequencer.beatsElapsed_withinBar + 1)
-			, dontSendNotification);
 		ui_musiCon_gen.song_TimeLeft.setText("Remaining Time: "
 			+ std::to_string((int)processor.timeLeft_Song) + " s", dontSendNotification);
 		ringVisualize.refreshBoxPositions(processor.sequencer.musicPhase.presentPhase_Rad);
@@ -437,6 +432,8 @@ private:
 		ui_musiCon_gen.toggleVisible(on);
 	};
 	void toggleSonificationControlsTab(bool on);
+	
+	// TOGGLE WITHIN TAB MUSIC CONTROLS - CHANNEL / RING VISUALIZER
 	void toggleMusicControls_Secondary(short tab)
 	{
 		bool isCorrectTab = (tab == 1);
@@ -461,6 +458,7 @@ private:
 		}
 	}
 	
+	// SWITCH UI TO NEW TAB
 	void switchTab(int currentTab);
 
 	// Configure Channel Sliders (First Time)
