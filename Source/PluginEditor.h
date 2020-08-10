@@ -299,7 +299,7 @@ private:
 	void updateTimeLabels()				
 	{
 		ui_musiCon_gen.song_TimeLeft.setText("Remaining Time: "
-			+ std::to_string((int)processor.timeLeft_Song) + " s", dontSendNotification);
+			+ std::to_string((int)processor.sequencer.timeLeft_Song) + " s", dontSendNotification);
 		ringVisualize.refreshBoxPositions(processor.sequencer.musicPhase.presentPhase_Rad);
 		refreshRingBoxPositions();
 	}
@@ -307,11 +307,11 @@ private:
 	//Change song progress bar colour
 	void handleProgressBarColour()		
 	{
-		if (processor.songProgress < 0.25)
+		if (processor.sequencer.songProgress < 0.25)
 			ui_musiCon_gen.song_Progress.setColour(ui_musiCon_gen.song_Progress.foregroundColourId, Colours::darkred);
-		else if (processor.songProgress < 0.75)
+		else if (processor.sequencer.songProgress < 0.75)
 			ui_musiCon_gen.song_Progress.setColour(ui_musiCon_gen.song_Progress.foregroundColourId, Colours::red);
-		if (processor.songProgress >= 0.75)
+		if (processor.sequencer.songProgress >= 0.75)
 			ui_musiCon_gen.song_Progress.setColour(ui_musiCon_gen.song_Progress.foregroundColourId, Colours::green);
 	}
 	
@@ -319,7 +319,7 @@ private:
 	void setRhythmSpecificVariants()	
 	{
 		for (int i = 0; i < 8; i++)
-			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
+			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
 	};
 	
 	//UPDATE RHYTHM NAME LABELS WHEN RHYTHM IS CHANGED
@@ -371,7 +371,7 @@ private:
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.mixerSettings
+			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sequencer.mixerSettings
 				.trackGain_Offsets[processor.sequencer.index_baseBeat][i]);
 		}
 	}
@@ -473,9 +473,9 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
-				processor.mixerSettings.compSettings[currentVariant - 1][activeTrack][i] = ui_musiCon_indiv.channel_Comp_Settings[i].getValue();
-				processor.applyCurrentVariantComp(activeTrack);
+				short currentVariant = processor.sequencer.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
+				processor.sequencer.mixerSettings.compSettings[currentVariant - 1][activeTrack][i] = ui_musiCon_indiv.channel_Comp_Settings[i].getValue();
+				processor.sequencer.applyCurrentVariantComp(activeTrack);
 			};
 		}
 
@@ -485,10 +485,10 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
-				processor.mixerSettings.eqSettings[currentVariant - 1][activeTrack][3 * ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i] =
+				short currentVariant = processor.sequencer.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
+				processor.sequencer.mixerSettings.eqSettings[currentVariant - 1][activeTrack][3 * ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i] =
 					ui_musiCon_indiv.channel_EQ_Settings[i].getValue();
-				processor.applyCurrentVariantEQ(activeTrack);
+				processor.sequencer.applyCurrentVariantEQ(activeTrack);
 			};
 		}
 	};
@@ -501,13 +501,13 @@ private:
 		float value = 0;
 		for (int i = 0; i < 4; i++)
 		{
-			currentVariant = processor.mixerSettings.currentVariant[currentRhythm][trackIdx] - 1;
-			value = processor.mixerSettings.compSettings[currentVariant][trackIdx][i];
+			currentVariant = processor.sequencer.mixerSettings.currentVariant[currentRhythm][trackIdx] - 1;
+			value = processor.sequencer.mixerSettings.compSettings[currentVariant][trackIdx][i];
 			ui_musiCon_indiv.channel_Comp_Settings[i].setValue(value);
 		}
 		for (int i = 0; i < 3; i++)
 		{
-			value = processor.mixerSettings.eqSettings[currentVariant][trackIdx][3* ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i];
+			value = processor.sequencer.mixerSettings.eqSettings[currentVariant][trackIdx][3* ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i];
 			ui_musiCon_indiv.channel_EQ_Settings[i].setValue(value);
 		}
 	}

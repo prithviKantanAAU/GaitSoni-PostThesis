@@ -2,10 +2,13 @@
 #define barsInMelMeasure 4
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "DspFaust.h"
 #include "MusicInfoRead.h"
 #include "MidiTrack_Drum.h"
 #include "MusicPhaseCalc.h"
 #include "ScaleTonicTrans.h"
+#include "mixerSettings.h"
+#include "FaustStrings.h"
 
 class Sequencer
 {
@@ -17,6 +20,9 @@ public:
 	MusicInfoRead currentMusic;
 	MidiTrack_Drum* percObj;
 	Random randGen;
+	DspFaust dspFaust;
+	MixerSettings mixerSettings;
+	FaustStrings faustStrings;
 	
 	void resetCounters();
 	short musicMode = 1;
@@ -81,6 +87,68 @@ public:
 	short timingMode = 0;
 	bool is3by4Mode = false;
 	bool isTripletMode = false;
+	float tapTempoCounter = 0;									
+	bool isPlaying = false;										
+	float timeElapsed_Song = 0;									
+	float timeLeft_Song = 0;									
+	float timeTotal_Song = 0;
+	float tempo = 120;
+	float timeElapsed_SONG = 0.0;								// PLAYBACK Time Elapsed
+	
+	double lastPulseTime = 0.0;									// Last 16th Pulse Time
+	double nextPulseTime = 0.0;									// Next 16th Pulse Time
+	double ticksPerMS = 0.0;									// MIDI Ticks per ms
+	double midiTicksElapsed = 0.0;								// #MIDI Ticks elapsed
+	int midiTickIncrement = 240;								// MIDI Tick Increment per 16th note
+	double songProgress = 0;									// Song Process Fraction -> Sequencer
+
+	//MIDI
+	short numTracks = 8;
+	float vels[4][8] = { 0.0 };
+	bool note_isOn[4][8] = { false };
+	int numVoices[8] = {1, 1, 1, 4, 1, 1, 4, 1};
+	bool isPitched[8] = 
+	{ 
+		false,												// KICK
+		false,												// SNARE
+		false,												// HH
+		true,												// CHORD MAIN
+		true,												// BASSLINE
+		true,												// MAIN MELODY
+		true,												// CHORD HIGH
+		false												// CRASH
+	};
+	int pitches[4][8] = { 0 };
+	bool isVel_FromSongFile[8] =
+	{
+		false,
+		false,
+		false,
+		false,
+		false,
+		true,
+		false,
+		false
+	};
+	int pitchesToMonitor[4][8] =
+	{
+		{36, 38, 42, 72, 60, 0, 84, 49},
+		{0,  0,  0,  73, 0,  0, 85, 0 },
+		{0,  0,  0,  74, 0,  0, 86, 0 },
+		{0,  0,  0,  75, 0,  0, 87, 0 }
+	};
+	short trackIdx_to_midiTrack_map[8] = { -1, -1, -1, 1, 2, 0, 1, -1 };
+
+	bool isNewEvents_ToHandle[8] = {false};
+	void check_Handle_New_MIDIEvents()
+	{
+		for (int i = 1; i <= numTracks; i++)
+			checkNew_MIDIEvents_SINGLE(i);
+		mapNew_MIDIEvents();
+	}
+	void checkNew_MIDIEvents_SINGLE(int trackIndex);
+	void mapNew_MIDIEvents();
+	bool infoMapped_CurrentPulse_MIDI = false;
 
 	// INCREMENT BAR AND BEAT COUNTERS
 	void incrementPulseCounter();
@@ -96,10 +164,8 @@ public:
 	};
 	
 	// MIDI EVENT HANDLING
-	short nextVoiceIndex[4] = { 0 };
+	short nextVoiceIndex[8] = { 0 };
 	double nextEventTimeStamp[8] = { 0 };
-	bool checkMIDIEventsDue(int trackIndex, short numVoices, bool freqOnly,
-		double ticksPerMs, double ticksElapsed, float *trackInfoArray, String APName);
 
 	// UPDATE CHOSEN RHYTHM WITH NEXT
 	void nextRhythm(short musicMode) 
@@ -112,6 +178,7 @@ public:
 	short scaleID_TRANS = 0;
 	short tonicOffset_ORIG = 0;
 	short tonicOffset_TRANS = 0;
+	String cue_AP_Name = "";
 
 	// OCTAVE LIMIT MIDI NOTE WITHIN TWO BOUNDS
 	int midiNoteLimit(short prelimValue, short lowerlim_MIDI, short upperlim_MIDI)
@@ -151,8 +218,62 @@ public:
 		else
 			output = fmin(6 + humanizeAmount + 3 * (midiVel - 96) / 32.0,9);
 
-		if (trackIndex == 0 && APName == "Mel Degree")
+		if (trackIdx_to_midiTrack_map[trackIndex] == 0 && APName == "Mel Degree")
 			output *= sqrt(fmax(0.3,fmin(1, musicPhase.emphFunc_Present)));
 		return output;
 	};
+
+	// ARRANGE PITCHES ASCENDING
+	void arrangePitches_Asc(int trackIndex)
+	{	
+	}
+
+
+	// DSPFAUST RELATED
+	//Start DSPFaust, Initialize Gain -> Sequencer
+	void onStartMusic()
+	{
+		dspFaust.start();
+		initializeTrackGains();
+	}
+	void initializeTrackGains();
+	void applyCurrentVariantGain(int trackIndex);
+	void setTrackGains(int trackIndex, float value);
+	void setTrackMutes(int trackIndex, int value);
+	void applyCurrentVariantEQ(int trackIndex);
+	void applyCurrentVariantComp(int trackIndex);
+	//Set Master Gain -> Sequencer		
+	void applyMasterGain(float value)
+	{
+		mixerSettings.masterGain = value;
+		std::string address = faustStrings.baseName + faustStrings.MasterVol;
+		dspFaust.setParamValue(address.c_str(), value);
+	}
+	void switchInstVariant(int trackIndex, int newVariant);
+	void setFilename(String name);
+	bool handleTapTempoPress();
+	void togglePlayPause();
+	void stopMusic();
+	bool fetch_MusicInfo_Mode_MIDI();
+	bool mapMusicInfo_Mode_MIDI();
+	// Song Completion Fraction -> Sequencer
+	bool getSongProgress()
+	{
+		switch (musicMode)										// Depends on Music Mode
+		{
+		case 1:
+			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
+			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
+			break;
+		case 2:
+			songProgress = pulsesElapsed / 1536.0;
+			timeLeft_Song = timeTotal_Song * (1 - songProgress);
+			break;
+		case 3:
+			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
+			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
+			break;
+		}
+		return songProgress >= 1 ? true : false;
+	}
 };

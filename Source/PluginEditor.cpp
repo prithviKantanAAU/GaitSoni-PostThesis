@@ -50,8 +50,8 @@ void GaitSonificationAudioProcessorEditor::sensorConfig_initializeControls()
 
 		ui_sensorCon.BiasComp[i].onClick = [this, i]
 		{
-			if (processor.isPlaying)
-				processor.stopMusic();
+			if (processor.sequencer.isPlaying)
+				processor.sequencer.stopMusic();
 
 			if (!processor.gaitAnalysis.sensors_OSCReceivers[i].isBiasComp_ON)
 			{
@@ -68,7 +68,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Song Play Pause
 	ui_musiCon_gen.song_PlayPause.onClick = [this]
 	{
-		processor.togglePlayPause();
+		processor.sequencer.togglePlayPause();
 	};
 
 	// Song Progress Bar
@@ -79,13 +79,13 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Song Stop
 	ui_musiCon_gen.song_Stop.onClick = [this]
 	{
-		processor.stopMusic();
+		processor.sequencer.stopMusic();
 	};
 
 	// Tap Tempo
 	ui_musiCon_gen.tempo_Tap.onClick = [this]
 	{
-		processor.handleTapTempoPress();
+		if(processor.sequencer.handleTapTempoPress()) processor.setTempo(processor.sequencer.tempo);
 		ui_musiCon_gen.tempo_Slider.setValue(processor.tempo);
 	};
 
@@ -106,10 +106,10 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 				processor.sequencer.setTimingMode(filePath);
 				processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 				setRhythmSpecificVariants();
-				processor.initializeTrackGains();
+				processor.sequencer.initializeTrackGains();
 				setGainSliders();
 			}
-			processor.setFilename(filePath);
+			processor.sequencer.setFilename(filePath);
 		}
 		updateMusicControlValues();
 		refreshBeatLabels();					// Based on song specifications
@@ -119,9 +119,9 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	ui_musiCon_gen.rhythm_SetNext.onClick = [this]
 	{
 		processor.sequencer.nextRhythm(processor.musicMode);
-		processor.sequencer.resetPercMIDIOnChange(processor.midiTicksElapsed);
+		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
 		setRhythmSpecificVariants();
-		processor.initializeTrackGains();
+		processor.sequencer.initializeTrackGains();
 		setGainSliders();
 		refreshBeatLabels();
 		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
@@ -137,7 +137,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Master gain slider
 	ui_musiCon_gen.song_master_Gain.onValueChange = [this]
 	{
-		processor.applyMasterGain(ui_musiCon_gen.song_master_Gain.getValue());
+		processor.sequencer.applyMasterGain(ui_musiCon_gen.song_master_Gain.getValue());
 	};
 	
 	// Music Mode
@@ -146,7 +146,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Master EQ Set Band 1 F
 	ui_musiCon_gen.song_master_EQ_B1_F.onValueChange = [this]
 	{
-		processor.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_F.c_str(),
+		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_F.c_str(),
 			ui_musiCon_gen.song_master_EQ_B1_F.getValue());
 		ui_musiCon_gen.song_master_EQ_B1_F_Lab.setText(String(ui_musiCon_gen.song_master_EQ_B1_F.getValue(), 0), dontSendNotification);
 	};
@@ -154,30 +154,30 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Master EQ Set Band 2 F
 	ui_musiCon_gen.song_master_EQ_B2_F.onValueChange = [this]
 	{
-		processor.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_F.c_str(), ui_musiCon_gen.song_master_EQ_B2_F.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_F.c_str(), ui_musiCon_gen.song_master_EQ_B2_F.getValue());
 		ui_musiCon_gen.song_master_EQ_B2_F_Lab.setText(String(ui_musiCon_gen.song_master_EQ_B2_F.getValue(), 0), dontSendNotification);
 	};
 
 	// Master EQ Set Band 1 G
 	ui_musiCon_gen.song_master_EQ_B1_G.onValueChange = [this]
 	{
-		processor.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B1_G.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B1_G.getValue());
 	};
 
 	// Master EQ Set Band 2 G
 	ui_musiCon_gen.song_master_EQ_B2_G.onValueChange = [this]
 	{
-		processor.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B2_G.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B2_G.getValue());
 	};
 
 	for (int i = 0; i < 8; i++)
 	{
 		// Instrument Variant Names - Populate
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.mixerSettings.varNames[i][0], 1);
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.mixerSettings.varNames[i][1], 2);
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.mixerSettings.varNames[i][2], 3);
+		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][0], 1);
+		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][1], 2);
+		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][2], 3);
 		ui_musiCon_gen.inst_Variant[i].addListener(this);
-		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
+		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
 		ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
 		ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 
@@ -190,7 +190,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		// Track Gain Offset
 		ui_musiCon_gen.song_track_GainOffset[i].onValueChange = [this,i]
 		{
-			processor.setTrackGains(i, ui_musiCon_gen.song_track_GainOffset[i].getValue());
+			processor.sequencer.setTrackGains(i, ui_musiCon_gen.song_track_GainOffset[i].getValue());
 			ui_musiCon_gen.song_track_GainOffset_Lab[i].setText(String(ui_musiCon_gen.song_track_GainOffset[i].getValue(), 1), dontSendNotification);
 		};		
 	}
@@ -438,7 +438,7 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	{
 		if (box == &ui_musiCon_gen.inst_Variant[i])
 		{
-			processor.switchInstVariant(i, ui_musiCon_gen.inst_Variant[i].getSelectedId());
+			processor.sequencer.switchInstVariant(i, ui_musiCon_gen.inst_Variant[i].getSelectedId());
 			channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
 		}
 	}
@@ -584,9 +584,9 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			processor.sequencer.setTimingMode(path);
 			processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 			setRhythmSpecificVariants();
-			processor.initializeTrackGains();
+			processor.sequencer.initializeTrackGains();
 			setGainSliders();		
-			processor.setFilename(path);
+			processor.sequencer.setFilename(path);
 			updateMusicControlValues();
 			refreshBeatLabels();
 		}
@@ -707,7 +707,7 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 		ui_dyn.dynTargetLabel.setText("Target: " +
 			String(processor.dynamicTarget,2), dontSendNotification);
 	}
-	if (currentTab == 1 && processor.isPlaying)		updateTimeLabels();
+	if (currentTab == 1 && processor.sequencer.isPlaying)		updateTimeLabels();
 
 	// UPDATE STS TEXT
 	if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
@@ -879,7 +879,7 @@ void GaitSonificationAudioProcessorEditor::calibrateTarget_handlePress()
 		return;
 	if (!processor.isCalibrating)
 	{
-		processor.stopMusic();
+		processor.sequencer.stopMusic();
 		processor.isCalibrating = true;
 		processor.gaitAnalysis.calibrationValues_Temp[processor.gaitAnalysis.gaitParams.activeGaitParam] = 0.0;
 		processor.gaitAnalysis.isParamCalibrated[processor.gaitAnalysis.gaitParams.activeGaitParam] = false;

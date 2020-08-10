@@ -4,9 +4,7 @@
 #include "OSC_Class.h"
 #include "imuRecording.h"
 #include "GaitAnalysis.h"
-#include "DspFaust.h"
 #include "Sequencer.h"
-#include "mixerSettings.h"
 #include "FaustStrings.h"
 #include "SoniMappingCompute.h"
 #include "audioParamInfo.h"
@@ -15,24 +13,14 @@
 class GaitSonificationAudioProcessor : public AudioProcessor, public HighResolutionTimer
 {
 public:
-	//==============================================================================
 	GaitSonificationAudioProcessor();
 	~GaitSonificationAudioProcessor();
 
 	int globalTimeMs = 0;										// Time since program start (milliseconds)
 	// Playback Controls //
-	short musicMode = 1;										// Music Playback Mode 
-																// 1 = MIDI // 2 = CMR // 3 = INBUILT
-	void togglePlayPause();										// Playback Toggle	-> TO SEQUENCER
-	void stopMusic();											// Stop Music		-> TO SEQUENCER
-	void handleTapTempoPress();									// Tap Tempo Press  -> TO SEQUENCER										
-	float tapTempoCounter = 0;									// Tap Tempo Counter-> TO SEQUENCER
-	bool isPlaying = false;										// Whether Playing  -> TO SEQUENCER
-	float timeElapsed_Song = 0;									// Song Time Elapsed-> TO SEQUENCER
-	float timeLeft_Song = 0;									// Song Time Left   -> TO SEQUENCER
-	float timeTotal_Song = 0;									// Song Time Left	-> TO SEQUENCER
+	short musicMode = 1;										// Music Playback Mode // 1 = MIDI // 3 = INBUILT
 
-	// Sensor Logging //										// MOVE TO OWN CLASS!!
+	// Sensor Logging //
 	imuRecording imuRecord;										// IMU Recording Class Object
 	
 	// Start sensor logging															
@@ -90,7 +78,7 @@ public:
 		// CONSTANT COLUMNS
 		imuRecord.currentRow_FullLog_FLOAT[0] = (float)exerciseMode_Present;
 		imuRecord.currentRow_FullLog_FLOAT[1] = imuRecord.timeElapsed_REC;
-		imuRecord.currentRow_FullLog_FLOAT[2] = isPlaying ? 1.0 : 0.0;
+		imuRecord.currentRow_FullLog_FLOAT[2] = sequencer.isPlaying ? 1.0 : 0.0;
 		imuRecord.currentRow_FullLog_FLOAT[3] = isStandby ? 1.0 : 0.0;
 		imuRecord.currentRow_FullLog_STRING[0] = gaitAnalysis.gaitParams.gaitParam_ObjectArray
 			[gaitAnalysis.gaitParams.activeGaitParam].name;
@@ -153,7 +141,6 @@ public:
 	}
 
 	// Gait Analysis //
-
 	int pulseInterval_sensorCallback = 10;						// Pulse Interval - Sensor -> GaitAnalysis								
 	GaitAnalysis gaitAnalysis;									// MP Computation Object
 	void sensorCallback();										// Sensor Callback
@@ -164,7 +151,7 @@ public:
 		float resetValue = 0;
 		if (type == 1)											// MP Sonification Param
 		{
-			dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
+			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
 			audioParams.activeAudioParam = index - 1;
 			soniAddress_Primary = audioParams.audioParam_ObjectArray
 				[audioParams.activeAudioParam].faustAddress.toStdString();
@@ -172,7 +159,7 @@ public:
 		}
 		if (type == 2)											// Music Cue Param
 		{
-			dspFaust.setParamValue(soniAddress_Cue.c_str(), resetValue);
+			sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), resetValue);
 			audioParams.activeCueParam = index - 1;
 			soniAddress_Cue = audioParams.audioParam_ObjectArray
 				[audioParams.activeCueParam].faustAddress.toStdString();
@@ -181,7 +168,6 @@ public:
 	void applySequencerSonifications();							// Apply Sequencer-based Sonifications
 
 	// Audio Parameter Calculation 
-
 	bool isStandby = false;										// Standby Mode - No MP Sonification
 	audioParamInfo audioParams;									// Audio Param Info
 	float getCurrentMappingValue();								// Get Present Soni Mapping Value - Sensor
@@ -190,28 +176,8 @@ public:
 
 	// Music Clocking
 
-	// Song Completion Fraction -> Sequencer
-	bool getSongProgress()										
-	{
-		switch (musicMode)										// Depends on Music Mode
-		{
-		case 1:
-			songProgress = midiTicksElapsed / sequencer.currentMusic.finalTimeStamp;
-			timeLeft_Song = (sequencer.currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		case 2:
-			songProgress = sequencer.pulsesElapsed / 1536.0;
-			timeLeft_Song = timeTotal_Song * (1 - songProgress);
-			break;
-		case 3:
-			songProgress = midiTicksElapsed / sequencer.currentMusic.finalTimeStamp;
-			timeLeft_Song = (sequencer.currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		}
-		return songProgress >= 1 ? true : false;
-	}
 	void hiResTimerCallback();									// Precise Callback for All Operations
-	double songProgress = 0;									// Song Process Fraction -> Sequencer
+	int pulsesElapsed = 0;										// Hi Res Clock Pulses Elapsed
 	float tempo = 0;											// Music Tempo -> Sequencer
 	
 	// Sets music tempo - Outreach: Sequencer, DspFaust, GaitAnalysis
@@ -220,34 +186,26 @@ public:
 		tempo = value;
 		double intervalMs = 60000 / tempo * 0.25;
 		double intervalMultiplier = sequencer.isTripletMode ? 4.0 / 3.0 : 1.0;
-		midiTickIncrement = sequencer.isTripletMode ? 320 : 240;
-		ticksPerMS = 960 / (4 * intervalMs) * intervalMultiplier;
+		sequencer.midiTickIncrement = sequencer.isTripletMode ? 320 : 240;
+		sequencer.ticksPerMS = 960 / (4 * intervalMs) * intervalMultiplier;
 		interPulseIntervalMs = intervalMs * intervalMultiplier;
-		dspFaust.setParamValue(faustStrings.Tempo.c_str(),value);
+		sequencer.dspFaust.setParamValue(faustStrings.Tempo.c_str(),value);
 		gaitAnalysis.beatInterval = 60/value;
 		sequencer.musicPhase.setPhaseInc(tempo, 1000);
 		if (isTargetDynamic)
 			isCalibrated_dynTargetPhase = false;
-		if (musicMode == 2)
-		timeTotal_Song = 24 * 4 * 4 * 4 * intervalMs / 1000;
 	};
-
 	double interPulseIntervalMs = 0.0;							// Tempo Dependent - Expected Pulse Time INC
-	float timeElapsed_SONG = 0.0;								// PLAYBACK Time Elapsed
-	int pulsesElapsed = 0;										// Hi Res Clock Pulses Elapsed
-	double lastPulseTime = 0.0;									// Last 16th Pulse Time
-	double nextPulseTime = 0.0;									// Next 16th Pulse Time
+	
 	bool clockTriggeredLast = false;							// Is Clock Presently in Triggered State?
-	double ticksPerMS = 0.0;									// MIDI Ticks per ms
-	double midiTicksElapsed = 0.0;								// #MIDI Ticks elapsed
-	int midiTickIncrement = 240;								// MIDI Tick Increment per 16th note
+	
 	void initializeClocking();									// Basic Clocking Init
 	
 	// Check - 16th Note Pulse Due?? Only for timekeeping, no more clocking
 	bool checkIfPulseDue()										
 	{
-		double timeMeasure = midiTicksElapsed;
-		if (timeMeasure >= nextPulseTime)
+		double timeMeasure = sequencer.midiTicksElapsed;
+		if (timeMeasure >= sequencer.nextPulseTime)
 			return true;
 		else return false;
 	};
@@ -256,45 +214,11 @@ public:
 
 	// Music Mapping
 
-	MixerSettings mixerSettings;								//Mixer Settings -> Sequencer
-	DspFaust dspFaust;											//DSPFaust Obj -> Sequencer
-	FaustStrings faustStrings;									// Faust Address Strings -> To Sequencer?
-	
-	//Start DSPFaust, Initialize Gain -> Sequencer
-	void onStartMusic()										
-	{
-		dspFaust.start();
-		initializeTrackGains();
-	}
-	void setFilename(String name);								//Load File, Start Playback
-	void initializeTrackGains();								//Variants, Mutes, Master EQ -> Sequencer
-	void setTrackGains(int trackIndex, float value);			//Set Variant Gain Offset, Put in DSPFaust -> Sequencer
-	void setTrackMutes(int trackIndex, int value);				//Mute Track -> Sequencer
+	FaustStrings faustStrings;									// Faust Address Strings
 
 	// Music Sequencing
 
 	Sequencer sequencer;										//Sequencer Object
-
-	/////////////////////////////////////////////// TO SEQUENCER /////////////////////////////////////////////////
-
-	//COMMON
-	float info_PERC_V_COMMON[4] = { 0.0 };
-	float info_C_COMMON[3] = { 0.0 };
-	float info_CS_COMMON[3] = { 0.0 };
-	float info_C_V_COMMON[4] = { 0.0 };
-	float info_CS_V_COMMON = 0.0;
-
-	//MIDI
-	float info_M_MIDI[2] = { 0.0 };
-	float info_R_MIDI[2] = { 0.0 };
-	float info_C_MIDI[8] = { 0.0 };
-	float info_CS_MIDI[8] = { 0.0 };
-
-	bool fetch_MusicInfo_Mode_MIDI();
-	bool infoMapped_CurrentPulse_MIDI = false;
-	bool mapMusicInfo_Mode_MIDI();
-
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	//Toggle Mute Status -> Sequencer
 	void toggleTrackMuteManual(bool muted, short trackNum)				
@@ -303,17 +227,6 @@ public:
 		muteValuesManual[trackNum] = val;
 	}
 	short muteValuesManual[8] = { 0 };									//Track Mute Status For DspFaust -> Sequencer
-	//Set Master Gain -> Sequencer		
-	void applyMasterGain(float value)
-	{
-		mixerSettings.masterGain = value;
-		std::string address = faustStrings.baseName + faustStrings.MasterVol;
-		dspFaust.setParamValue(address.c_str(), value);
-	}
-	void switchInstVariant(int trackIndex, int newVariant);				//Set New Variant -> Sequencer
-	void applyCurrentVariantEQ(int trackIndex);							//Apply Variant EQ -> Sequencer
-	void applyCurrentVariantComp(int trackIndex);						//Apply Variant Comp -> Sequencer
-	void applyCurrentVariantGain(int trackIndex);						//Apply Variant Gain -> Sequencer
 
 	//Arrange Note KeyNumbers Asc -> Sequencer
 	void arrangeChordNotes_Asc(float *infoArray, int totalLength)		
@@ -370,8 +283,6 @@ public:
 	void changeProgramName(int index, const String& newName) override;
 	void getStateInformation(MemoryBlock& destData) override;
 	void setStateInformation(const void* data, int sizeInBytes) override;
-
 private:
-	//==============================================================================
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GaitSonificationAudioProcessor)
 };

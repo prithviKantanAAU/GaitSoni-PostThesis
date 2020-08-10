@@ -25,11 +25,6 @@ public:
 	int transform_T1S1_TO_T2S2(int noteNum, short tonic_Offset1,short scaleID1,
 		short tonic_Offset2, short scaleID2, short trackIndex, String APName, float emphFunc)
 	{
-		/*if (scaleID1 == scaleID2)
-		{
-			return noteNum + (tonic_Offset2 - tonic_Offset1);
-		}*/
-
 		short octaveNum = noteNum / 12;
 		short noteNum_NORM = noteNum - octaveNum * 12 - tonic_Offset1;
 
