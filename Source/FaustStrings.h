@@ -104,6 +104,24 @@ public:
 		"Track_1","Track_2","Track_3","Track_4","Track_5","Track_6","Track_7","Track_8"
 	};
 
+	std::string getMusicAddress(int trackNum, String pOrV, int voiceNum)
+	{
+		std::string attribute = "";
+		if (pOrV == "P") attribute = "Pitch";
+		if (pOrV == "V") attribute = "Velocity";
+		std::string address = baseName + "Mapping_Tabs/Music_Info/" + attribute + "/T"
+			+ std::to_string(trackNum) + "_" + pOrV.toStdString() + "_" + std::to_string(voiceNum);
+
+		return address;
+	}
+
+	std::string getMusicAddress_Pitch(int presentTrack)
+	{
+		std::string address = "";
+
+		return address;
+	}
+
 	std::string getTrackGainString(int trackIndex)
 	{
 		return baseName + trackGain_Base + trackGains[trackIndex];

@@ -70,23 +70,18 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 // MUSIC CLOCK CALLBACK - EVERY 1 MS
 void GaitSonificationAudioProcessor::clockCallback()
 {
-	// INITIALIZE MEASURED TIME
-	double timeMeasure = sequencer.midiTicksElapsed;
-
 	// IF CLOCK PULSE DUE, TRIGGER CLOCK
 	if (checkIfPulseDue())
 		triggerClock(true);
 
-	// IF NEW MIDI MESSAGE ON ANY TRACK, THEN MAP				//FETCHING FUNCTION TO SEQUENCER ?
-	/*if (sequencer.fetch_MusicInfo_Mode_MIDI())
-		sequencer.infoMapped_CurrentPulse_MIDI = sequencer.mapMusicInfo_Mode_MIDI();*/
+	// CHECK FOR NEW MIDI EVENTS, HANDLE IF NEEDED
 	sequencer.check_Handle_New_MIDIEvents();
 
 	// UPDATE MUSIC PHASE
 	sequencer.musicPhase.updatePhase();
 
-	// ADD CUEING MAPPING
-	sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
+	// ADD CUEING MAPPING --------------------- UNCOMMENT WHEN MUSIC PLAYBACK DEBUGGED
+	//sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
 }
 
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS

@@ -239,42 +239,7 @@ bool Sequencer::fetch_MusicInfo_Mode_MIDI()
 // MAP MIDI INFO - MODIFY--------------------------------------------------MOVE TO SEQUENCER
 bool Sequencer::mapMusicInfo_Mode_MIDI()
 {
-	// Will be rewritten in SEQUENCER
-	//if (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name == "Foot Drum")
-	//{
-	//	info_PERC_V_COMMON[0] = 9;
-	//	info_PERC_V_COMMON[1] = 9;
-	//}
-	//else {
-	//	dspFaust.setParamValue(faustStrings.KickV.c_str(), info_PERC_V_COMMON[0]); //REMOVE
-	//	dspFaust.setParamValue(faustStrings.SnareV.c_str(), info_PERC_V_COMMON[1]); //REMOVE
-	//}
-	//dspFaust.setParamValue(faustStrings.hhV.c_str(), info_PERC_V_COMMON[2]); //REMOVE
-	//dspFaust.setParamValue(faustStrings.crashV.c_str(), info_PERC_V_COMMON[3]); //REMOVE
-
-	//dspFaust.setParamValue(faustStrings.CF1.c_str(), sequencer.midiNoteLimit(info_C_MIDI[0], mixerSettings.chordNote_Mins[0], mixerSettings.chordNote_Maxs[0]));
-	//dspFaust.setParamValue(faustStrings.CF2.c_str(), sequencer.midiNoteLimit(info_C_MIDI[1], mixerSettings.chordNote_Mins[1], mixerSettings.chordNote_Maxs[1]));
-	//dspFaust.setParamValue(faustStrings.CF3.c_str(), sequencer.midiNoteLimit(info_C_MIDI[2], mixerSettings.chordNote_Mins[2], mixerSettings.chordNote_Maxs[2]));
-	//dspFaust.setParamValue(faustStrings.CF4.c_str(), sequencer.midiNoteLimit(info_C_MIDI[3], mixerSettings.chordNote_Mins[3], mixerSettings.chordNote_Maxs[3]));
-
-	//dspFaust.setParamValue(faustStrings.CSF1.c_str(), sequencer.midiNoteLimit(info_C_MIDI[0], mixerSettings.chordStab_Mins[0], mixerSettings.chordStab_Mins[0]));
-	//dspFaust.setParamValue(faustStrings.CSF2.c_str(), sequencer.midiNoteLimit(info_C_MIDI[1], mixerSettings.chordStab_Mins[1], mixerSettings.chordStab_Mins[1]));
-	//dspFaust.setParamValue(faustStrings.CSF3.c_str(), sequencer.midiNoteLimit(info_C_MIDI[2], mixerSettings.chordStab_Mins[2], mixerSettings.chordStab_Mins[2]));
-	//dspFaust.setParamValue(faustStrings.CSF4.c_str(), sequencer.midiNoteLimit(info_C_MIDI[3], mixerSettings.chordStab_Mins[3], mixerSettings.chordStab_Mins[3]));
-
-	//dspFaust.setParamValue(faustStrings.RF.c_str(), info_R_MIDI[0]);
-	//dspFaust.setParamValue(faustStrings.MV.c_str(), info_M_MIDI[1]);
-	//dspFaust.setParamValue(faustStrings.MF.c_str(), info_M_MIDI[0]);
-
 	return true;
-}
-
-// CHECK AND HANDLE NEW MIDI EVENTS FOR ALL TRACKS
-void Sequencer::check_Handle_New_MIDIEvents()
-{
-	for (int i = 1; i <= numTracks; i++)
-		checkNew_MIDIEvents_SINGLE(i);
-	mapNew_MIDIEvents();
 }
 
 // CHECK NEW MIDI EVENTS FOR SINGLE TRACK
@@ -289,18 +254,12 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	double timeStamp_IntervalEnd = midiTicksElapsed;
 
 	// DEFINE TICK INTERVAL FOR NEW LOOPED EVENTS
-	double timeStamp_IntervalStart_MOD = timeStamp_IntervalStart;
-	double timeStamp_IntervalEnd_MOD = timeStamp_IntervalEnd;
+	double timeStamp_IntervalEnd_MOD = timeStamp_IntervalEnd
+		- (int)((int)timeStamp_IntervalEnd / ticksPerMeasure) * ticksPerMeasure;
+	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - ticksPerMS;
 
 	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
 	ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
-
-	// IF VEL LOOPED, ADJUST TICK INTERVALS TO BE WITHIN BAR LENGTH (SUBTRACT ELAPSED BARS FROM TOTAL TICKS)
-	if (!isVel_FromSongFile[trackIndex])
-	{
-		timeStamp_IntervalEnd_MOD -= (int)((int)timeStamp_IntervalEnd / ticksPerMeasure) * ticksPerMeasure;
-		timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd - ticksPerMS;
-	}
 
 	// INITIALIZE EVENT INDICES
 	int nextEventIndex = 0;
@@ -425,6 +384,8 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 			eventTimeStamp = percObj->infoMatrix[i][3];
 			if (eventTimeStamp >= timeStamp_IntervalStart_MOD && eventTimeStamp < timeStamp_IntervalEnd_MOD)
 				numEvents_toHandle++;
+			if (eventTimeStamp >= timeStamp_IntervalEnd_MOD)
+				break;
 		}
 
 		// RETURN IF ZERO EVENTS TO HANDLE - EXIT FUNCTION
@@ -435,7 +396,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		}
 		else isNewEvents_ToHandle[trackIndex] = true;
 
-		// IF PERC TRACK EVENTS TO HANDLE, THEN HANDLE THEM
+		// IF LOOPED EVENTS TO HANDLE, THEN HANDLE THEM
 		if (isNewEvents_ToHandle[trackIndex] == true)
 		{
 			velUncooked = 0;
@@ -451,7 +412,11 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						if (pitchesToMonitor[i][trackIndex] != 0)
 						{
 							if (pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[j][1])
+							{
 								vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
+								percObj->incrementEventsHandled();				// INCREMENT EVENT COUNT
+							}
+							
 						}
 					}
 				}
@@ -464,12 +429,13 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						if (pitchesToMonitor[i][trackIndex] != 0)
 						{
 							if (pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[j][1])
+							{
 								vels[i][trackIndex] = 0;
+								percObj->incrementEventsHandled();				// INCREMENT EVENT COUNT
+							}
 						}
 					}
 				}
-
-				percObj->incrementEventsHandled();				// INCREMENT EVENT COUNT
 			}
 		}
 	}
@@ -477,26 +443,25 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 // MAP NEW MIDI EVENT FOR REQUIRED TRACKS
 void Sequencer::mapNew_MIDIEvents()
 {
+	// CYCLE THROUGH ALL TRACKS
 	for (int presentTrack = 1; presentTrack <= numTracks; presentTrack++)
 	{
+		std::string faustAddress = "";
+
+		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
 		{
-			for (int currentVoice = 1; currentVoice < numVoices[presentTrack - 1]; currentVoice++)
+			for (int currentVoice = 1; currentVoice <= numVoices[presentTrack - 1]; currentVoice++)
 			{
-				// WRITE DSPFAUST MAPPING CODE
 				// VELOCITY
-				if (!note_isOn[currentVoice - 1][presentTrack - 1])
-				{
-					// MAP VELOCITY AS ZERO
-				}
-				else
-				{
-					// MAP VELOCITY AS VALUE IN VELOCITY ARRAY
-				}
+				faustAddress = faustStrings.getMusicAddress(presentTrack, "V", currentVoice);
+				dspFaust.setParamValue(faustAddress.c_str(),vels[currentVoice - 1][presentTrack - 1]);
 				
 				// PITCH
 				if (isPitched[presentTrack - 1])
 				{
+					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
+					dspFaust.setParamValue(faustAddress.c_str(), pitches[currentVoice - 1][presentTrack - 1]);
 				}
 			}
 		}

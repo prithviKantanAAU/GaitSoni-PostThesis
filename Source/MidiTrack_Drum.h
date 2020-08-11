@@ -21,5 +21,10 @@ public:
 				infoMatrix[i][j] = 0;
 		}
 	}
-	int Idx_nextEvent = 0;			void incrementEventsHandled() { Idx_nextEvent = (Idx_nextEvent + 1)%(numEvents - 1); }
+	int Idx_nextEvent = 0;			
+	void incrementEventsHandled() 
+	{ 
+		Idx_nextEvent = (Idx_nextEvent + 1)%(numEvents - 1);
+		int a = 0;
+	}
 };
