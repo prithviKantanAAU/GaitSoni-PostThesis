@@ -18,6 +18,12 @@ public:
 				infoMatrix[i][j] = 0;
 		}
 	}
-	int Idx_nextEvent = 0;			void incrementEventsHandled() { Idx_nextEvent++; }
+	int Idx_nextEvent = 0;			
+	void incrementEventsHandled() 
+	{
+		Idx_nextEvent++; 
+		while (infoMatrix[Idx_nextEvent][0] == 0)
+			Idx_nextEvent++;
+	}
 };
 

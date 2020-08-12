@@ -223,8 +223,10 @@ public:
 	//Toggle Mute Status -> Sequencer
 	void toggleTrackMuteManual(bool muted, short trackNum)				
 	{
+		std::string address = sequencer.faustStrings.getTrackMuteString(trackNum);
 		int val = muted ? 1 : 0;
 		muteValuesManual[trackNum] = val;
+		sequencer.dspFaust.setParamValue(address.c_str(), val);
 	}
 	short muteValuesManual[8] = { 0 };									//Track Mute Status For DspFaust -> Sequencer
 

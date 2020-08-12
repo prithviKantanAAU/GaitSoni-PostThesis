@@ -21,6 +21,7 @@ GaitSonificationAudioProcessorEditor::GaitSonificationAudioProcessorEditor (Gait
 	//CONFIGURE CONTROLS, UPDATE PRESENT TAB
 	sensorConfig_initializeControls();
 	configureMusicControls();
+	channel_configureSliders();
 	init_RingVisualize();
 	configureSonificationControls();
 	configureRealTimeVisualizer();
@@ -106,7 +107,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 				processor.sequencer.setTimingMode(filePath);
 				processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 				setRhythmSpecificVariants();
-				processor.sequencer.initializeTrackGains();
+				processor.sequencer.initializeTracksForPlayback();
 				setGainSliders();
 			}
 			processor.sequencer.setFilename(filePath);
@@ -121,7 +122,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		processor.sequencer.nextRhythm(processor.musicMode);
 		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
 		setRhythmSpecificVariants();
-		processor.sequencer.initializeTrackGains();
+		processor.sequencer.initializeTracksForPlayback();
 		setGainSliders();
 		refreshBeatLabels();
 		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
@@ -135,6 +136,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	};
 
 	// Master gain slider
+	ui_musiCon_gen.song_master_Gain.setValue(processor.sequencer.mixerSettings.masterGain);
 	ui_musiCon_gen.song_master_Gain.onValueChange = [this]
 	{
 		processor.sequencer.applyMasterGain(ui_musiCon_gen.song_master_Gain.getValue());
@@ -584,7 +586,7 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			processor.sequencer.setTimingMode(path);
 			processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 			setRhythmSpecificVariants();
-			processor.sequencer.initializeTrackGains();
+			processor.sequencer.initializeTracksForPlayback();
 			setGainSliders();		
 			processor.sequencer.setFilename(path);
 			updateMusicControlValues();
@@ -698,7 +700,15 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	if (currentTab == 0)							sensorConfig_updateLabels();
 	if (previousTab != currentTab)					switchTab(currentTab);
 	previousTab = currentTab;
-	handleProgressBarColour();
+
+	// SONG PROGRESS BAR
+	if (currentTab == 1)
+	{
+		ui_musiCon_gen.song_Progress_Val = processor.sequencer.songProgress;
+		handleProgressBarColour();
+	}
+	
+
 	// IF SONIFICATION TAB, UPDATE UI IN REALTIME
 	if (currentTab == 2)
 	{

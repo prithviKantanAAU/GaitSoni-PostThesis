@@ -195,6 +195,8 @@ private:
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Prev);
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Now);
 		addAndMakeVisible(ui_musiCon_gen.rhythm_Next);
+		addAndMakeVisible(ui_musiCon_gen.song_master_Gain);
+		addAndMakeVisible(ui_musiCon_gen.song_master_Gain_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_EQ_B1_F);
 		addAndMakeVisible(ui_musiCon_gen.song_master_EQ_B1_F_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_EQ_B2_F);

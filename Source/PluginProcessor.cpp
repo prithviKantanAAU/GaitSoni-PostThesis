@@ -178,21 +178,12 @@ float GaitSonificationAudioProcessor::getCurrentMappingValue()
 // TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE
 void GaitSonificationAudioProcessor::triggerClock(bool polarity)
 {
-	std::string masterClockAddress = faustStrings.baseName + faustStrings.MasterClock;
 	if (polarity == true)
 	{
 		// FAUST SET ON
 		sequencer.incrementPulseCounter();
-		sequencer.dspFaust.setParamValue(masterClockAddress.c_str(), 1.0);
 		sequencer.lastPulseTime = sequencer.nextPulseTime;
 		sequencer.nextPulseTime += sequencer.midiTickIncrement;
-		clockTriggeredLast = true;
-	}
-	else
-	{
-		//FAUST SET OFF
-		sequencer.dspFaust.setParamValue(masterClockAddress.c_str(), 0);
-		clockTriggeredLast = false;
 	}
 }
 

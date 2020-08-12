@@ -98,7 +98,7 @@ public:
 	double lastPulseTime = 0.0;									// Last 16th Pulse Time
 	double nextPulseTime = 0.0;									// Next 16th Pulse Time
 	double ticksPerMS = 0.0;									// MIDI Ticks per ms
-	double midiTicksElapsed = 0.0;								// #MIDI Ticks elapsed
+	long double midiTicksElapsed = 0.0;								// #MIDI Ticks elapsed
 	int midiTickIncrement = 240;								// MIDI Tick Increment per 16th note
 	double songProgress = 0;									// Song Process Fraction -> Sequencer
 
@@ -234,9 +234,9 @@ public:
 	void onStartMusic()
 	{
 		dspFaust.start();
-		initializeTrackGains();
+		initializeTracksForPlayback();
 	}
-	void initializeTrackGains();
+	void initializeTracksForPlayback();
 	void applyCurrentVariantGain(int trackIndex);
 	void setTrackGains(int trackIndex, float value);
 	void setTrackMutes(int trackIndex, int value);
@@ -254,8 +254,6 @@ public:
 	bool handleTapTempoPress();
 	void togglePlayPause();
 	void stopMusic();
-	bool fetch_MusicInfo_Mode_MIDI();
-	bool mapMusicInfo_Mode_MIDI();
 	// Song Completion Fraction -> Sequencer
 	bool getSongProgress()
 	{

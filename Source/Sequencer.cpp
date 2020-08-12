@@ -43,20 +43,21 @@ void Sequencer::incrementPulseCounter()
 	}
 }
 
-// FIRST TIME INITIALIZE MUTES, VARIANTS, MASTER GAIN, MAP-----------------MOVE TO SEQUENCER
-void Sequencer::initializeTrackGains()
+// FIRST TIME INITIALIZE MUTES, VARIANTS, MASTER GAIN, MAP
+void Sequencer::initializeTracksForPlayback()
 {
 	for (int i = 0; i < 8; i++)
 	{
 		setTrackMutes(i, 1);
 		switchInstVariant(i, mixerSettings.currentVariant[index_baseBeat][i]);
+
 	}
 	applyMasterGain(mixerSettings.masterGain);
 	dspFaust.setParamValue(faustStrings.MasterEQ_1_Q.c_str(), 0.7);
 	dspFaust.setParamValue(faustStrings.MasterEQ_2_Q.c_str(), 0.7);
 }
 
-// MAP CURRENT VARIANT GAIN - SINGLE TRACK---------------------------------MOVE TO SEQUENCER
+// MAP CURRENT VARIANT GAIN - SINGLE TRACK
 void Sequencer::applyCurrentVariantGain(int trackIndex)
 {
 	std::string address = "";
@@ -68,21 +69,21 @@ void Sequencer::applyCurrentVariantGain(int trackIndex)
 	dspFaust.setParamValue(address.c_str(), gain);
 }
 
-// APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)---MOVE TO SEQUENCER
+// APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)
 void Sequencer::setTrackGains(int trackIndex, float value)
 {
 	mixerSettings.trackGain_Offsets[index_baseBeat][trackIndex] = value;
 	applyCurrentVariantGain(trackIndex);
 }
 
-// APPLY AND MAP MUTE VALUE - SINGLE TRACK---------------------------------MOVE TO SEQUENCER
+// APPLY AND MAP MUTE VALUE - SINGLE TRACK
 void Sequencer::setTrackMutes(int trackIndex, int value)
 {
 	std::string address = faustStrings.baseName + faustStrings.trackMutes[trackIndex];
 	dspFaust.setParamValue(address.c_str(), value);
 }
 
-// APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)-------------MOVE TO SEQUENCER
+// APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)
 void Sequencer::applyCurrentVariantEQ(int trackIndex)
 {
 	short variantNum = mixerSettings.currentVariant[index_baseBeat][trackIndex] - 1;
@@ -99,7 +100,7 @@ void Sequencer::applyCurrentVariantEQ(int trackIndex)
 	}
 }
 
-// APPLY AND MAP VARIANT COMP - SINGLE TRACK (on Variant Change)-----------MOVE TO SEQUENCER
+// APPLY AND MAP VARIANT COMP - SINGLE TRACK (on Variant Change)
 void Sequencer::applyCurrentVariantComp(int trackIndex)
 {
 	std::string address = "";
@@ -114,7 +115,7 @@ void Sequencer::applyCurrentVariantComp(int trackIndex)
 	}
 }
 
-// SWITCH INSTRUMENT VARIANT - SINGLE TRACK--------------------------------MOVE TO SEQUENCER
+// SWITCH INSTRUMENT VARIANT - SINGLE TRACK
 void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 {
 	// UPDATE MIXER SETTINGS WITH NEW SETTING
@@ -130,7 +131,7 @@ void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 	dspFaust.setParamValue(address.c_str(), mixerSettings.currentVariant[index_baseBeat][trackIndex]);
 }
 
-// LOAD MIDI SONG FILE-----------------------------------------------------MOVE TO SEQUENCER
+// LOAD MIDI SONG FILE
 void Sequencer::setFilename(String name)
 {
 	stopMusic();
@@ -138,7 +139,7 @@ void Sequencer::setFilename(String name)
 	togglePlayPause();
 }
 
-// HANDLE TAP TEMPO BUTTON PRESS ------------------------------------------MOVE TO SEQUENCER
+// HANDLE TAP TEMPO BUTTON PRESS
 bool Sequencer::handleTapTempoPress()
 {
 	float newTempo = 0;
@@ -156,7 +157,7 @@ bool Sequencer::handleTapTempoPress()
 	}
 }
 
-// PAUSE OR PLAY IF FILE HAS BEEN LOADED-----------------------------------MOVE TO SEQUENCER
+// PAUSE OR PLAY IF FILE HAS BEEN LOADED
 void Sequencer::togglePlayPause()
 {
 	if (isPlaying)
@@ -174,7 +175,7 @@ void Sequencer::togglePlayPause()
 	}
 }
 
-// STOP MUSIC, RESET COUNTERS AND TIME-------------------------------------MOVE TO SEQUENCER
+// STOP MUSIC, RESET COUNTERS AND TIME
 void Sequencer::stopMusic()
 {
 	if (isPlaying)
@@ -186,65 +187,18 @@ void Sequencer::stopMusic()
 		midiTicksElapsed = 0;
 		timeElapsed_SONG = 0;
 		nextPulseTime = 0;
+		songProgress = 0;
 		musicPhase.resetPhase();
 	}
-}
-
-// CHECK FOR NEW MIDI EVENTS ON ALL TRACKS, RETURN TRUE IF NEW EVENT-------MOVE TO SEQUENCER
-bool Sequencer::fetch_MusicInfo_Mode_MIDI()
-{
-	//// CHECK NEW - Tracks 1, 2, 3 ,8 - PERC
-	//bool isNew_MIDI_PERC_BASE =
-	//	checkMIDIEventsDue(4, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
-	//		, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-
-	//// CHECK NEW - Track 4 - Chords
-	//bool isNew_MIDI_C =
-	//	sequencer.checkMIDIEventsDue(2, 4, true, ticksPerMS, midiTicksElapsed, info_C_MIDI
-	//		, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-	//if (isNew_MIDI_C) arrangeChordNotes_Asc(info_C_MIDI, 8);					// Arrange in ASC Order
-
-	//// CHECK NEW - Track 5 - Bassline
-	//bool isNew_MIDI_R =
-	//	sequencer.checkMIDIEventsDue(3, 1, true, ticksPerMS, midiTicksElapsed, info_R_MIDI
-	//		, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-	//if (isNew_MIDI_R)															// Limit Note Range
-	//	info_R_MIDI[0] = sequencer.midiNoteLimit(info_R_MIDI[0],
-	//		mixerSettings.var_noteMin[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1],
-	//		mixerSettings.var_noteMax[4][mixerSettings.currentVariant[sequencer.index_baseBeat][4] - 1]);
-
-	//// CHECK NEW - Track 6 - Main Melody
-	//bool isNew_MIDI_M =
-	//	sequencer.checkMIDIEventsDue(1, 1, false, ticksPerMS, midiTicksElapsed, info_M_MIDI
-	//		, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-
-	//// SNARE FLURRY - HANDLE IF ACTIVE
-	//bool isNew_MIDI_PERC_SnareFlurry = false;
-	//if (audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name == "Snare Flurry")
-	//{
-	//	info_PERC_V_COMMON[1] = 0;
-	//	isNew_MIDI_PERC_SnareFlurry = sequencer.checkMIDIEventsDue(6, 4, false, ticksPerMS, midiTicksElapsed, info_PERC_V_COMMON
-	//		, audioParams.audioParam_ObjectArray[audioParams.activeCueParam].name);
-	//}
-
-	//return isNew_MIDI_M
-	//	|| isNew_MIDI_C
-	//	|| isNew_MIDI_R
-	//	|| isNew_MIDI_PERC_BASE
-	//	|| isNew_MIDI_PERC_SnareFlurry;
-
-	return false;
-}
-
-// MAP MIDI INFO - MODIFY--------------------------------------------------MOVE TO SEQUENCER
-bool Sequencer::mapMusicInfo_Mode_MIDI()
-{
-	return true;
 }
 
 // CHECK NEW MIDI EVENTS FOR SINGLE TRACK
 void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 {
+	// GET MIXER INFO
+	int trackVariant = mixerSettings.currentVariant[index_baseBeat][trackIndex - 1];
+	short targetTrackIdx = 0;
+
 	// DECREMENT TRACK INDEX AND INITIALIZE EVENT COUNT
 	trackIndex--;
 	int numEvents_toHandle = 0;
@@ -254,9 +208,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	double timeStamp_IntervalEnd = midiTicksElapsed;
 
 	// DEFINE TICK INTERVAL FOR NEW LOOPED EVENTS
-	double timeStamp_IntervalEnd_MOD = timeStamp_IntervalEnd
-		- (int)((int)timeStamp_IntervalEnd / ticksPerMeasure) * ticksPerMeasure;
+	double timeStamp_IntervalEnd_MOD = midiTicksElapsed
+		- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
 	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - ticksPerMS;
+	
 
 	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
 	ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
@@ -265,6 +220,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	int nextEventIndex = 0;
 	int finalEventIndex = 0;
 	double eventTimeStamp = 0;
+	bool isValidNote = false;
 
 	// INITIALIZE VOICE VALUES
 	short voiceToTurnOff = 0;
@@ -322,8 +278,17 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					switch (musicMode)
 					{
 					case 1:
-						pitches[nextVoiceIndex[trackIndex]][trackIndex] = 
-							currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1];
+						// LIMIT PITCHES AND STORE IN PITCH MATRIX
+						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
+						for (int l = 0; l < numTracks; l++)
+						{
+							if (trackIdx_to_midiTrack_map[l] == targetTrackIdx)
+								pitches[nextVoiceIndex[trackIndex]][l] = midiNoteLimit(
+									currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
+									mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][l],
+									mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][l]
+								);
+						}
 						break;
 					case 2:
 						break;
@@ -334,7 +299,11 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						transformedKey = scaleTonicTrans.transform_T1S1_TO_T2S2(originalKey,
 							tonicOffset_ORIG, scaleID_ORIG, tonicOffset_TRANS, scaleID_TRANS,
 							trackIndex, cue_AP_Name, musicPhase.emphFunc_Present);
-						pitches[nextVoiceIndex[trackIndex]][trackIndex] = transformedKey;
+						// LIMIT PITCHES AND STORE IN PITCH MATRIX
+						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
+							transformedKey,
+							mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex],
+							mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex]);
 						break;
 					}
 
@@ -382,7 +351,8 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		for (int i = nextEventIndex; i < finalEventIndex; i++)
 		{
 			eventTimeStamp = percObj->infoMatrix[i][3];
-			if (eventTimeStamp >= timeStamp_IntervalStart_MOD && eventTimeStamp < timeStamp_IntervalEnd_MOD)
+			isValidNote = (percObj->infoMatrix[i][0] == 1) || (percObj->infoMatrix[i][0] == 2);
+			if (eventTimeStamp >= timeStamp_IntervalStart_MOD && eventTimeStamp < timeStamp_IntervalEnd_MOD && isValidNote)
 				numEvents_toHandle++;
 			if (eventTimeStamp >= timeStamp_IntervalEnd_MOD)
 				break;
@@ -399,8 +369,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		// IF LOOPED EVENTS TO HANDLE, THEN HANDLE THEM
 		if (isNewEvents_ToHandle[trackIndex] == true)
 		{
-			velUncooked = 0;
-			voiceToTurnOff = 0;
+			if (timeStamp_IntervalStart_MOD <= 0)
+			{
+				int a = 1;
+			}
 
 			for (int j = nextEventIndex; j < nextEventIndex + numEvents_toHandle; j++)
 			{

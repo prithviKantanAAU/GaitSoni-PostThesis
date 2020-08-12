@@ -24,7 +24,11 @@ public:
 	int Idx_nextEvent = 0;			
 	void incrementEventsHandled() 
 	{ 
+		//Idx_nextEvent++;
 		Idx_nextEvent = (Idx_nextEvent + 1)%(numEvents - 1);
-		int a = 0;
+		while (infoMatrix[Idx_nextEvent][0] == 0)
+			Idx_nextEvent++;
+		//Idx_nextEvent += (Idx_nextEvent == 0) ? 1 : 0;
+		//int a = 0;
 	}
 };
