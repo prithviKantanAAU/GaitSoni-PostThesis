@@ -132,6 +132,7 @@ public:
 	short trackIdx_to_midiTrack_map[8] = { -1, -1, -1, 1, 2, 0, 1, -1 };
 
 	bool isNewEvents_ToHandle[8] = {false};
+	bool isNewEvents_PitchOnly[8] = { false };
 	void check_Handle_New_MIDIEvents()
 	{
 		for (int i = 1; i <= numTracks; i++)
@@ -182,18 +183,26 @@ public:
 		return prelimValue + 12 * octavesUnder - 12 * octavesOver;
 	};
 
-	// RESET PERC MIDI OBJECTS WHEN RHYTHM CHANGED
+	// RESET PERC MIDI OBJECTS WHEN RHYTHM CHANGED - ADAPTS NEXT EVENT INDICES
 	void resetPercMIDIOnChange(double midiTicksElapsed)
 	{
-		midiTicksElapsed -= (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
-		currentMusic.baseBeats[index_baseBeat].Idx_nextEvent = 0;
+		// FIND MOD MIDI TICKS ELAPSED
+		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
+		
+		// RESET NEXT EVENT INDICES TO ZERO
+		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
+		int eventIdx_Present_Trackwise = 0;
 
-		for (int i = 0; i < currentMusic.baseBeats[index_baseBeat].numEvents; i++)
-		{
-			if (midiTicksElapsed < currentMusic.baseBeats[index_baseBeat].infoMatrix[i][3])
+		for (int h = 0; h < numTracks; h++)
+		{	// i REPRESENTS IDX OF TRACKWISE EVENTS
+			for (int i = 0; i < currentMusic.baseBeats[index_baseBeat].eventCount_ByTrack[h]; i++)
 			{
-				currentMusic.baseBeats[index_baseBeat].Idx_nextEvent = i;
-				break;
+				eventIdx_Present_Trackwise = currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_ALL[i][h];
+				if (midiTicksElapsed_MOD < currentMusic.baseBeats[index_baseBeat].infoMatrix[eventIdx_Present_Trackwise][3])
+				{
+					currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_NEXT[h] = i;
+					break;
+				}
 			}
 		}
 	};
@@ -203,12 +212,12 @@ public:
 	{
 		float output = 0;
 		float humanizeAmount = (-30 + fetchNewRandomIndex(60)) / 30.0;
-		if (midiVel < 64)
+		/*if (midiVel < 64)
 			output = fmin(0 + humanizeAmount + 3 * midiVel / 64.0, 2.999);
 		else if (midiVel < 96)
 			output = fmin(3 + humanizeAmount + 3 * (midiVel - 64) / 32.0, 5.999);
-		else
-			output = fmin(6 + humanizeAmount + 3 * (midiVel - 96) / 32.0,9);
+		else*/
+			output = fmin(6 + humanizeAmount + 3 * midiVel / 128.0,9);
 
 		if (trackIdx_to_midiTrack_map[trackIndex] == 0 && APName == "Mel Degree")
 			output *= sqrt(fmax(0.3,fmin(1, musicPhase.emphFunc_Present)));

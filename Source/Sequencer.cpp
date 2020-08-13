@@ -260,7 +260,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		{
 			isNewEvents_ToHandle[trackIndex] = false;
 		}
-		else isNewEvents_ToHandle[trackIndex] = true;
+		else
+		{
+			isNewEvents_ToHandle[trackIndex] = true;
+		}
 
 		// IF THERE ARE PITCH / FILE VEL EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[trackIndex] == true)
@@ -347,6 +350,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	{
 		nextEventIndex = percObj->eventIdx_ByTrack_NEXT[trackIndex];
 		finalEventIndex = (int)fmax(0,percObj->eventCount_ByTrack[trackIndex] - 1);
+		numEvents_toHandle = 0;
 
 		for (int i = nextEventIndex; i < finalEventIndex; i++)
 		{
@@ -385,8 +389,8 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					{
 						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
-							//vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
-							vels[i][trackIndex] = 9;
+							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
+							//vels[i][trackIndex] = 9;
 							percObj->incrementEventsHandled(trackIndex);	 			// INCREMENT EVENT COUNT
 						}
 					}
@@ -407,6 +411,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		}
 	}
 }
+
 // MAP NEW MIDI EVENT FOR REQUIRED TRACKS
 void Sequencer::mapNew_MIDIEvents()
 {
@@ -429,6 +434,19 @@ void Sequencer::mapNew_MIDIEvents()
 				{
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					dspFaust.setParamValue(faustAddress.c_str(), pitches[currentVoice - 1][presentTrack - 1]);
+
+					// CHECK FOR PITCH DEPENDENT TRACKS (IF APPLICABLE)
+					if (trackIdx_to_midiTrack_map[presentTrack - 1] > -1)
+					{
+						for (int i = 1; i <= numTracks; i++)
+						{
+							if (trackIdx_to_midiTrack_map[presentTrack - 1] == trackIdx_to_midiTrack_map[i - 1])
+							{
+								faustAddress = faustStrings.getMusicAddress(i, "P", currentVoice);
+								dspFaust.setParamValue(faustAddress.c_str(), pitches[currentVoice - 1][i - 1]);
+							}
+						}
+					}
 				}
 			}
 		}

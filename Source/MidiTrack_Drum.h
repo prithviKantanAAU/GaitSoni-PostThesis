@@ -14,6 +14,11 @@ public:
 	int infoMatrix[500][4] = { 0 };	// Type - Val - Vel - TS
 	int eventCount_ByTrack[8] = { 0 };
 	int eventIdx_ByTrack_NEXT[8] = { 0 };
+	void flush_nextEventIndices()
+	{
+		for (int i = 0; i < 8; i++)
+			eventIdx_ByTrack_NEXT[i] = 0;
+	}
 	int eventIdx_ByTrack_ALL[200][8] = { 0 };
 	int eventsHandled_ByTrack[8] = { 0 };
 
