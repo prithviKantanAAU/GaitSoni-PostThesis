@@ -28,6 +28,15 @@ public:
 	short num_beats_Triplet = 0;
 	short num_beats_3by4 = 0;
 
+	int pitchesToMonitor[4][8] =
+	{
+		{36, 38, 42, 72, 60, 0, 84, 49},
+		{0,  0,  0,  73, 0,  0, 85, 0 },
+		{0,  0,  0,  74, 0,  0, 86, 0 },
+		{0,  0,  0,  75, 0,  0, 87, 0 }
+	};
+	int numVoices[8] = { 1, 1, 1, 4, 1, 1, 4, 1 };
+
 	// INBUILT FILES - MELODY EMPHASIS
 	short inbuilt_TonicOffset1 = 0;
 	short inbuilt_Scale1 = 0;
@@ -66,6 +75,7 @@ public:
 			}
 
 			loadMIDIFile_Drum(&baseBeats[i], currentFile);
+			baseBeats[i].populateTrackwiseEvents(numVoices, pitchesToMonitor);
 		}
 		loadMIDIFile_Drum(&snareFlurry, file_cue_32nd);
 	};
@@ -110,6 +120,9 @@ public:
 				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
 				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
 				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
+
+				// Add 2 ticks for zero time
+				beatContainer->infoMatrix[j][3] += beatContainer->infoMatrix[j][3] == 0 ? 2 : 0;
 			}
 			if (currentMidiMessage.isNoteOff())
 			{
@@ -119,8 +132,7 @@ public:
 				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
 				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
 			}
-
-		};
+		}
 	}
 
 	short getNextBeat(int previousBeat, short timingMode)		// GET next beat for present timing mode

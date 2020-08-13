@@ -12,6 +12,29 @@ public:
 	int numEvents = 0;
 	bool isEventNoteOn[500] = { false };
 	int infoMatrix[500][4] = { 0 };	// Type - Val - Vel - TS
+	int eventCount_ByTrack[8] = { 0 };
+	int eventIdx_ByTrack_NEXT[8] = { 0 };
+	int eventIdx_ByTrack_ALL[200][8] = { 0 };
+	int eventsHandled_ByTrack[8] = { 0 };
+
+	void populateTrackwiseEvents(int numVoices[], int pitchesToMonitor[][8])
+	{
+		for (int i = 0; i < 8; i++)							// EACH TRACK
+		{
+			for (int k = 0; k < 500; k++)				// EACH EVENT
+				{
+				for (int j = 0; j < numVoices[i]; j++)			// EACH VOICE
+				{
+				if ((pitchesToMonitor[j][i] != 0) && (infoMatrix[k][1] == pitchesToMonitor[j][i]))
+					{
+						eventIdx_ByTrack_ALL[eventCount_ByTrack[i]][i] = k;
+						eventCount_ByTrack[i]++;
+					}
+				}
+			}
+		}
+	}
+
 	void flush_infoMatrix()
 	{
 		for (int i = 0; i < 500; i++)
@@ -22,13 +45,12 @@ public:
 		}
 	}
 	int Idx_nextEvent = 0;			
-	void incrementEventsHandled() 
+	void incrementEventsHandled(int trackIndex) 
 	{ 
-		//Idx_nextEvent++;
-		Idx_nextEvent = (Idx_nextEvent + 1)%(numEvents - 1);
-		while (infoMatrix[Idx_nextEvent][0] == 0)
-			Idx_nextEvent++;
-		//Idx_nextEvent += (Idx_nextEvent == 0) ? 1 : 0;
-		//int a = 0;
+		eventIdx_ByTrack_NEXT[trackIndex] = 
+			(eventIdx_ByTrack_NEXT[trackIndex] + 1) % (eventCount_ByTrack[trackIndex] - 1);
+		int nextEventIndex_TRACK = eventIdx_ByTrack_ALL[eventIdx_ByTrack_NEXT[trackIndex]][trackIndex];
+		while (infoMatrix[nextEventIndex_TRACK][0] == 0)
+			eventIdx_ByTrack_NEXT[trackIndex]++;
 	}
 };

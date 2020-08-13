@@ -232,6 +232,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	// INITIALIZE MISC
 	float velUncooked = 0;
 	percObj = &currentMusic.baseBeats[index_baseBeat];
+	int eventIdx_LOOP_Trackwise = 0;
 
 	// PITCHED TRACKS - TAKE CARE OF PITCH SETTING, NOTE ON AND NOTE OFF WHERE NEEDED
 	if (isPitched[trackIndex])
@@ -314,7 +315,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 							cookMIDIVel(currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].
 								infoMatrix[j][2], trackIndex, cue_AP_Name);
 					}
-					nextVoiceIndex[trackIndex] = (nextVoiceIndex[trackIndex] + 1) % numVoices[trackIndex];
+					nextVoiceIndex[trackIndex] = (nextVoiceIndex[trackIndex] + 1) % currentMusic.numVoices[trackIndex];
 				}
 
 				// IF EVENT IS A NOTE OFF EVENT
@@ -323,7 +324,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					// IF VELOCITY IS FROM SONG FILE, TAKE IT FROM HERE
 					if (isVel_FromSongFile[trackIndex])
 					{
-						for (int k = 0; k < numVoices[trackIndex]; k++)
+						for (int k = 0; k < currentMusic.numVoices[trackIndex]; k++)
 						{
 							if (pitches[k][trackIndex] == currentMusic.
 								midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1])
@@ -336,7 +337,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 				currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].incrementEventsHandled();				// INCREMENT EVENT
 
 				// ARRANGE VOICES ASCENDING IF GREATER THAN 1 VOICE
-				if (numVoices[trackIndex] > 1) arrangePitches_Asc(trackIndex); // !!!!!!!!!!!!!!!!
+				if (currentMusic.numVoices[trackIndex] > 1) arrangePitches_Asc(trackIndex); // !!!!!!!!!!!!!!!!
 			}
 		}
 	}
@@ -344,18 +345,17 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	// ALL LOOPED TRACKS - TAKE CARE OF VELOCITY
 	if (!isVel_FromSongFile[trackIndex])
 	{
-		nextEventIndex = percObj->Idx_nextEvent;
-		finalEventIndex = percObj->numEvents - 1;
+		nextEventIndex = percObj->eventIdx_ByTrack_NEXT[trackIndex];
+		finalEventIndex = (int)fmax(0,percObj->eventCount_ByTrack[trackIndex] - 1);
 
-		// FIND NUMBER OF EVENTS TO HANDLE
 		for (int i = nextEventIndex; i < finalEventIndex; i++)
 		{
-			eventTimeStamp = percObj->infoMatrix[i][3];
-			isValidNote = (percObj->infoMatrix[i][0] == 1) || (percObj->infoMatrix[i][0] == 2);
-			if (eventTimeStamp >= timeStamp_IntervalStart_MOD && eventTimeStamp < timeStamp_IntervalEnd_MOD && isValidNote)
-				numEvents_toHandle++;
+			eventIdx_LOOP_Trackwise = percObj->eventIdx_ByTrack_ALL[i][trackIndex];
+			eventTimeStamp = percObj->infoMatrix[eventIdx_LOOP_Trackwise][3];
+			if (eventTimeStamp >= timeStamp_IntervalStart_MOD && eventTimeStamp < timeStamp_IntervalEnd_MOD)
+					numEvents_toHandle++;
 			if (eventTimeStamp >= timeStamp_IntervalEnd_MOD)
-				break;
+					break;
 		}
 
 		// RETURN IF ZERO EVENTS TO HANDLE - EXIT FUNCTION
@@ -369,42 +369,37 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 		// IF LOOPED EVENTS TO HANDLE, THEN HANDLE THEM
 		if (isNewEvents_ToHandle[trackIndex] == true)
 		{
-			if (timeStamp_IntervalStart_MOD <= 0)
-			{
-				int a = 1;
-			}
-
 			for (int j = nextEventIndex; j < nextEventIndex + numEvents_toHandle; j++)
 			{
-				//HANDLE NOTE ON - CHECK DESIGNATED PITCH ROWS
-				if (percObj->infoMatrix[j][0] == 1)
+				eventIdx_LOOP_Trackwise = percObj->eventIdx_ByTrack_ALL[j][trackIndex];
+
+				// IF 0 THEN DO NOTHING
+				if (percObj->infoMatrix[eventIdx_LOOP_Trackwise][0] == 0)
+					percObj->incrementEventsHandled(trackIndex);
+
+				//HANDLE NOTE ON
+				if (percObj->infoMatrix[eventIdx_LOOP_Trackwise][0] == 1)
 				{
-					for (int i = 0; i < numVoices[trackIndex]; i++)
+					// CHECK WHICH VOICE THE NOTE ON BELONGS TO
+					for (int i = 0; i < currentMusic.numVoices[trackIndex]; i++)
 					{
-						if (pitchesToMonitor[i][trackIndex] != 0)
+						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
-							if (pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[j][1])
-							{
-								vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
-								percObj->incrementEventsHandled();				// INCREMENT EVENT COUNT
-							}
-							
+							//vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
+							vels[i][trackIndex] = 9;
+							percObj->incrementEventsHandled(trackIndex);	 			// INCREMENT EVENT COUNT
 						}
 					}
 				}
 
-				//HANDLE NOTE OFF - CHECK DESIGNATED PITCH ROWS
-				if (percObj->infoMatrix[j][0] == 2)
+				if (percObj->infoMatrix[eventIdx_LOOP_Trackwise][0] == 2)
 				{
-					for (int i = 0; i < numVoices[trackIndex]; i++)
+					for (int i = 0; i < currentMusic.numVoices[trackIndex]; i++)
 					{
-						if (pitchesToMonitor[i][trackIndex] != 0)
+						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
-							if (pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[j][1])
-							{
-								vels[i][trackIndex] = 0;
-								percObj->incrementEventsHandled();				// INCREMENT EVENT COUNT
-							}
+							vels[i][trackIndex] = 0;
+							percObj->incrementEventsHandled(trackIndex);				// INCREMENT EVENT COUNT
 						}
 					}
 				}
@@ -423,7 +418,7 @@ void Sequencer::mapNew_MIDIEvents()
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
 		{
-			for (int currentVoice = 1; currentVoice <= numVoices[presentTrack - 1]; currentVoice++)
+			for (int currentVoice = 1; currentVoice <= currentMusic.numVoices[presentTrack - 1]; currentVoice++)
 			{
 				// VELOCITY
 				faustAddress = faustStrings.getMusicAddress(presentTrack, "V", currentVoice);

@@ -106,7 +106,6 @@ public:
 	short numTracks = 8;
 	float vels[4][8] = { 0.0 };
 	bool note_isOn[4][8] = { false };
-	int numVoices[8] = {1, 1, 1, 4, 1, 1, 4, 1};
 	bool isPitched[8] = 
 	{ 
 		false,												// KICK
@@ -129,13 +128,6 @@ public:
 		true,
 		false,
 		false
-	};
-	int pitchesToMonitor[4][8] =
-	{
-		{36, 38, 42, 72, 60, 0, 84, 49},
-		{0,  0,  0,  73, 0,  0, 85, 0 },
-		{0,  0,  0,  74, 0,  0, 86, 0 },
-		{0,  0,  0,  75, 0,  0, 87, 0 }
 	};
 	short trackIdx_to_midiTrack_map[8] = { -1, -1, -1, 1, 2, 0, 1, -1 };
 
