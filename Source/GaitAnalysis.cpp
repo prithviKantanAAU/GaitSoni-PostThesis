@@ -2,8 +2,6 @@
 
 GaitAnalysis::GaitAnalysis()
 {
-	LPF_Gyr_Smooth.flushDelays();
-	LPF_Gyr_Smooth.calculateLPFCoeffs(5, 0.7, fs);
 	LPF_Gyr_Turn_Smooth.flushDelays();
 	LPF_Gyr_Turn_Smooth.calculateLPFCoeffs(1, 0.7, fs);
 	smooth_Angle_AP.flushDelays();
@@ -119,7 +117,7 @@ void GaitAnalysis::compute(short currentGaitParam, bool isCalibrating)
 		}
 }
 
-void GaitAnalysis::calibrateRest(float *accBuf)
+void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 {
 	float magnitude = sqrt(pow(accBuf[0],2) + pow(accBuf[1], 2) + pow(accBuf[2], 2));
 
@@ -139,7 +137,7 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 
 	if (!isCalibrated_Orientation)
 	{
-		calibrateRest(accBuf);
+		trunk_CalibrateRest(accBuf);
 		isCalibrated_Orientation = true;
 	}
 
@@ -163,11 +161,6 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 	float angle_yz = angle_yz_z1 + gyrReading_X_avg * 1 / fs;
 	boundValuesAndStore(0, isnan(angle_xz) ? 0 : angle_xz * 180 / M_PI);
 	boundValuesAndStore(1, isnan(angle_yz) ? 0 : angle_yz * 180 / M_PI);
-	//boundValuesAndStore(5, fabs(gaitParams.gaitParam_ObjectArray[0].currentValue) > fabs(gaitParamSet[4]) ?
-	//					fabs(gaitParamSet[3]) : fabs(gaitParamSet[4]));
-	//boundValuesAndStore(0, fabs(gaitParamSet[3]));
-	//boundValuesAndStore(1, fabs(gaitParamSet[4]));
-	//boundValuesAndStore(2, sqrt(pow(gaitParamSet[0], 2) + pow(gaitParamSet[1], 2)));
 
 	//Calculate R_Gyro_Inter
 	R_gyro_Inter[0] = sin(angle_xz) / sqrt(1 + pow(cos(angle_xz), 2)*pow(tan(angle_yz), 2));
@@ -360,60 +353,6 @@ void GaitAnalysis::calcTimingPerformanceFeature_2(float *accBuf_L, float *accBuf
 	boundValuesAndStore(11, featureValue);
 };
 
-void GaitAnalysis::calcTimingPerformanceFeature(float *gyrBuf, bool isCalibrating)
-{
-	float gyrSignal = isSimulation ? 100 * sin(2 * M_PI * HS_Sim_Freq * timeElapsed) : gyrBuf[0];
-	float thresh = isSimulation ? -0.001 : -5;
-	float featureValue = 0;
-	float strideDuration_Exp = isHalfTime ? 4 * beatInterval : 2 * beatInterval;
-	float timeTolerance = strideDuration_Exp * HS_IntervalTolerance;
-	bool isTurning = abs(LPF_Gyr_Turn_Smooth.doBiQuad(gyrBuf[1], 0.001)) > 60 ? true : false;
-	gyrSignal = tempoDependentDelay(LPF_Gyr_Smooth.doBiQuad(gyrSignal, thresh));		// Filter Gyr
-
-	if (LPF_Gyr_Smooth.isMinima)										// New HS Detected - DISCRETE
-	{
-		updateHS_Calibration(timeElapsed - timeStamp_HS_Last);
-		tempoDependentDelay_Setup();
-		timeStamp_HS_Last = timeElapsed;								// Update Last Detected HS
-
-		if (timeStamp_HS_Last < (timeStamp_HS_Next_Exp - timeTolerance))// Check If Early
-			isEarly = true;
-
-		isLate = false;													// Reset isLate
-
-		if (isEarly)
-			timeStamp_HS_Last_Exp = timeStamp_HS_Next_Exp;				// Save Last Expected Time
-
-		timeStamp_HS_Next_Exp = timeStamp_HS_Last + strideDuration_Exp; // Update Next Expected Time
-	}																	// BACK TO CONTINUOUS
-
-	float time_toNext_HS = timeStamp_HS_Next_Exp - timeElapsed;			// Time to Next Expected HS
-	if (timeElapsed > timeStamp_HS_Last_Exp)
-		isEarly = false;
-
-	if (time_toNext_HS < -1 * timeTolerance)
-	{
-		isLate = true;		isEarly = false;
-	}
-
-	if (!isTurning)
-	{
-		if (isEarly)
-		{
-			float strideFraction_Remaining_Last = timeStamp_HS_Last_Exp - timeElapsed;
-			//featureValue = pow(strideFraction_Remaining_Last, 1) + 0.7;
-			featureValue = 1;
-		}
-		if (isLate)
-		{
-			float strideFraction_Extra_Elapsed = fmin(1, fabs(time_toNext_HS) / strideDuration_Exp);
-			//featureValue = 0.5* pow(strideFraction_Extra_Elapsed, 1) + 0.5;
-			featureValue = 1;
-		}
-	}
-	boundValuesAndStore(11, featureValue);
-}
-
 bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 {
 	float accX_filt = isLeft? hfen_foot_L.applyHFEN_PreProcess(accBuf[0], 'x') 
@@ -487,52 +426,3 @@ void GaitAnalysis::drumTrigger(float *accBuf_L, float *accBuf_R, bool isCalibrat
 	boundValuesAndStore(12, mapVal);
 }
 
-void GaitAnalysis::detectHS_Instants(float *gyrBuf, bool isCalibrating)
-{
-	float gyrSignal = isSimulation ? 100 * sin(2 * M_PI * HS_Sim_Freq * timeElapsed) : gyrBuf[0];
-	float thresh = isSimulation ? -0.001 : -5;
-	gyrSignal = LPF_Gyr_Smooth.doBiQuad(gyrSignal, thresh);				// Filter Gyr
-	float featureValue = LPF_Gyr_Smooth.isMinima ? 1 : 0;
-	if (featureValue == 1)
-	{
-		updateHS_Calibration(timeElapsed - timeStamp_HS_Last);
-		tempoDependentDelay_Setup();
-		timeStamp_HS_Last = timeElapsed;
-	}
-	float mappingValue = 0.5;
-	featureValue = tempoDependentDelay(featureValue);
-	for (int i = 5; i > 0; i--)
-	{
-		triggerBuffer[i] = triggerBuffer[i - 1];
-	}
-	triggerBuffer[0] = featureValue;
-	for (int i = 0; i < 5; i++)
-	{
-		if (triggerBuffer[i] == 1)
-			mappingValue = 1;
-	}
-	boundValuesAndStore(12, mappingValue);
-}
-
-void GaitAnalysis::tempoDependentDelay_Setup()
-{
-	float tempo = 120 / strideInterval;
-	float readWriteDiff_Ms = fmax(0.0, 90 * pow(fmax((100 - tempo), 0) / 30, 0.7) + HSdelayOffset_ms);
-	readWriteDiff_Samples = readWriteDiff_Ms * fs / 1000;
-}
-
-float GaitAnalysis::tempoDependentDelay(float input)
-{
-	float output = 0;
-	readIndex = writeIndex - readWriteDiff_Samples < 0 ?
-		writeIndex - readWriteDiff_Samples + delayLength :
-		writeIndex - readWriteDiff_Samples;
-
-	delayBuffer[writeIndex] = input;
-	output = delayBuffer[readIndex];
-
-	writeIndex = (writeIndex + 1) % delayLength;
-	readIndex = (readIndex + 1) % delayLength;
-
-	return output;
-}

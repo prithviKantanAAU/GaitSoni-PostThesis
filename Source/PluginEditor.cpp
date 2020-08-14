@@ -88,7 +88,11 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Tap Tempo
 	ui_musiCon_gen.tempo_Tap.onClick = [this]
 	{
-		if(processor.sequencer.handleTapTempoPress()) processor.setTempo(processor.sequencer.tempo);
+		if (processor.sequencer.handleTapTempoPress())
+		{
+			processor.setTempo(processor.sequencer.tempo);
+			ringVisualizeBoxConfig();
+		}
 		ui_musiCon_gen.tempo_Slider.setValue(processor.tempo);
 	};
 

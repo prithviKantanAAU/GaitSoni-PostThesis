@@ -95,9 +95,9 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	// COMPUTE CHOSEN MOVEMENT PARAM
 	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);
 
-	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS
+	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS  -------------------------------remove?
 	if (pulsesElapsed % 3000 == 0)
-		gaitAnalysis.calibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
+		gaitAnalysis.trunk_CalibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
 
 	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
 	if (isStandby) mapVal = 0;
