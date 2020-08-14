@@ -156,14 +156,14 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	{
 		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_F.c_str(),
 			ui_musiCon_gen.song_master_EQ_B1_F.getValue());
-		ui_musiCon_gen.song_master_EQ_B1_F_Lab.setText(String(ui_musiCon_gen.song_master_EQ_B1_F.getValue(), 0), dontSendNotification);
+		ui_musiCon_gen.song_master_EQ_B1_F_Lab.setText("F", dontSendNotification);
 	};
 
 	// Master EQ Set Band 2 F
 	ui_musiCon_gen.song_master_EQ_B2_F.onValueChange = [this]
 	{
 		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_F.c_str(), ui_musiCon_gen.song_master_EQ_B2_F.getValue());
-		ui_musiCon_gen.song_master_EQ_B2_F_Lab.setText(String(ui_musiCon_gen.song_master_EQ_B2_F.getValue(), 0), dontSendNotification);
+		ui_musiCon_gen.song_master_EQ_B2_F_Lab.setText("F", dontSendNotification);
 	};
 
 	// Master EQ Set Band 1 G

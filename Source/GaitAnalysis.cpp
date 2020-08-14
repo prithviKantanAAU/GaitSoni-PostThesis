@@ -1,17 +1,21 @@
 #include "GaitAnalysis.h"
 
+// CONSTRUCTOR - INITIALIZE FILTERS
 GaitAnalysis::GaitAnalysis()
 {
+	//INITIALIZE FILTERS // GYR TURN SMOOTHING // STS AP ANGLE SMOOTHING
 	LPF_Gyr_Turn_Smooth.flushDelays();
 	LPF_Gyr_Turn_Smooth.calculateLPFCoeffs(1, 0.7, fs);
 	smooth_Angle_AP.flushDelays();
 	smooth_Angle_AP.calculateLPFCoeffs(3, 0.7, fs);
 }
 
+// DESTRUCTOR - EMPTY
 GaitAnalysis::~GaitAnalysis()
 {
 }
 
+// SETUP OSC UDP RECEIVERS - PORT, LISTENER, SAMPLE RATE
 void GaitAnalysis::setupReceivers()
 {
 	for (int i = 0; i < sensorInfo.numSensorsMax; i++)
@@ -22,6 +26,7 @@ void GaitAnalysis::setupReceivers()
 	setSampleRate(sensorInfo.IMU_SampleRate);
 }
 
+// SETUP SAMPLE RATE OF HFEN FILTERS (HPF)
 void GaitAnalysis::setSampleRate(int fs_ext)
 {
 	fs = fs_ext;
@@ -30,10 +35,13 @@ void GaitAnalysis::setSampleRate(int fs_ext)
 	hfen_foot_R.setSampleRate(fs_ext);
 }
 
+// PERIODIC CALL - MAIN FUNCTION - CHECK IF SENSORS ONLINE, CALL REQUIRED MP CALCULATION FUNCTION
 void GaitAnalysis::compute(short currentGaitParam, bool isCalibrating)
 {
-	if (!areRequiredSensorsOnline()) return;					// ONLY PROCEED IF REQD SENSORS ON
+	// ONLY PROCEED IF REQD SENSORS ON
+	if (!areRequiredSensorsOnline()) return;					
 	
+	// ASSIGN SENSOR LOCATIONS
 	for (int j = 0; j < sensorInfo.numSensorsMax; j++)
 	{
 		switch (sensorInfo.bodyLocation[j])
@@ -49,74 +57,113 @@ void GaitAnalysis::compute(short currentGaitParam, bool isCalibrating)
 			break;
 		}	
 	} 
-	switch (gaitParams.activeGaitParam)
-		{
-		case 0:				// ML +/-
-			getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			if (isCalibrating) calibrateMaximum(3);
-			break;
-		case 1:				// AP +/-
-			getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			if (isCalibrating) calibrateMaximum(4);
-			break;
-		case 2:				// ML/AP Projection
-			getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			getProjection_ML_AP();
-			if (isCalibrating) staticBalance_calibrateCoordinates();
-			break;
-		case 3:				// RMS ACC ML
-			getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(7);
-			break;
-		case 4:				// RMS ACC AP
-			getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(8);
-			break;
-		case 5:				// JERK SCALAR
-			getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(9);
-			break;
-		case 6:			// JERK X
-			getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(10);
-			break;
-		case 7:			// JERK Y
-			getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(11);
-			break;
-		case 8:			// JERK Z
-			getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
-			if (isCalibrating) calibrateMaximum(12);
-			break;
-		case 9:			// SWAY VEL ML
-			getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			if (isCalibrating) calibrateMaximum(13);
-			break;
-		case 10:			// SWAY VEL AP
-			getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			if (isCalibrating) calibrateMaximum(14);
-			break;
-		case 11:			// GAIT PERIODICITY	
-			calcTimingPerformanceFeature_2(sensors_OSCReceivers[idx_Sensor_Foot_L].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Foot_R].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Foot_L].gyr_Buf,
-				isCalibrating);
-			break;
-		case 12:			// HEEL STRIKE FEATURE
-			drumTrigger(sensors_OSCReceivers[idx_Sensor_Foot_L].acc_Buf,
-				sensors_OSCReceivers[idx_Sensor_Foot_R].acc_Buf, isCalibrating);
-			break;
-		case 13:			// SST CUE
-			getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf, 
-				sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-			getSitStandCueFeature();
-			break;
-		}
+
+	// NAME - WISE MP SEARCH AND HANDLE
+	int mp_Present_Idx = gaitParams.activeGaitParam;
+	String mp_Name_Present = gaitParams.gaitParam_ObjectArray[mp_Present_Idx].name;
+	calc_CurrentMP(mp_Name_Present, isCalibrating);
 }
 
+// CALCULATE SELECTED MP BASED ON SELECTED NAME
+void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
+{
+	// 0
+	if (mpName == "Inclination (+-) - ML")
+	{
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		return;
+	}
+	// 1
+	if (mpName == "Inclination (+-) - AP")
+	{
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		return;
+	}
+	// 2
+	if (mpName == "Trunk Projection Zone")
+	{
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getProjection_ML_AP();
+		return;
+	}
+	// 3
+	if (mpName == "RMS Acc ML")
+	{
+		getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 4
+	if (mpName == "RMS Acc AP")
+	{
+		getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 5
+	if (mpName == "Scalar Jerk")
+	{
+		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 6
+	if (mpName == "Jerk - X")
+	{
+		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 7
+	if (mpName == "Jerk - Y")
+	{
+		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 8
+	if (mpName == "Jerk - Z")
+	{
+		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		return;
+	}
+	// 9
+	if (mpName == "Sway Vel - ML")
+	{
+		getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		return;
+	}
+	// 10
+	if (mpName == "Sway Vel - AP")
+	{
+		getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		return;
+	}
+	// 11
+	if (mpName == "HS Timing")
+	{
+		calcTimingPerformanceFeature_2(sensors_OSCReceivers[idx_Sensor_Foot_L].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Foot_R].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Foot_L].gyr_Buf,
+			isCalibrating);
+		return;
+	}
+	// 12
+	if (mpName == "HS Trigger")
+	{
+		drumTrigger(sensors_OSCReceivers[idx_Sensor_Foot_L].acc_Buf,
+		sensors_OSCReceivers[idx_Sensor_Foot_R].acc_Buf, isCalibrating);
+		return;
+	}
+	// 13
+	if (mpName == "STS Cue")
+	{
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+		sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getSitStandCueFeature();
+		return;
+	}
+}
+
+// FUNCTION TO CALIBRATE TRUNK REST WHEN MEASURING ORIENTATION (AUTOMATIC AND PERIODIC)
 void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 {
 	float magnitude = sqrt(pow(accBuf[0],2) + pow(accBuf[1], 2) + pow(accBuf[2], 2));
@@ -126,6 +173,7 @@ void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 	R_acc_est[2] = accBuf[1] / magnitude;
 }
 
+// CALCULATE ML AND AP ORIENTATION
 void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 {
 	//Adjust Coordinates and Units
@@ -159,8 +207,8 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 
 	float angle_xz = angle_xz_z1 + gyrReading_Y_avg * 1 / fs;
 	float angle_yz = angle_yz_z1 + gyrReading_X_avg * 1 / fs;
-	boundValuesAndStore(0, isnan(angle_xz) ? 0 : angle_xz * 180 / M_PI);
-	boundValuesAndStore(1, isnan(angle_yz) ? 0 : angle_yz * 180 / M_PI);
+	boundValuesAndStore("Inclination (+-) - ML", isnan(angle_xz) ? 0 : angle_xz * 180 / M_PI);
+	boundValuesAndStore("Inclination (+-) - AP", isnan(angle_yz) ? 0 : angle_yz * 180 / M_PI);
 
 	//Calculate R_Gyro_Inter
 	R_gyro_Inter[0] = sin(angle_xz) / sqrt(1 + pow(cos(angle_xz), 2)*pow(tan(angle_yz), 2));
@@ -174,6 +222,7 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 	}
 }
 
+// CALCULATE ORIENTATION PROJECTION ZONE
 void GaitAnalysis::getProjection_ML_AP()
 {
 	float roll_deg = (gaitParams.gaitParam_ObjectArray[0].currentValue + staticBalance_BoundsCoordinates[0][0]);
@@ -182,41 +231,42 @@ void GaitAnalysis::getProjection_ML_AP()
 
 	if (roll_deg < - 1 * staticBalance_Div_Roll)
 	{
-		boundValuesAndStore(2, 6);
+		boundValuesAndStore("Trunk Projection Zone", 6);
 		return;
 	}
 
 	else if (roll_deg > 1 * staticBalance_Div_Roll)
 	{
-		boundValuesAndStore(2, 5);
+		boundValuesAndStore("Trunk Projection Zone", 5);
 		return;
 	}
 
 	else if (pow(roll_deg, 2) + pow(pitch_deg, 2) <= area)
 	{
-		boundValuesAndStore(2, 1);
+		boundValuesAndStore("Trunk Projection Zone", 1);
 		return;
 	}
 
 	else if (pow(((pitch_deg - 0.5) / 2.25), 2) + pow((roll_deg / 1.5), 2) <= area)
 	{
-		boundValuesAndStore(2, 2);
+		boundValuesAndStore("Trunk Projection Zone", 2);
 		return;
 	}
 
 	else if (pow(((pitch_deg - 0.5) / 3), 2) + pow((roll_deg / 2), 2) <= area)
 	{
-		boundValuesAndStore(2, 3);
+		boundValuesAndStore("Trunk Projection Zone", 3);
 		return;
 	}
 
 	else
 	{
-		boundValuesAndStore(2, 4);
+		boundValuesAndStore("Trunk Projection Zone", 4);
 		return;
 	}
 }
 
+// CALCULATE STS CUE FEATURE
 void GaitAnalysis::getSitStandCueFeature()
 {
 	float angle_AP_signed = smooth_Angle_AP.doBiQuad(gaitParams.gaitParam_ObjectArray[1].currentValue, sitStand_Thresh_Current);
@@ -231,9 +281,10 @@ void GaitAnalysis::getSitStandCueFeature()
 		sitStand_Thresh_Current = sitStand_isStanding ? sitStand_Thresh_Sit : sitStand_Thresh_Stand;
 	}
 	bool feedbackCondition = sitStand_feedbackMode ? sitStand_isStabilized : sitStand_isStanding;
-	boundValuesAndStore(13, feedbackCondition ? 0 : 1);
+	boundValuesAndStore("STS Cue", feedbackCondition ? 0 : 1);
 }
 
+// CALCULATE RMS ML AND AP ACCELERATION
 void GaitAnalysis::getRMS_Acc(float *accBuf)
 {
 	float accX = accBuf[0];
@@ -266,10 +317,11 @@ void GaitAnalysis::getRMS_Acc(float *accBuf)
 		rmsSum_AP += pow(rmsWindow_AP[i], 2);
 	}
 
-	boundValuesAndStore(3, rmsSum_ML / rms_Length * 100);
-	boundValuesAndStore(4, rmsSum_AP / rms_Length * 100);
+	boundValuesAndStore("RMS Acc ML", rmsSum_ML / rms_Length * 100);
+	boundValuesAndStore("RMS Acc AP", rmsSum_AP / rms_Length * 100);
 }
 
+// CALCULATE JERK PARAMS
 void GaitAnalysis::getJerkParams(float *accBuf)
 {
 	float accX = accBuf[0];
@@ -287,20 +339,22 @@ void GaitAnalysis::getJerkParams(float *accBuf)
 
 	float scalarJerk = sqrt(jerkX*jerkX + jerkY * jerkY + jerkZ * jerkZ);	//Euclidean Norm
 
-	boundValuesAndStore(5, scalarJerk * 100);
-	boundValuesAndStore(6, jerkX * 100);
-	boundValuesAndStore(7, jerkY * 100);
-	boundValuesAndStore(8, jerkZ * 100);
+	boundValuesAndStore("Scalar Jerk", scalarJerk * 100);
+	boundValuesAndStore("Jerk - X", jerkX * 100);
+	boundValuesAndStore("Jerk - Y", jerkY * 100);
+	boundValuesAndStore("Jerk - Z", jerkZ * 100);
 
 	accX_z1 = accX;		accY_z1 = accY;		accZ_z1 = accZ;
 }
 
+// CALCULATE SWAY VELOCITY
 void GaitAnalysis::getSwayVelocity(float *gyrBuf)
 {
-	boundValuesAndStore(9, fabs(gyrBuf[0]));
-	boundValuesAndStore(10, fabs(gyrBuf[2]));
+	boundValuesAndStore("Sway Vel - ML", fabs(gyrBuf[0]));
+	boundValuesAndStore("Sway Vel - AP", fabs(gyrBuf[2]));
 }
 
+// REWRITE - HS TIMING CALIBRATION
 void GaitAnalysis::updateHS_Calibration(float strideDuration_Latest)
 {
 	calibration_stepCount++;
@@ -315,6 +369,7 @@ void GaitAnalysis::updateHS_Calibration(float strideDuration_Latest)
 	calibrationValues_Temp[12] = strideDur_Mean;
 }
 
+// CALCULATE HS TIMING PERFORMANCE FEATURE
 void GaitAnalysis::calcTimingPerformanceFeature_2(float *accBuf_L, float *accBuf_R, float *gyrBuf, bool isCalibrating)
 {
 	float featureValue = 0;
@@ -350,9 +405,10 @@ void GaitAnalysis::calcTimingPerformanceFeature_2(float *accBuf_L, float *accBuf
 
 	if (!isTurning)
 		if (isEarly || isLate)		featureValue = 1;
-	boundValuesAndStore(11, featureValue);
+	boundValuesAndStore("HS Timing", featureValue);
 };
 
+// DETECT HS INSTANTS FROM ACC IMPACT
 bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 {
 	float accX_filt = isLeft? hfen_foot_L.applyHFEN_PreProcess(accBuf[0], 'x') 
@@ -396,6 +452,7 @@ bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 	return stepDetected;
 }
 
+// CALCULATE HS TRIGGER FEATURE
 void GaitAnalysis::drumTrigger(float *accBuf_L, float *accBuf_R, bool isCalibrating)
 {
 	bool toTrigger_L = detectHS_acc(accBuf_L, true);
@@ -423,6 +480,6 @@ void GaitAnalysis::drumTrigger(float *accBuf_L, float *accBuf_R, bool isCalibrat
 			mapVal = triggerBuffer[i];
 	}
 
-	boundValuesAndStore(12, mapVal);
+	boundValuesAndStore("HS Trigger", mapVal);
 }
 

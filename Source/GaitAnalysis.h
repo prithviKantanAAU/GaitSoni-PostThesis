@@ -18,6 +18,7 @@ public:
 	OSCReceiverUDP_Sensor sensors_OSCReceivers[3];				// ORDER: 0 - L // 1 - R // 2 - TRUNK
 	int fs = 100;												// SENSOR SAMPLING RATE
 	void compute(short currentGaitParam, bool isCalibrating);	// MAIN MP COMPUTATION FUNCTION
+	void calc_CurrentMP(String mpName, bool isCalibrating);		// CALCULATE PRESENT MP FROM NAME
 	
 	// IMU Data Filters
 	HFEN_HPF hfen_trunk;
@@ -134,8 +135,7 @@ public:
 	// BUFFER TO HOLD TRIGGER MP HIGH
 	float triggerBuffer[20] = { 0.0 };
 
-	// HS Accelerometer
-	
+	// HS ACCELEROMETER
 	// DETECTION THRESHOLDS
 	float HS_thresh_pos = 1.84;
 	float HS_thresh_neg = 0.04;
@@ -197,7 +197,6 @@ public:
 		sitStand_isStabilized = true;
 	};
 
-
 	//Calibration
 	float calibrationValues[30] = { 0.0 };
 	float calibrationValues_Temp[30] = { 0.0 };
@@ -226,11 +225,6 @@ public:
 	// HS CALIBRATION - REPLACE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	void updateHS_Calibration(float strideDuration_Latest);
 	float hs_Intervals[5] = { 0.0 };
-	float strideDur_Mean = 0;
-	float strideDur_COV = 0;
-	bool isParamCalibrated[30] = { false };
-	
-
 	void flush_HSArray()
 	{
 		for (int i = 0; i < 5; i++)
@@ -238,12 +232,17 @@ public:
 			updateHS_Calibration(0);
 		}
 	}
+	float strideDur_Mean = 0;
+	float strideDur_COV = 0;
+	bool isParamCalibrated[30] = { false };
 
+	// UPDATE A RUNNING MEAN WITH A NEW VALUE
 	double updateMean(double oldMean, int count, float newVal)
 	{
 		return (oldMean*count + newVal) / (count + 1);
 	};
 
+	// CALCULATE STANDARD DEVIATION OF AN ARRAY
 	float calcArraySTD(float *arr, float *mean, int count)
 	{
 		float standDev = 0.0; float variance = 0.0;

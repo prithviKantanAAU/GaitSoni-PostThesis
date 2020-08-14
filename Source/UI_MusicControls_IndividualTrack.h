@@ -71,6 +71,7 @@ public:
 		{
 			channel_Comp_Settings[i].setRange(channel_Comp_Bounds[i][0], channel_Comp_Bounds[i][1]);
 			channel_Comp_Settings[i].setNumDecimalPlacesToDisplay(2);
+			channel_Comp_Settings[i].setColour(channel_Comp_Settings[i].trackColourId, Colours::yellow);
 			channel_Comp_Labels[i].setText(channel_Comp_Labels_Text[i], dontSendNotification);
 			channel_Comp_Labels[i].attachToComponent(&channel_Comp_Settings[i], true);
 		}
@@ -81,6 +82,7 @@ public:
 			channel_EQ_Settings[i].setNumDecimalPlacesToDisplay(2);
 			if (i == 0)	
 				channel_EQ_Settings[i].setSkewFactor(0.3);
+			channel_EQ_Settings[i].setColour(channel_EQ_Settings[i].trackColourId, Colours::yellow);
 			channel_EQ_Labels[i].setText(channel_EQ_Labels_Text[i], dontSendNotification);
 			channel_EQ_Labels[i].attachToComponent(&channel_EQ_Settings[i], true);
 		}

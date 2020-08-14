@@ -578,14 +578,19 @@ private:
 		}
 
 		// Emph Function Properties
+		ringVisualize.emphFunc_MAX.setColour(ringVisualize.emphFunc_MAX.trackColourId, Colours::yellow);
 		ringVisualize.emphFunc_MAX.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_MAX = ringVisualize.emphFunc_MAX.getValue();	};
+		ringVisualize.emphFunc_MIN.setColour(ringVisualize.emphFunc_MIN.trackColourId, Colours::yellow);
 		ringVisualize.emphFunc_MIN.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_MIN = ringVisualize.emphFunc_MIN.getValue();	};
+		ringVisualize.emphFunc_C.setColour(ringVisualize.emphFunc_C.trackColourId, Colours::yellow);
 		ringVisualize.emphFunc_C.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_C = (int)ringVisualize.emphFunc_C.getValue() - 1;	};
+		ringVisualize.emphFunc_WID.setColour(ringVisualize.emphFunc_WID.trackColourId, Colours::yellow);
 		ringVisualize.emphFunc_WID.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_WID = ringVisualize.emphFunc_WID.getValue();	};
+		ringVisualize.emphFunc_ORDER.setColour(ringVisualize.emphFunc_ORDER.trackColourId, Colours::yellow);
 		ringVisualize.emphFunc_ORDER.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_ORDER = ringVisualize.emphFunc_ORDER.getValue();	};
 

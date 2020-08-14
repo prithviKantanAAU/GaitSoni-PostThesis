@@ -74,14 +74,17 @@ public:
 		tempo_Tap.setButtonText("Tap Tempo");
 
 		// Load Song File
-		song_LoadFile.setButtonText("Load");
+		song_LoadFile.setButtonText("Load \nMIDI");
+		song_LoadFile.setColour(song_LoadFile.buttonColourId,Colours::red);
+		song_Filename.setColour(song_Filename.backgroundColourId, Colours::green);
 		
 		// Set Next Rhythm
 		rhythm_SetNext.setButtonText("Next Rhythm");
 		
 		// Tempo Slider
 		tempo_Slider.setRange(60, 150);
-		tempo_Slider.setNumDecimalPlacesToDisplay(1);
+		tempo_Slider.setNumDecimalPlacesToDisplay(0);
+		tempo_Slider.setColour(tempo_Slider.trackColourId, Colours::blue);
 		tempo_Slider.setValue(120);
 		tempo_Slider_Lab.setText("Tempo", dontSendNotification);
 		tempo_Slider_Lab.attachToComponent(&tempo_Slider, true);
@@ -90,9 +93,10 @@ public:
 		song_master_Gain.setRange(-96, 0);
 		song_master_Gain.setSkewFactor(3);
 		song_master_Gain.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+		song_master_Gain.setColour(song_master_Gain.trackColourId, Colours::red);
 		song_master_Gain.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
 		song_master_Gain.setNumDecimalPlacesToDisplay(1);
-		song_master_Gain_Lab.setText("MG", dontSendNotification);
+		song_master_Gain_Lab.setText("Vol", dontSendNotification);
 		song_master_Gain_Lab.attachToComponent(&song_master_Gain, true);
 
 		// Set Music Mode
@@ -115,6 +119,7 @@ public:
 			song_track_GainOffset[i].setRange(-10, 10);
 			song_track_GainOffset[i].setValue(0);
 			song_track_GainOffset[i].setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+			song_track_GainOffset[i].setColour(song_track_GainOffset[i].trackColourId, Colours::yellow);
 			song_track_GainOffset[i].setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
 			song_track_GainOffset_Lab[i].setText(std::to_string(i + 1), dontSendNotification);
 			song_track_GainOffset_Lab[i].attachToComponent(&song_track_GainOffset[i], false);
@@ -123,7 +128,8 @@ public:
 		//Master EQ F1
 		song_master_EQ_B1_F.setRange(20, 20000);
 		song_master_EQ_B1_F.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-		song_master_EQ_B1_F.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);	//SUB
+		song_master_EQ_B1_F.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
+		song_master_EQ_B1_F.setColour(song_master_EQ_B1_F.trackColourId, Colours::blue);
 		song_master_EQ_B1_F.setValue(200);
 		song_master_EQ_B1_F.setSkewFactor(0.3, false);
 		song_master_EQ_B1_F_Lab.setText("M1F", dontSendNotification);
@@ -133,6 +139,7 @@ public:
 		song_master_EQ_B2_F.setRange(20, 20000);
 		song_master_EQ_B2_F.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		song_master_EQ_B2_F.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
+		song_master_EQ_B2_F.setColour(song_master_EQ_B2_F.trackColourId, Colours::blue);
 		song_master_EQ_B2_F.setValue(2000);
 		song_master_EQ_B2_F.setSkewFactor(0.3, false);
 		song_master_EQ_B2_F_Lab.setText("M2F", dontSendNotification);
@@ -142,6 +149,7 @@ public:
 		song_master_EQ_B1_G.setRange(-24, 24);
 		song_master_EQ_B1_G.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		song_master_EQ_B1_G.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
+		song_master_EQ_B1_G.setColour(song_master_EQ_B1_G.trackColourId, Colours::blue);
 		song_master_EQ_B1_G.setValue(0);
 		song_master_EQ_B1_G_Lab.setText("M1G", dontSendNotification);
 		song_master_EQ_B1_G_Lab.attachToComponent(&song_master_EQ_B1_G, true);
@@ -150,6 +158,7 @@ public:
 		song_master_EQ_B2_G.setRange(-24, 24);
 		song_master_EQ_B2_G.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		song_master_EQ_B2_G.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
+		song_master_EQ_B2_G.setColour(song_master_EQ_B2_G.trackColourId, Colours::blue);
 		song_master_EQ_B2_G.setValue(0);
 		song_master_EQ_B2_G_Lab.setText("M2G", dontSendNotification);
 		song_master_EQ_B2_G_Lab.attachToComponent(&song_master_EQ_B2_G, true);
@@ -198,24 +207,24 @@ public:
 	void setLayout()
 	{
 		song_PlayPause.setBounds(50, 50, 100, 30);
+		song_Stop.setBounds(150, 50, 100, 30);
+		tempo_Tap.setBounds(250, 50, 100, 30);
+		tempo_Slider.setBounds(410, 50, 200, 30);
 		song_Progress.setBounds(50, 250, 1100, 30);
 		music_Mode.setBounds(50, 305, 200, 40);
 		song_TimeLeft.setBounds(1000, 280, 200, 30);
 		song_BarBeat_Counter.setBounds(800, 280, 200, 30);
 		rhythm_SetNext.setBounds(50, 90, 100, 30);
-		song_Stop.setBounds(200, 50, 100, 30);
-		tempo_Slider.setBounds(600, 50, 350, 30);
-		tempo_Tap.setBounds(620, 90, 100, 30);
-		song_Filename.setBounds(975, 50, 200, 30);
-		song_LoadFile.setBounds(1000, 90, 120, 30);
+		song_Filename.setBounds(900, 30, 300, 25);
+		song_LoadFile.setBounds(1020, 70, 170, 150);
 		rhythm_Prev.setBounds(50, 130, 100, 25);
 		rhythm_Now.setBounds(30, 160, 140, 25);
 		rhythm_Next.setBounds(50, 190, 100, 25);
-		song_master_Gain.setBounds(680, 130, 30, 80);
-		song_master_EQ_B1_F.setBounds(860, 130, 30, 80);
-		song_master_EQ_B1_G.setBounds(930, 130, 30, 80);
-		song_master_EQ_B2_F.setBounds(1000, 130, 30, 80);
-		song_master_EQ_B2_G.setBounds(1070, 130, 30, 80);
+		song_master_Gain.setBounds(680, 50, 50, 180);
+		song_master_EQ_B1_F.setBounds(780, 50, 30, 180);
+		song_master_EQ_B1_G.setBounds(840, 50, 30, 180);
+		song_master_EQ_B2_F.setBounds(900, 50, 30, 180);
+		song_master_EQ_B2_G.setBounds(960, 50, 30, 180);
 
 		for (int i = 0; i < 8; i++)
 		{
