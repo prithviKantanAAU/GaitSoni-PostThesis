@@ -104,12 +104,12 @@ public:
 
 	void setLayout()
 	{
-		channel_TrackIdx.setBounds(400, 500, 200, 30);
-		channel_EQ_FiltIdx.setBounds(400, 550, 200, 30);
+		channel_TrackIdx.setBounds(750, 320, 180, 30);
+		channel_EQ_FiltIdx.setBounds(750, 360, 180, 30);
 		for (int i = 0; i < 3; i++)
-			channel_EQ_Settings[i].setBounds(400, 600 + i * 50, 200, 30);
+			channel_EQ_Settings[i].setBounds(750, 400 + i * 40, 180, 30);
 		for (int i = 0; i < 4; i++)
-			channel_Comp_Settings[i].setBounds(750, 550 + i * 50, 200, 30);
+			channel_Comp_Settings[i].setBounds(750, 540 + i * 40, 180, 30);
 	}
 };
 

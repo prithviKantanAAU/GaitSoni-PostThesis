@@ -163,6 +163,8 @@ public:
 			audioParams.activeCueParam = index - 1;
 			soniAddress_Cue = audioParams.audioParam_ObjectArray
 				[audioParams.activeCueParam].faustAddress.toStdString();
+			sequencer.cue_AP_Name = audioParams.audioParam_ObjectArray
+				[audioParams.activeCueParam].name;
 		}
 	};
 	void applySequencerSonifications();							// Apply Sequencer-based Sonifications
@@ -184,6 +186,7 @@ public:
 	void setTempo(float value)									
 	{
 		tempo = value;
+		sequencer.tempo = value;
 		double intervalMs = 60000 / tempo * 0.25;
 		double intervalMultiplier = sequencer.isTripletMode ? 4.0 / 3.0 : 1.0;
 		sequencer.midiTickIncrement = sequencer.isTripletMode ? 320 : 240;
@@ -220,15 +223,7 @@ public:
 
 	Sequencer sequencer;										//Sequencer Object
 
-	//Toggle Mute Status -> Sequencer
-	void toggleTrackMuteManual(bool muted, short trackNum)				
-	{
-		std::string address = sequencer.faustStrings.getTrackMuteString(trackNum);
-		int val = muted ? 1 : 0;
-		muteValuesManual[trackNum] = val;
-		sequencer.dspFaust.setParamValue(address.c_str(), val);
-	}
-	short muteValuesManual[8] = { 0 };									//Track Mute Status For DspFaust -> Sequencer
+	
 
 	//Arrange Note KeyNumbers Asc -> Sequencer
 	void arrangeChordNotes_Asc(float *infoArray, int totalLength)		

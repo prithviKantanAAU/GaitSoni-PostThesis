@@ -163,6 +163,7 @@ public:
 	// UPDATE CHOSEN RHYTHM WITH NEXT
 	void nextRhythm(short musicMode) 
 	{
+		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
 		index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
 	};
 
@@ -223,6 +224,9 @@ public:
 			output *= sqrt(fmax(0.3,fmin(1, musicPhase.emphFunc_Present)));
 		return output;
 	};
+
+	//Toggle Mute Status
+	short muteValues[8] = { 0 };
 
 	// ARRANGE PITCHES ASCENDING
 	void arrangePitches_Asc(int trackIndex)

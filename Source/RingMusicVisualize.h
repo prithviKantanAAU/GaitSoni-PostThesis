@@ -30,9 +30,6 @@ public:
 	Slider emphFunc_ORDER;
 	Label emphFunc_ORDER_Label;
 	ComboBox emph_Strategy;
-	ComboBox inbuilt_ChooseMIDI;
-	ComboBox inbuilt_Tonic;
-	ComboBox inbuilt_Scale;
 
 	void initSliders()
 	{
@@ -172,9 +169,7 @@ public:
 		emphFunc_WID.setVisible(on);
 		emphFunc_ORDER.setVisible(on);
 		emph_Strategy.setVisible(on);
-		inbuilt_ChooseMIDI.setVisible(on && (musicMode == 3));
-		inbuilt_Tonic.setVisible(on && (musicMode == 3));
-		inbuilt_Scale.setVisible(on && (musicMode == 3));
+		
 	}
 
 	void setLayout()
@@ -185,9 +180,6 @@ public:
 		emphFunc_MIN.setBounds(780, 440, 150, 30);
 		emphFunc_ORDER.setBounds(780, 470, 150, 30);
 		emph_Strategy.setBounds(780, 500, 150, 40);
-		inbuilt_ChooseMIDI.setBounds(270, 355, 200, 40);
-		inbuilt_Tonic.setBounds(270, 405, 200, 40);
-		inbuilt_Scale.setBounds(270, 455, 200, 40);
 	}
 };
 

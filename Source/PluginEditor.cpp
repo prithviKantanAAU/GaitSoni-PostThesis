@@ -21,8 +21,10 @@ GaitSonificationAudioProcessorEditor::GaitSonificationAudioProcessorEditor (Gait
 	//CONFIGURE CONTROLS, UPDATE PRESENT TAB
 	sensorConfig_initializeControls();
 	configureMusicControls();
+	toggleMusicControls_Secondary(presentTab);
 	channel_configureSliders();
 	init_RingVisualize();
+	config_musicControls_inbuilt();
 	configureSonificationControls();
 	configureRealTimeVisualizer();
 	setGainSliders();
@@ -183,10 +185,11 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
 		ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 
-		// Instrument Mute Initialize
+		// Instrument Mute
 		ui_musiCon_gen.song_track_Mute[i].onStateChange = [this, i]
 		{
-			processor.toggleTrackMuteManual(ui_musiCon_gen.song_track_Mute[i].getToggleState(), i);
+			int val = ui_musiCon_gen.song_track_Mute[i].getToggleState() ? 1 : 0;
+			processor.sequencer.setTrackMutes(i, val);
 		};
 		
 		// Track Gain Offset
@@ -194,7 +197,19 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		{
 			processor.sequencer.setTrackGains(i, ui_musiCon_gen.song_track_GainOffset[i].getValue());
 			ui_musiCon_gen.song_track_GainOffset_Lab[i].setText(String(ui_musiCon_gen.song_track_GainOffset[i].getValue(), 1), dontSendNotification);
-		};		
+		};	
+
+		ui_musiCon_gen.showControls_Channel.onClick = [this]
+		{
+			presentMusiCon_Disp = 0;
+			handleDisplay_secondaryMusic();
+		};
+
+		ui_musiCon_gen.showControls_RingVisualize.onClick = [this]
+		{
+			presentMusiCon_Disp = 1;
+			handleDisplay_secondaryMusic();
+		};
 	}
 }
 
@@ -557,26 +572,20 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		{
 		case 1:
 			if (presentTab == 1) ui_musiCon_gen.song_LoadFile.setVisible(true);
-			ringVisualize.inbuilt_ChooseMIDI.setVisible(false);
-			ringVisualize.inbuilt_Scale.setVisible(false);
-			ringVisualize.inbuilt_Tonic.setVisible(false);
+			ui_musiCon_inbuilt.toggleVisible(false);
 			break;
 		case 2:
 			if (presentTab == 1) ui_musiCon_gen.song_LoadFile.setVisible(true);
-			ringVisualize.inbuilt_ChooseMIDI.setVisible(false);
-			ringVisualize.inbuilt_Scale.setVisible(false);
-			ringVisualize.inbuilt_Tonic.setVisible(false);
+			ui_musiCon_inbuilt.toggleVisible(false);
 			break;
 		case 3:
 			ui_musiCon_gen.song_LoadFile.setVisible(false);
-			if (presentTab == 1) ringVisualize.inbuilt_ChooseMIDI.setVisible(true);
-			if (presentTab == 1) ringVisualize.inbuilt_Scale.setVisible(true);
-			if (presentTab == 1) ringVisualize.inbuilt_Tonic.setVisible(true);
+			ui_musiCon_inbuilt.toggleVisible(true);
 			break;
 		}
 	}
 
-	if (box == &ringVisualize.inbuilt_ChooseMIDI)
+	if (box == &ui_musiCon_inbuilt.inbuilt_ChooseMIDI)
 	{
 		String path = "";
 		if (processor.musicMode == 3 && box->getSelectedId() != 1)
@@ -594,12 +603,12 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		}
 	}
 
-	if (box == &ringVisualize.inbuilt_Scale)
+	if (box == &ui_musiCon_inbuilt.inbuilt_Scale)
 	{
 		processor.sequencer.scaleID_TRANS = box->getSelectedId() - 1;
 	}
 
-	if (box == &ringVisualize.inbuilt_Tonic)
+	if (box == &ui_musiCon_inbuilt.inbuilt_Tonic)
 	{
 		processor.sequencer.tonicOffset_TRANS = box->getSelectedId() - 1;
 	}
@@ -744,6 +753,7 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 void GaitSonificationAudioProcessorEditor::switchTab(int currentTab)
 {
 	// SET FLAGS BASED ON TAB INDEX
+	presentTab = currentTab;
 	switch (currentTab)
 	{
 	case 0:

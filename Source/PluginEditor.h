@@ -44,7 +44,7 @@ private:
 	int UIRefreshFreq = 30;							// UI Real Time Refresh Frequency (Hz)
 	short presentTab = 0;							// Global tab index
 	int previousTab = 0;							// To detect changes
-	short presentMusiCon_Disp = 1;					// 0 = Channel EQ/Comp // 1 = Ring Visualize
+	short presentMusiCon_Disp = 0;					// 0 = Channel EQ/Comp // 1 = Ring Visualize
 
 	//SENSOR CONFIGURATION SECTION
 	
@@ -216,10 +216,14 @@ private:
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant[i]);
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant_Lab[i]);
 		}
+		addAndMakeVisible(ui_musiCon_gen.showControls_Channel);
+		addAndMakeVisible(ui_musiCon_gen.showControls_RingVisualize);
 	}
 	void addControls_Music_INBUILT()
 	{
-
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
 	}
 	void addControls_Music_INDIVIDUAL()
 	{
@@ -277,7 +281,7 @@ private:
 	}
 	void addControls_RingVisualize()
 	{
-		for (int i = 0; i < ringVisualize.numBoxes; i++)
+		for (int i = 0; i < 32; i++)
 		{
 			addAndMakeVisible(ringVisualize.beatSubBox[i]);
 		}
@@ -292,9 +296,9 @@ private:
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER_Label);
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER);
 		addAndMakeVisible(ringVisualize.emph_Strategy);
-		addAndMakeVisible(ringVisualize.inbuilt_ChooseMIDI);
-		addAndMakeVisible(ringVisualize.inbuilt_Tonic);
-		addAndMakeVisible(ringVisualize.inbuilt_Scale);
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
+		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
 	}
 
 	//Real time update of a) Song remaining time and b) Ring box positions
@@ -315,6 +319,34 @@ private:
 			ui_musiCon_gen.song_Progress.setColour(ui_musiCon_gen.song_Progress.foregroundColourId, Colours::red);
 		if (processor.sequencer.songProgress >= 0.75)
 			ui_musiCon_gen.song_Progress.setColour(ui_musiCon_gen.song_Progress.foregroundColourId, Colours::green);
+	}
+
+	// Handle Secondary Music Control Buttons
+	void handleDisplay_secondaryMusic()
+	{
+		switch (presentMusiCon_Disp)
+		{
+		case 0:
+			ui_musiCon_gen.showControls_Channel.setColour(
+				ui_musiCon_gen.showControls_Channel.buttonColourId,
+				Colours::blue);
+			ui_musiCon_gen.showControls_RingVisualize.setColour(
+				ui_musiCon_gen.showControls_RingVisualize.buttonColourId,
+				Colours::red);
+			ringVisualize.toggleVisibility(false, processor.musicMode);
+			ui_musiCon_indiv.toggleVisible(true);
+			break;
+		case 1:
+			ui_musiCon_gen.showControls_Channel.setColour(
+				ui_musiCon_gen.showControls_Channel.buttonColourId,
+				Colours::red);
+			ui_musiCon_gen.showControls_RingVisualize.setColour(
+				ui_musiCon_gen.showControls_RingVisualize.buttonColourId,
+				Colours::blue);
+			ringVisualize.toggleVisibility(true, processor.musicMode);
+			ui_musiCon_indiv.toggleVisible(false);
+			break;
+		}
 	}
 	
 	//Set instrument variants for selected rhythm
@@ -449,12 +481,12 @@ private:
 			switch (presentMusiCon_Disp)
 			{
 			case 0:
-				ringVisualize.toggleVisibility(true, processor.musicMode);
-				ui_musiCon_indiv.toggleVisible(false);
-				break;
-			case 1:
 				ringVisualize.toggleVisibility(false, processor.musicMode);
 				ui_musiCon_indiv.toggleVisible(true);
+				break;
+			case 1:
+				ringVisualize.toggleVisibility(true, processor.musicMode);
+				ui_musiCon_indiv.toggleVisible(false);
 				break;
 			}
 		}
@@ -517,11 +549,18 @@ private:
 	// Configure Phase Ring Controls
 	void init_RingVisualize()
 	{
+		if (presentTab == 1 && presentMusiCon_Disp == 1)
+		{
+			for (int i = 0; i < ringVisualize.numBoxes; i++)
+				ringVisualize.beatSubBox[i].setVisible(true);
+		}
+		// Ring Visualizer Circle
 		ringVisualize.setCircleCenter_Rad(600, 520, 150);
 		ringVisualize.setPhaseInc(processor.tempo, UIRefreshFreq);
 		ringVisualize.refreshBoxPositions(processor.sequencer.musicPhase.presentPhase_Rad);
 		for (int i = 0; i < ringVisualize.numBoxes; i++)
 		{
+			// Beat Positions
 			if (i % (ringVisualize.numBoxes / 4) == 0)
 			{
 				ringVisualize.beatSubBox[i].setColour(ringVisualize.beatSubBox[i].backgroundColourId, Colours::yellow);
@@ -530,14 +569,15 @@ private:
 				ringVisualize.beatSubBox[i].setText(String(i / (ringVisualize.numBoxes / 4) + 1), dontSendNotification);
 				ringVisualize.beatSubBox[i].setJustificationType(Justification::centred);
 			}
+			
+			// Subdivisions
 			else
 				ringVisualize.beatSubBox[i].setColour(ringVisualize.beatSubBox[i].backgroundColourId, Colours::blue);
-			ringVisualize.beatSubBox[i].
-				setBounds(ringVisualize.box_Pos_X[i],
-					ringVisualize.box_Pos_Y[i],
-					ringVisualize.box_Side[i],
-					ringVisualize.box_Side[i]);
+				ringVisualize.beatSubBox[i].setBounds(ringVisualize.box_Pos_X[i],
+				ringVisualize.box_Pos_Y[i],	ringVisualize.box_Side[i],ringVisualize.box_Side[i]);
 		}
+
+		// Emph Function Properties
 		ringVisualize.emphFunc_MAX.onValueChange = [this]
 		{	processor.sequencer.musicPhase.emphFunc_MAX = ringVisualize.emphFunc_MAX.getValue();	};
 		ringVisualize.emphFunc_MIN.onValueChange = [this]
@@ -552,6 +592,7 @@ private:
 		// INIT COMBOBOXES
 		if (ringVisualize.emph_Strategy.getNumItems() == 0)						// PREVENT DOUBLE
 		{
+			// Emph Audio Param
 			for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
 			{
 				if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[6])
@@ -562,23 +603,29 @@ private:
 			}
 			ringVisualize.emph_Strategy.setSelectedId(processor.audioParams.indices_AP[5][0]);
 			ringVisualize.emph_Strategy.addListener(this);
-
-			ringVisualize.inbuilt_ChooseMIDI.addItem("NONE", 1);
-			for (int i = 1; i <= processor.sequencer.currentMusic.num_Inbuilt; i++)
-				ringVisualize.inbuilt_ChooseMIDI.addItem(processor.sequencer.currentMusic.MelLibFiles[i-1], i + 1);
-			ringVisualize.inbuilt_ChooseMIDI.setSelectedId(1);
-			ringVisualize.inbuilt_ChooseMIDI.addListener(this);
-
-			for (int i = 0; i < processor.sequencer.scaleTonicTrans.numTonics; i++)
-				ringVisualize.inbuilt_Tonic.addItem(processor.sequencer.scaleTonicTrans.tonics_Names[i], i + 1);
-			ringVisualize.inbuilt_Tonic.setSelectedId(1);
-			ringVisualize.inbuilt_Tonic.addListener(this);
-
-			for (int i = 0; i < processor.sequencer.scaleTonicTrans.numScales; i++)
-				ringVisualize.inbuilt_Scale.addItem(processor.sequencer.scaleTonicTrans.scales_Names[i], i + 1);
-			ringVisualize.inbuilt_Scale.setSelectedId(1);
-			ringVisualize.inbuilt_Scale.addListener(this);
 		}
+	}
+
+	void config_musicControls_inbuilt()
+	{
+		// Choose Inbuilt MIDI
+		ui_musiCon_inbuilt.inbuilt_ChooseMIDI.addItem("NONE", 1);
+		for (int i = 1; i <= processor.sequencer.currentMusic.num_Inbuilt; i++)
+			ui_musiCon_inbuilt.inbuilt_ChooseMIDI.addItem(processor.sequencer.currentMusic.MelLibFiles[i - 1], i + 1);
+		ui_musiCon_inbuilt.inbuilt_ChooseMIDI.setSelectedId(1);
+		ui_musiCon_inbuilt.inbuilt_ChooseMIDI.addListener(this);
+
+		// Choose Tonic
+		for (int i = 0; i < processor.sequencer.scaleTonicTrans.numTonics; i++)
+			ui_musiCon_inbuilt.inbuilt_Tonic.addItem(processor.sequencer.scaleTonicTrans.tonics_Names[i], i + 1);
+		ui_musiCon_inbuilt.inbuilt_Tonic.setSelectedId(1);
+		ui_musiCon_inbuilt.inbuilt_Tonic.addListener(this);
+
+		// Choose Scale
+		for (int i = 0; i < processor.sequencer.scaleTonicTrans.numScales; i++)
+			ui_musiCon_inbuilt.inbuilt_Scale.addItem(processor.sequencer.scaleTonicTrans.scales_Names[i], i + 1);
+		ui_musiCon_inbuilt.inbuilt_Scale.setSelectedId(1);
+		ui_musiCon_inbuilt.inbuilt_Scale.addListener(this);
 	}
 
 	// Configure Boxes in Phase Ring
@@ -590,8 +637,17 @@ private:
 		else if (ui_musiCon_gen.tempo_Slider.getValue() > 80)
 			ringVisualize.setNumBoxes(16);
 		else ringVisualize.setNumBoxes(32);
-		for (int i = 0; i < 32; i++)
-			ringVisualize.beatSubBox[i].setVisible(false);
+
+		if (presentTab == 1 && presentMusiCon_Disp == 1)
+		{
+			for (int i = 0; i < 32; i++)
+			{
+				if (i >= ringVisualize.numBoxes)
+					ringVisualize.beatSubBox[i].setVisible(false);
+				else
+					ringVisualize.beatSubBox[i].setVisible(true);
+			}
+		}
 		init_RingVisualize();
 		refreshRingBoxPositions();
 	}

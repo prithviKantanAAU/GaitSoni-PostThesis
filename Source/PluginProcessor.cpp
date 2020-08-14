@@ -81,7 +81,7 @@ void GaitSonificationAudioProcessor::clockCallback()
 	sequencer.musicPhase.updatePhase();
 
 	// ADD CUEING MAPPING --------------------- UNCOMMENT WHEN MUSIC PLAYBACK DEBUGGED
-	//sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
+	sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
 }
 
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS

@@ -56,7 +56,7 @@ public:
 			}
 		}
 
-		if (APName == "Mel Degree" && trackIndex == 0)
+		if (APName == "Mel Degree" && trackIndex == 5)
 		{
 			octaveNum += (short)emphFunc;
 			degreeFound = fmax(1, (int)degreeFound * emphFunc * 8);

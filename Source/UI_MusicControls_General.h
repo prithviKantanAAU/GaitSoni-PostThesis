@@ -54,6 +54,8 @@ public:
 	Slider song_master_EQ_B2_G;					//Master EQ Band 2 Gain (old name masterEQ_2_Gain)
 	Label song_master_EQ_B2_G_Lab;				//Gain Value in dB (old name masterEQ_2_Gain_Label)
 	TextButton tempo_Tap;						//Tap Tempo Manually (old name tapTempo)
+	TextButton showControls_Channel;			//Press To Show Channel Controls
+	TextButton showControls_RingVisualize;		//Press To Show Ring Visualize Controls
 
 	void configure()
 	{
@@ -151,6 +153,15 @@ public:
 		song_master_EQ_B2_G.setValue(0);
 		song_master_EQ_B2_G_Lab.setText("M2G", dontSendNotification);
 		song_master_EQ_B2_G_Lab.attachToComponent(&song_master_EQ_B2_G, true);
+
+		//Show Channel Settings
+		showControls_Channel.setButtonText("Channel Controls");
+		showControls_Channel.setColour(showControls_Channel.buttonColourId, Colours::blue);
+
+		//Show Ring Visualize
+		showControls_RingVisualize.setButtonText("Music Visualize");
+		showControls_Channel.setColour(showControls_Channel.buttonColourId, Colours::red);
+
 	}
 
 	void toggleVisible(bool on)
@@ -180,6 +191,8 @@ public:
 			song_track_Mute[i].setVisible(on);
 			inst_Variant[i].setVisible(on);
 		}
+		showControls_Channel.setVisible(on);
+		showControls_RingVisualize.setVisible(on);
 	}
 
 	void setLayout()
@@ -211,6 +224,9 @@ public:
 			song_track_GainOffset[i].setBounds(horizPos - 3, 150, 35, 80);
 			inst_Variant[i].setBounds(50, 355 + 50 * i, 200, 40);
 		}
+
+		showControls_RingVisualize.setBounds(550, 290, 200, 25);
+		showControls_Channel.setBounds(750, 290, 200, 25);
 	}
 };
 

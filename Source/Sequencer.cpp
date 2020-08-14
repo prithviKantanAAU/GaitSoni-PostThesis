@@ -48,7 +48,7 @@ void Sequencer::initializeTracksForPlayback()
 {
 	for (int i = 0; i < 8; i++)
 	{
-		setTrackMutes(i, 1);
+		setTrackMutes(i, muteValues[i]);
 		switchInstVariant(i, mixerSettings.currentVariant[index_baseBeat][i]);
 
 	}
@@ -79,8 +79,9 @@ void Sequencer::setTrackGains(int trackIndex, float value)
 // APPLY AND MAP MUTE VALUE - SINGLE TRACK
 void Sequencer::setTrackMutes(int trackIndex, int value)
 {
-	std::string address = faustStrings.baseName + faustStrings.trackMutes[trackIndex];
-	dspFaust.setParamValue(address.c_str(), value);
+	muteValues[trackIndex] = value;
+	std::string address = faustStrings.getTrackMuteString(trackIndex);
+	dspFaust.setParamValue(address.c_str(), muteValues[trackIndex]);
 }
 
 // APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)
@@ -189,6 +190,7 @@ void Sequencer::stopMusic()
 		nextPulseTime = 0;
 		songProgress = 0;
 		musicPhase.resetPhase();
+		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
 	}
 }
 
@@ -303,6 +305,18 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						transformedKey = scaleTonicTrans.transform_T1S1_TO_T2S2(originalKey,
 							tonicOffset_ORIG, scaleID_ORIG, tonicOffset_TRANS, scaleID_TRANS,
 							trackIndex, cue_AP_Name, musicPhase.emphFunc_Present);
+
+						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
+						for (int l = 0; l < numTracks; l++)
+						{
+							if (trackIdx_to_midiTrack_map[l] == targetTrackIdx)
+								pitches[nextVoiceIndex[trackIndex]][l] = midiNoteLimit(
+									transformedKey,
+									mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][l],
+									mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][l]
+								);
+						}
+
 						// LIMIT PITCHES AND STORE IN PITCH MATRIX
 						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
 							transformedKey,
