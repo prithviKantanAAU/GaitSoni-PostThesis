@@ -433,6 +433,7 @@ void Sequencer::mapNew_MIDIEvents()
 	for (int presentTrack = 1; presentTrack <= numTracks; presentTrack++)
 	{
 		std::string faustAddress = "";
+		double pitch_Hz = 100;
 
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
@@ -447,7 +448,8 @@ void Sequencer::mapNew_MIDIEvents()
 				if (isPitched[presentTrack - 1])
 				{
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
-					dspFaust.setParamValue(faustAddress.c_str(), pitches[currentVoice - 1][presentTrack - 1]);
+					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
+					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
 
 					// CHECK FOR PITCH DEPENDENT TRACKS (IF APPLICABLE)
 					if (trackIdx_to_midiTrack_map[presentTrack - 1] > -1)
@@ -457,7 +459,7 @@ void Sequencer::mapNew_MIDIEvents()
 							if (trackIdx_to_midiTrack_map[presentTrack - 1] == trackIdx_to_midiTrack_map[i - 1])
 							{
 								faustAddress = faustStrings.getMusicAddress(i, "P", currentVoice);
-								dspFaust.setParamValue(faustAddress.c_str(), pitches[currentVoice - 1][i - 1]);
+								dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
 							}
 						}
 					}

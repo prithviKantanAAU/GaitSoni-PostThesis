@@ -138,7 +138,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	ui_musiCon_gen.tempo_Slider.onValueChange = [this]
 	{
 		processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
-		ringVisualizeBoxConfig();
+		if (presentTab == 1 && presentMusiCon_Disp == 1)	ringVisualizeBoxConfig();
 	};
 
 	// Master gain slider
@@ -194,6 +194,9 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		{
 			int val = ui_musiCon_gen.song_track_Mute[i].getToggleState() ? 1 : 0;
 			processor.sequencer.setTrackMutes(i, val);
+			Colour trackColor = val == 0 ? Colours::yellow : Colours::red;
+			ui_musiCon_gen.song_track_GainOffset[i]
+				.setColour(ui_musiCon_gen.song_track_GainOffset[i].trackColourId, trackColor);
 		};
 		
 		// Track Gain Offset
