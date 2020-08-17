@@ -28,6 +28,7 @@ public:
 	{
 		short octaveNum = noteNum / 12;
 		short noteNum_NORM = noteNum - octaveNum * 12 - tonic_Offset1;
+		short outKey = 0;
 
 		short degreeDiff[8] = { 0 };
 		short minDiff = 12;
@@ -68,14 +69,13 @@ public:
 		// MEL DEGREE SONIFY
 		if ((APName_Soni == "Mel Degree") && trackIndex == 5)
 		{
-			octaveNum += (short)mapVal;									// MULT FOR EXAGGERATION
-			degreeFound = fmax(1, (int)degreeFound * mapVal * 8);
+			degreeFound = (int)(degreeFound + mapVal * 16);
+			octaveNum += (short)(degreeFound / 8);
 			degreeFound %= 8;
 		}
-
 		
-
-		return tonics_Offsets[tonic_Offset2] + 12 * octaveNum + scales[scaleID2][degreeFound] + minDiff;
+		outKey = tonics_Offsets[tonic_Offset2] + 12 * octaveNum + scales[scaleID2][degreeFound] + minDiff;
+		return outKey;
 	}
 
 	short scales[10][10] =
