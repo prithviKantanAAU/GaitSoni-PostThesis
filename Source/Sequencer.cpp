@@ -49,7 +49,7 @@ void Sequencer::initializeTracksForPlayback()
 	for (int i = 0; i < 8; i++)
 	{
 		setTrackMutes(i, muteValues[i]);
-		switchInstVariant(i, mixerSettings.currentVariant[index_baseBeat][i]);
+		switchInstVariant(i, currentMusic.baseBeats[index_baseBeat].variantConfig[i]);
 
 	}
 	applyMasterGain(mixerSettings.masterGain);
@@ -62,17 +62,17 @@ void Sequencer::applyCurrentVariantGain(int trackIndex)
 {
 	std::string address = "";
 	float gain = 0;
-	short variantNum = mixerSettings.currentVariant[index_baseBeat][trackIndex] - 1;
+	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
 	address = faustStrings.getTrackGainString(trackIndex);
 	gain = mixerSettings.trackGains[trackIndex][variantNum]
-		+ mixerSettings.trackGain_Offsets[index_baseBeat][trackIndex];
+		+ currentMusic.baseBeats[index_baseBeat].variantConfig_GAINS[trackIndex];
 	dspFaust.setParamValue(address.c_str(), gain);
 }
 
 // APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)
 void Sequencer::setTrackGains(int trackIndex, float value)
 {
-	mixerSettings.trackGain_Offsets[index_baseBeat][trackIndex] = value;
+	currentMusic.baseBeats[index_baseBeat].variantConfig_GAINS[trackIndex] = value;
 	applyCurrentVariantGain(trackIndex);
 }
 
@@ -87,7 +87,7 @@ void Sequencer::setTrackMutes(int trackIndex, int value)
 // APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)
 void Sequencer::applyCurrentVariantEQ(int trackIndex)
 {
-	short variantNum = mixerSettings.currentVariant[index_baseBeat][trackIndex] - 1;
+	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
 	float value = 0;
 	bool toMap = true;
 	for (int i = 0; i < 4; i++)
@@ -107,7 +107,7 @@ void Sequencer::applyCurrentVariantComp(int trackIndex)
 	std::string address = "";
 	float value = 0;
 	int currentRhythm = index_baseBeat;
-	short variantNum = mixerSettings.currentVariant[currentRhythm][trackIndex] - 1;
+	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
 	for (int j = 0; j < 4; j++)		//Param ID
 	{
 		address = faustStrings.FetchComp_String(trackIndex, j);
@@ -121,7 +121,7 @@ void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 {
 	// UPDATE MIXER SETTINGS WITH NEW SETTING
 	int currentRhythm = index_baseBeat;
-	mixerSettings.currentVariant[currentRhythm][trackIndex] = newVariant;
+	currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] = newVariant;
 	//MAP VARIANT TO FAUST
 	// CHANNEL SETTINGS
 	applyCurrentVariantGain(trackIndex);
@@ -129,7 +129,7 @@ void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 	applyCurrentVariantEQ(trackIndex);
 	// VARIANT NUMBER
 	std::string address = faustStrings.baseName + faustStrings.trackVariant_Base + std::to_string(trackIndex + 1);
-	dspFaust.setParamValue(address.c_str(), mixerSettings.currentVariant[index_baseBeat][trackIndex]);
+	dspFaust.setParamValue(address.c_str(), currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex]);
 }
 
 // LOAD MIDI SONG FILE
@@ -198,7 +198,7 @@ void Sequencer::stopMusic()
 void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 {
 	// GET MIXER INFO
-	int trackVariant = mixerSettings.currentVariant[index_baseBeat][trackIndex - 1];
+	int trackVariant = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex - 1];
 	short targetTrackIdx = 0;
 
 	// DECREMENT TRACK INDEX AND INITIALIZE EVENT COUNT
@@ -286,15 +286,25 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					case 1:
 						// LIMIT PITCHES AND STORE IN PITCH MATRIX
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
-						for (int l = 0; l < numTracks; l++)
+						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
+							currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
+							mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex],
+							mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex]
+						);
+						copyPitches_ToDependentTracks(trackIndex);
+						/*for (int l = 0; l < numTracks; l++)
 						{
 							if (trackIdx_to_midiTrack_map[l] == targetTrackIdx)
-								pitches[nextVoiceIndex[trackIndex]][l] = midiNoteLimit(
+							{
+								pitches[nextVoiceIndex[l]][l] = midiNoteLimit(
 									currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
 									mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][l],
 									mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][l]
 								);
-						}
+								if (currentMusic.numVoices[trackIndex] > 1) arrangePitches_Asc(trackIndex);
+								nextVoiceIndex[l] = (nextVoiceIndex[l] + 1) % currentMusic.numVoices[l];
+							}
+						}*/
 						break;
 					case 2:
 						break;
@@ -352,9 +362,6 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 				}
 
 				currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].incrementEventsHandled();				// INCREMENT EVENT
-
-				// ARRANGE VOICES ASCENDING IF GREATER THAN 1 VOICE
-				if (currentMusic.numVoices[trackIndex] > 1) arrangePitches_Asc(trackIndex); // !!!!!!!!!!!!!!!!
 			}
 		}
 	}
@@ -440,10 +447,6 @@ void Sequencer::mapNew_MIDIEvents()
 		{
 			for (int currentVoice = 1; currentVoice <= currentMusic.numVoices[presentTrack - 1]; currentVoice++)
 			{
-				// VELOCITY
-				faustAddress = faustStrings.getMusicAddress(presentTrack, "V", currentVoice);
-				dspFaust.setParamValue(faustAddress.c_str(),vels[currentVoice - 1][presentTrack - 1]);
-				
 				// PITCH
 				if (isPitched[presentTrack - 1])
 				{
@@ -452,18 +455,22 @@ void Sequencer::mapNew_MIDIEvents()
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
 
 					// CHECK FOR PITCH DEPENDENT TRACKS (IF APPLICABLE)
-					if (trackIdx_to_midiTrack_map[presentTrack - 1] > -1)
+					/*if (trackIdx_to_midiTrack_map[presentTrack - 1] > -1)
 					{
 						for (int i = 1; i <= numTracks; i++)
 						{
-							if (trackIdx_to_midiTrack_map[presentTrack - 1] == trackIdx_to_midiTrack_map[i - 1])
-							{
-								faustAddress = faustStrings.getMusicAddress(i, "P", currentVoice);
-								dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
-							}
+								if (trackIdx_to_midiTrack_map[presentTrack - 1] == trackIdx_to_midiTrack_map[i - 1])
+								{
+									faustAddress = faustStrings.getMusicAddress(i, "P", currentVoice);
+									dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
+								}
 						}
-					}
+					}*/
 				}
+
+				// VELOCITY
+				faustAddress = faustStrings.getMusicAddress(presentTrack, "V", currentVoice);
+				dspFaust.setParamValue(faustAddress.c_str(), vels[currentVoice - 1][presentTrack - 1]);
 			}
 		}
 	}

@@ -231,8 +231,31 @@ public:
 	// ARRANGE PITCHES ASCENDING
 	void arrangePitches_Asc(int trackIndex)
 	{	
+		int temp[4] = { 0 };
+		for (int i = 0; i < 4; i++)
+			temp[i] = pitches[i][trackIndex];
+		std::sort(temp, temp + currentMusic.numVoices[trackIndex]);
+		for (int i = 0; i < 4; i++)
+			pitches[i][trackIndex] = temp[i];
 	}
 
+	void copyPitches_ToDependentTracks(int trackIndex)
+	{
+		int targetTrackId = trackIdx_to_midiTrack_map[trackIndex];
+		int trackVariant = 0;
+
+		for (int i = 0; i < numTracks; i++)
+		{
+			trackVariant = currentMusic.baseBeats[index_baseBeat].variantConfig[i] - 1;
+			if (i != trackIndex && trackIdx_to_midiTrack_map[i] == targetTrackId)
+			{
+				for (int j = 0; j < currentMusic.numVoices[trackIndex]; j++)
+					pitches[j][i] = midiNoteLimit(pitches[j][trackIndex],
+						mixerSettings.var_noteMins[trackVariant][j][i],
+						mixerSettings.var_noteMaxs[trackVariant][j][i]);
+			}
+		}
+	}
 
 	// DSPFAUST RELATED
 	//Start DSPFaust, Initialize Gain -> Sequencer

@@ -76,10 +76,50 @@ public:
 
 			loadMIDIFile_Drum(&baseBeats[i], currentFile);
 			baseBeats[i].populateTrackwiseEvents(numVoices, pitchesToMonitor);
+			loadMIDIFile_Drum_Metadata(i);											// NEW
 		}
-		loadMIDIFile_Drum(&snareFlurry, file_cue_32nd);
 	};
 
+	// LOAD VARIANT AND GAIN OFFSET METADATA
+	void loadMIDIFile_Drum_Metadata(int beatNum)
+	{
+		auto metadataFile = File(drumLibPath_Base + baseBeats[beatNum].name + ".csv");
+		
+		if (!metadataFile.existsAsFile())
+			return;  // file doesn't exist
+
+		juce::FileInputStream inputStream(metadataFile); // [2]
+
+		if (!inputStream.openedOk())
+			return;  // failed to open
+
+		for (int i = 0; i < 2; i++)
+		{
+			auto line = inputStream.readNextLine();
+			auto line_Rem = line;
+			short *varConfig = baseBeats[beatNum].variantConfig;
+			float *varConfig_GAINS = baseBeats[beatNum].variantConfig_GAINS;
+			
+			for (int j = 0; j < 8; j++)
+			{
+				line = line_Rem.upToFirstOccurrenceOf(",", false, true);
+				line_Rem = line_Rem.fromFirstOccurrenceOf(",", false, true);
+
+				switch (i)
+				{
+				case 0:
+					varConfig[j] = line.getIntValue();
+					break;
+				case 1:
+					varConfig_GAINS[j] = line.getFloatValue();
+					break;
+				}
+			}
+		}
+
+		int a = 0;
+	}
+	
 	MidiFile midiObj;
 	File midiFile;
 	MidiTrack midiTracks[4];

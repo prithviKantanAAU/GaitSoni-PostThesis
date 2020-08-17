@@ -185,7 +185,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][1], 2);
 		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][2], 3);
 		ui_musiCon_gen.inst_Variant[i].addListener(this);
-		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
+		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.baseBeats[processor.sequencer.index_baseBeat].variantConfig[i]);
 		ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
 		ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 

@@ -5,6 +5,8 @@ public:
 	MidiTrack_Drum() {};
 	~MidiTrack_Drum() {};
 	String name = "";
+	short variantConfig[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	float variantConfig_GAINS[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	void resetPlayback()
 	{
 		Idx_nextEvent = 0;

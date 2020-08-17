@@ -353,7 +353,8 @@ private:
 	void setRhythmSpecificVariants()	
 	{
 		for (int i = 0; i < 8; i++)
-			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.mixerSettings.currentVariant[processor.sequencer.index_baseBeat][i]);
+			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.baseBeats
+				[processor.sequencer.index_baseBeat].variantConfig[i]);
 	};
 	
 	//UPDATE RHYTHM NAME LABELS WHEN RHYTHM IS CHANGED
@@ -405,8 +406,8 @@ private:
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sequencer.mixerSettings
-				.trackGain_Offsets[processor.sequencer.index_baseBeat][i]);
+			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sequencer.currentMusic.baseBeats
+				[processor.sequencer.index_baseBeat].variantConfig_GAINS[i]);
 		}
 	}
 	
@@ -507,7 +508,7 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.sequencer.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
+				short currentVariant = processor.sequencer.currentMusic.baseBeats[rhythm_Idx].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
 				processor.sequencer.mixerSettings.compSettings[currentVariant - 1][activeTrack][i] = ui_musiCon_indiv.channel_Comp_Settings[i].getValue();
 				processor.sequencer.applyCurrentVariantComp(activeTrack);
 			};
@@ -519,7 +520,7 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.sequencer.mixerSettings.currentVariant[rhythm_Idx][ui_musiCon_indiv.channel_ActiveTrack];
+				short currentVariant = processor.sequencer.currentMusic.baseBeats[rhythm_Idx].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
 				processor.sequencer.mixerSettings.eqSettings[currentVariant - 1][activeTrack][3 * ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i] =
 					ui_musiCon_indiv.channel_EQ_Settings[i].getValue();
 				processor.sequencer.applyCurrentVariantEQ(activeTrack);
@@ -535,7 +536,7 @@ private:
 		float value = 0;
 		for (int i = 0; i < 4; i++)
 		{
-			currentVariant = processor.sequencer.mixerSettings.currentVariant[currentRhythm][trackIdx] - 1;
+			currentVariant = processor.sequencer.currentMusic.baseBeats[currentRhythm].variantConfig[trackIdx] - 1;
 			value = processor.sequencer.mixerSettings.compSettings[currentVariant][trackIdx][i];
 			ui_musiCon_indiv.channel_Comp_Settings[i].setValue(value);
 		}
