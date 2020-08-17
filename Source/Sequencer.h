@@ -102,6 +102,10 @@ public:
 	int midiTickIncrement = 240;								// MIDI Tick Increment per 16th note
 	double songProgress = 0;									// Song Process Fraction -> Sequencer
 
+	// SEQUENCER SONIFICATION
+	float AP_Val = 0;
+	String soni_AP_Name = "";
+
 	//MIDI
 	short numTracks = 8;
 	float vels[4][8] = { 0.0 };

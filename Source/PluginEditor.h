@@ -478,9 +478,11 @@ private:
 		{
 			ringVisualize.toggleVisibility(false, processor.musicMode);
 			ui_musiCon_indiv.toggleVisible(false);
+			ui_musiCon_inbuilt.toggleVisible(false);
 		}
 		else
 		{
+			ui_musiCon_inbuilt.toggleVisible(processor.musicMode == 3);
 			switch (presentMusiCon_Disp)
 			{
 			case 0:

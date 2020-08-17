@@ -102,9 +102,12 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
 	if (isStandby) mapVal = 0;
 	else
+	{
 		mapVal = jlimit(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].minVal,
 			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].maxVal,
 			getCurrentMappingValue());
+		sequencer.AP_Val = mapVal;
+	}
 
 	// CHECK MUSIC PLAYBACK
 	if (sequencer.isPlaying)

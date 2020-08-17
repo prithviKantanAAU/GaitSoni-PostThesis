@@ -153,6 +153,7 @@ public:
 		{
 			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
 			audioParams.activeAudioParam = index - 1;
+			sequencer.soni_AP_Name = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
 			soniAddress_Primary = sequencer.faustStrings.getSonificationStringAddress
 			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
 			

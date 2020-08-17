@@ -789,6 +789,7 @@ void GaitSonificationAudioProcessorEditor::switchTab(int currentTab)
 	togglePeripheralsTab(isPeripheralsTab);
 	toggleMusicControlsTab(isMusicControlsTab);
 	toggleMusicControls_Secondary(currentTab);
+
 	toggleSonificationControlsTab(isSonificationTab);
 }
 

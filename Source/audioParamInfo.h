@@ -83,7 +83,7 @@ public:
 		audioParam_ObjectArray[10].initializeSoniParams(0.5, 0, 1, 0, 0, 100);
 
 		// 12					    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray14[10] = { false, false, false, false, false, false, true };
+		bool useCaseArray14[10] = { true, false, false, false, false, false, true };
 		audioParam_ObjectArray[11].set_nameTypeAddress("Mel Degree", 0, 2);
 		audioParam_ObjectArray[11].set_isIncluded_UseScenarios(useCaseArray14, num_UseScenarios);
 		audioParam_ObjectArray[11].initializeSoniParams(1, 0, 1, 0, 0, 100);

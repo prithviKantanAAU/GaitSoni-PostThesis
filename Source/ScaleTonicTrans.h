@@ -23,7 +23,8 @@ public:
 	{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
 	int transform_T1S1_TO_T2S2(int noteNum, short tonic_Offset1,short scaleID1,
-		short tonic_Offset2, short scaleID2, short trackIndex, String APName, float emphFunc)
+		short tonic_Offset2, short scaleID2, short trackIndex, String APName_Cue,
+		String APName_Soni, float emphFunc, float mapVal)
 	{
 		short octaveNum = noteNum / 12;
 		short noteNum_NORM = noteNum - octaveNum * 12 - tonic_Offset1;
@@ -56,12 +57,23 @@ public:
 			}
 		}
 
-		if (APName == "Mel Degree" && trackIndex == 5)
+		// MEL DEGREE CUE
+		if ((APName_Cue == "Mel Degree") && trackIndex == 5)
 		{
 			octaveNum += (short)emphFunc;
 			degreeFound = fmax(1, (int)degreeFound * emphFunc * 8);
 			degreeFound %= 8;
 		}
+
+		// MEL DEGREE SONIFY
+		if ((APName_Soni == "Mel Degree") && trackIndex == 5)
+		{
+			octaveNum += (short)mapVal;									// MULT FOR EXAGGERATION
+			degreeFound = fmax(1, (int)degreeFound * mapVal * 8);
+			degreeFound %= 8;
+		}
+
+		
 
 		return tonics_Offsets[tonic_Offset2] + 12 * octaveNum + scales[scaleID2][degreeFound] + minDiff;
 	}
