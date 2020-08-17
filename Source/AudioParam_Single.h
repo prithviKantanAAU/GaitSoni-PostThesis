@@ -6,12 +6,12 @@ class AudioParam_Single
 public:
 
 	String name = "";
-	String faustAddress = "abcd";
+	int faustIndex = 1;
 	short type = 1;										// 1 = FAUST // 2 = SEQUENCER
-	void set_nameTypeAddress(String stratNAME, String FAUSTAddress, short TYPE)	// Mandatory Call 1
+	void set_nameTypeAddress(String stratNAME, int idx, short TYPE)	// Mandatory Call 1
 	{
 		name = stratNAME;
-		faustAddress = FAUSTAddress;
+		faustIndex = idx;
 		type = TYPE;
 	}
 	bool isIncluded_UseScenarios[10] = { false };

@@ -26,28 +26,28 @@ public:
 		desired_Amplitude.setRange(0, 1);
 		desired_Amplitude.setNumDecimalPlacesToDisplay(2);
 		desired_Amplitude_Label.setText("Desired Movement %", dontSendNotification);
-		desired_Amplitude_Label.attachToComponent(&desired_Amplitude, true);
+		desired_Amplitude_Label.attachToComponent(&desired_Amplitude, false);
 
 		//Desired Movement Frequency
 		desired_MovementFreq.addItem("1/8 Tempo", 1);
 		desired_MovementFreq.addItem("1/16 Tempo", 2);
 		desired_MovementFreq.setSelectedId(1);
 		desired_MovementFreq_Label.setText("Movement Rhythm", dontSendNotification);
-		desired_MovementFreq_Label.attachToComponent(&desired_MovementFreq, true);
+		desired_MovementFreq_Label.attachToComponent(&desired_MovementFreq, false);
 
 		//Movement Function Order
 		movementFunc_Order.setValue(1);
 		movementFunc_Order.setRange(0.05, 3);
 		movementFunc_Order.setNumDecimalPlacesToDisplay(2);
 		movementFunc_Order_Label.setText("Movement Func Order", dontSendNotification);
-		movementFunc_Order_Label.attachToComponent(&movementFunc_Order, true);
+		movementFunc_Order_Label.attachToComponent(&movementFunc_Order, false);
 
 		//Movement Error Tolerance
 		movement_errorTolerance.setValue(0);
 		movement_errorTolerance.setRange(0.0, 0.3);
 		movement_errorTolerance.setNumDecimalPlacesToDisplay(2);
 		movement_errorTolerance_Label.setText("Error Tolerance", dontSendNotification);
-		movement_errorTolerance_Label.attachToComponent(&movement_errorTolerance, true);
+		movement_errorTolerance_Label.attachToComponent(&movement_errorTolerance, false);
 	}
 
 	void toggleVisible(bool on)
@@ -65,12 +65,11 @@ public:
 
 	void setLayout()
 	{
-		
-		dynTargetLabel.setBounds(200, 260, 150, 40);
-		desired_Amplitude.setBounds(120, 320, 200, 40);
-		desired_MovementFreq.setBounds(120, 380, 150, 40);
-		movementFunc_Order.setBounds(120, 440, 150, 40);
-		movement_errorTolerance.setBounds(120, 500, 150, 40);
+		dynTargetLabel.setBounds(710, 110, 200, 40);
+		desired_Amplitude.setBounds(710, 190, 200, 40);
+		desired_MovementFreq.setBounds(710, 270, 200, 40);
+		movementFunc_Order.setBounds(710, 350, 200, 40);
+		movement_errorTolerance.setBounds(710, 430, 200, 40);
 	}
 };
 

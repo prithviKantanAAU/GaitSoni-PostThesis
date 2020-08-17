@@ -137,6 +137,8 @@ private:
 		addAndMakeVisible(ui_bmbf_ex.HS_TimingMode);
 		addAndMakeVisible(ui_bmbf_ex.HS_Tolerance);
 		addAndMakeVisible(ui_bmbf_ex.HS_Tolerance_Label);
+		addAndMakeVisible(ui_bmbf_ex.HS_AccThresh);
+		addAndMakeVisible(ui_bmbf_ex.HS_AccThresh_Label);
 	}
 	void addControls_BMBF_GEN()
 	{

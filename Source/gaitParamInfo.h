@@ -20,7 +20,7 @@ public:
 	gaitParamInfo() 
 	{
 		// 0					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray0[10] = { true, true, true, false, false, false, false };
+		bool useCaseArray0[10] = { true, false, false, false, false, false, false };
 		//							TRUNK FEET
 		bool sensorReqArray0[5] = { true, false };
 		gaitParam_ObjectArray[0].setName_SensorReq("Inclination (+-) - ML",
@@ -30,7 +30,7 @@ public:
 		numMovementParams++;
 
 		// 1					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray1[10] = { true, true, true, false, false, false, false };
+		bool useCaseArray1[10] = { true, false, false, false, false, false, false };
 		//							TRUNK FEET
 		bool sensorReqArray1[5] = { true, false };
 		gaitParam_ObjectArray[1].setName_SensorReq("Inclination (+-) - AP",

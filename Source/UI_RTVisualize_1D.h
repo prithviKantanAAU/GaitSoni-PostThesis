@@ -15,9 +15,10 @@ public:
 	Label rtv_fullRangeBar;
 	Label rtv_currentValue;
 	Label rtv_targetRange;
-	int rtv_startX = 20;
-	int rtv_width = 300;
-	int rtv_ht = 20;
+	int rtv_startX = 50;
+	int rtv_width = 600;
+	int rtv_ht = 50;
+	int rtv_startY = 550;
 
 	void addElements()
 	{
@@ -51,10 +52,10 @@ public:
 
 	void setLayout()
 	{
-		rtv_minBound.setBounds(rtv_startX, 640, 100, 30);
-		rtv_maxBound.setBounds(rtv_startX + rtv_width, 640, 100, 30);
-		rtv_targetRange.setBounds(rtv_startX, 600 - rtv_ht / 2, 100, rtv_ht);
-		rtv_currentValue.setBounds(rtv_startX + 20, 600 + rtv_ht / 2, 40, rtv_ht);
+		rtv_minBound.setBounds(rtv_startX, rtv_startY, 100, 30);
+		rtv_maxBound.setBounds(rtv_startX + rtv_width, rtv_startY, 100, 30);
+		rtv_targetRange.setBounds(rtv_startX, rtv_startY - 40 - rtv_ht / 2, 100, rtv_ht);
+		rtv_currentValue.setBounds(rtv_startX + 20, rtv_startY - 40 + rtv_ht / 2, 40, rtv_ht);
 	}
 };
 

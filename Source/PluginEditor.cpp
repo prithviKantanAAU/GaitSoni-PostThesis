@@ -386,6 +386,13 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		processor.gaitAnalysis.HS_IntervalTolerance = ui_bmbf_ex.HS_Tolerance.getValue();
 	};
 
+	// HS Acc Threshold
+	// Simulation Frequency
+	ui_bmbf_ex.HS_AccThresh.onValueChange = [this]
+	{
+		processor.gaitAnalysis.HS_thresh_pos = ui_bmbf_ex.HS_AccThresh.getValue();
+	};
+
 	//Enable Dynamic Target
 	ui_bmbf_gen.enable_dynTarget.onStateChange = [this]
 	{
@@ -885,8 +892,8 @@ void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 			chosenTarget) * pixelMultiplier);
 		break;
 	}
-	ui_rtv_1d.rtv_targetRange.setBounds(ui_rtv_1d.rtv_startX + targetStartPoint, 600 - ui_rtv_1d.rtv_ht / 2, targetWidth, ui_rtv_1d.rtv_ht);
-	ui_rtv_1d.rtv_currentValue.setBounds(ui_rtv_1d.rtv_startX + currentStartPoint, 600 + ui_rtv_1d.rtv_ht / 2, 20, ui_rtv_1d.rtv_ht);
+	ui_rtv_1d.rtv_targetRange.setBounds(ui_rtv_1d.rtv_startX + targetStartPoint, ui_rtv_1d.rtv_startY - 90 - ui_rtv_1d.rtv_ht / 2, targetWidth, ui_rtv_1d.rtv_ht);
+	ui_rtv_1d.rtv_currentValue.setBounds(ui_rtv_1d.rtv_startX + currentStartPoint, ui_rtv_1d.rtv_startY - 90 + ui_rtv_1d.rtv_ht / 2, 20, ui_rtv_1d.rtv_ht);
 	if (processor.mapVal < 0.001)
 	{
 		ui_rtv_1d.rtv_currentValue.setColour(ui_rtv_1d.rtv_currentValue.backgroundColourId, Colours::yellow);

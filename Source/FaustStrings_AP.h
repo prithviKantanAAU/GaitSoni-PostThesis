@@ -11,9 +11,6 @@ public:
 
 	String baseName = "/GaitSoni/";
 
-	String SonificationBase
-		= "Mapping_Tabs/Sonification_Types/";
-
 	String SonificationNames[20] =
 	{
 		"Punishment_Strategies/x_P1_Detune",
@@ -38,17 +35,6 @@ public:
 		"",
 		"",
 	};
-
-	String  SnareTriggerMode = baseName + "Mapping_Tabs/Sonification_Types/HStrike_Strategies/Mode_SnareTrigger";
-	String  SonificationTypeToggle = baseName + "Mapping_Tabs/Mixer_And_Master/Sonification_Type/Traditional";
-	String  MasterGainString = baseName + "Mapping_Tabs/Mixer_And_Master/Master_Gain/Master_Gain";
-	String  TraditionalSonificationChoice = baseName + "Mapping_Tabs/Sonification_Types/Traditional_Strategies/Choice_Traditional";
-
-	String  getSonificationStringAddress(int sonificationIndex)
-	{
-		return baseName + SonificationBase + SonificationNames[sonificationIndex];
-	};
-
 };
 
 

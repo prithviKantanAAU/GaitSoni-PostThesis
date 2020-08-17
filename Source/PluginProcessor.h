@@ -153,16 +153,16 @@ public:
 		{
 			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
 			audioParams.activeAudioParam = index - 1;
-			soniAddress_Primary = audioParams.audioParam_ObjectArray
-				[audioParams.activeAudioParam].faustAddress.toStdString();
+			soniAddress_Primary = sequencer.faustStrings.getSonificationStringAddress
+			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
 			
 		}
 		if (type == 2)											// Music Cue Param
 		{
 			sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), resetValue);
 			audioParams.activeCueParam = index - 1;
-			soniAddress_Cue = audioParams.audioParam_ObjectArray
-				[audioParams.activeCueParam].faustAddress.toStdString();
+			soniAddress_Cue = sequencer.faustStrings.getSonificationStringAddress
+			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
 			sequencer.cue_AP_Name = audioParams.audioParam_ObjectArray
 				[audioParams.activeCueParam].name;
 		}

@@ -74,13 +74,9 @@ public:
 		soni_sliderSource.setNumDecimalPlacesToDisplay(2);
 		soni_sliderSource.setValue(0);
 		soni_sliderSource.setColour(soni_sliderSource.backgroundColourId, Colours::red);
-		soni_sliderSource_Label.setText("Manual Distance", dontSendNotification);
-		soni_sliderSource_Label.attachToComponent(&soni_sliderSource, true);
 
 		// EXERCISE MODE
 		exerciseMode.setColour(exerciseMode.backgroundColourId, Colours::red);
-		exerciseModeLabel.setText("Exercise Mode", dontSendNotification);
-		exerciseModeLabel.attachToComponent(&exerciseMode, true);
 
 		//Enable Dynamic Target
 		enable_dynTarget.setToggleState(false, dontSendNotification);
@@ -89,8 +85,6 @@ public:
 
 		//Enable Real Time Visualize
 		realTimeVisualize.setToggleState(true, dontSendNotification);
-		realTimeVisualize_Label.setText("Visualize Performance", dontSendNotification);
-		realTimeVisualize_Label.attachToComponent(&realTimeVisualize, true);
 	}
 
 	void toggleVisible(bool on)
@@ -117,19 +111,28 @@ public:
 
 	void setLayout()
 	{
-		enable_dynTarget.setBounds(120, 260, 150, 40);
-		isStandbyToggle.setBounds(1050, 50, 150, 30);
-		gaitParam_Current.setBounds(120, 50, 200, 40);
-		recordGaitParam.setBounds(350, 50, 200, 40);
-		gaitParam_CurrentValue.setBounds(120, 100, 150, 40);
-		desiredBehavior.setBounds(120, 140, 200, 40);
-		gaitParam_targetValue.setBounds(120, 180, 150, 40);
-		gaitParam_setTarget.setBounds(120, 220, 200, 40);
-		audioParam_Current.setBounds(650, 50, 200, 40);
-		soni_isSliderSource.setBounds(750, 130, 150, 40);
-		soni_sliderSource.setBounds(650, 170, 200, 40);
-		exerciseMode.setBounds(650, 220, 200, 40);
-		realTimeVisualize.setBounds(120, 550, 100, 30);
+		
+		// COLUMN 1
+		exerciseMode.setBounds(50, 40, 200, 40);
+
+		// COLUMN 2
+		gaitParam_Current.setBounds(270, 40, 200, 40);
+		desiredBehavior.setBounds(270, 110, 200, 40);
+		gaitParam_CurrentValue.setBounds(270, 190, 200, 40);
+		gaitParam_targetValue.setBounds(270, 270, 200, 40);
+		gaitParam_setTarget.setBounds(270, 350, 200, 40);
+
+		// COLUMN 3
+		audioParam_Current.setBounds(490, 40, 200, 40);
+		soni_isSliderSource.setBounds(620, 110, 200, 40);
+		soni_sliderSource.setBounds(490, 190, 200, 40);
+		recordGaitParam.setBounds(490, 270, 200, 40);
+
+		// COLUMN 4
+		enable_dynTarget.setBounds(890, 40, 200, 40);
+
+		// TOP RIGHT
+		isStandbyToggle.setBounds(1090, 40, 150, 40);
 	}
 };
 

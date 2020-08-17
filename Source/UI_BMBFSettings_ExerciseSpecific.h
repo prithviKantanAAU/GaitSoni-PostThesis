@@ -22,6 +22,8 @@ public:
 	ComboBox HS_TimingMode;
 	Slider HS_Tolerance;
 	Label HS_Tolerance_Label;
+	Slider HS_AccThresh;
+	Label HS_AccThresh_Label;
 
 	Slider sitStand_Thresh_Stand;
 	Label sitStand_Thresh_Stand_Label;
@@ -62,7 +64,7 @@ public:
 		staticBalance_FeedbackSlope.addItem("Steep", 3);
 		staticBalance_FeedbackSlope.setSelectedId(1);
 		staticBalance_FeedbackSlope_Label.setText("Change Rate", dontSendNotification);
-		staticBalance_FeedbackSlope_Label.attachToComponent(&staticBalance_FeedbackSlope, true);
+		staticBalance_FeedbackSlope_Label.attachToComponent(&staticBalance_FeedbackSlope, false);
 
 		//Trunk Balance - Calibration Mode
 		staticBalance_calibrationMode.addItem("Calibrate Ideal", 1);
@@ -74,14 +76,14 @@ public:
 		sitStand_Thresh_Stand.setRange(5, 30);
 		sitStand_Thresh_Stand.setNumDecimalPlacesToDisplay(1);
 		sitStand_Thresh_Stand_Label.setText("Pre-Stand Angle", dontSendNotification);
-		sitStand_Thresh_Stand_Label.attachToComponent(&sitStand_Thresh_Stand, true);
+		sitStand_Thresh_Stand_Label.attachToComponent(&sitStand_Thresh_Stand, false);
 		
 		// SST - Sit Angle Thresh
 		sitStand_Thresh_Sit.setValue(10);
 		sitStand_Thresh_Sit.setRange(5, 30);
 		sitStand_Thresh_Sit.setNumDecimalPlacesToDisplay(1);
 		sitStand_Thresh_Sit_Label.setText("Pre-Sit Angle", dontSendNotification);
-		sitStand_Thresh_Sit_Label.attachToComponent(&sitStand_Thresh_Sit, true);
+		sitStand_Thresh_Sit_Label.attachToComponent(&sitStand_Thresh_Sit, false);
 
 		// SST - Flip State
 		sitStand_FlipState.setButtonText("Flip State");
@@ -101,7 +103,14 @@ public:
 		HS_Tolerance.setRange(0, 1);
 		HS_Tolerance.setNumDecimalPlacesToDisplay(2);
 		HS_Tolerance_Label.setText("Error Tolerance", dontSendNotification);
-		HS_Tolerance_Label.attachToComponent(&HS_Tolerance, true);
+		HS_Tolerance_Label.attachToComponent(&HS_Tolerance, false);
+
+		// HS - Acc Thresh
+		HS_AccThresh.setValue(1.84, dontSendNotification);
+		HS_AccThresh.setRange(0, 5);
+		HS_AccThresh.setNumDecimalPlacesToDisplay(2);
+		HS_AccThresh_Label.setText("HS ACC Threshold", dontSendNotification);
+		HS_AccThresh_Label.attachToComponent(&HS_AccThresh, false);
 	}
 
 	void toggleVisible(short exMode, bool soniTab)
@@ -128,24 +137,26 @@ public:
 		// Gait
 		HS_TimingMode.setVisible(soniTab && isGait);
 		HS_Tolerance.setVisible(soniTab && isGait);
+		HS_AccThresh.setVisible(soniTab && isGait);
 	}
 
 	void setLayout()
 	{
-		staticBalance_FeedbackSlope.setBounds(650, 380, 200, 40);
-		staticBalance_calibrationMode.setBounds(650, 430, 200, 40);
+		staticBalance_FeedbackSlope.setBounds(50, 110, 200, 40);
+		staticBalance_calibrationMode.setBounds(50, 190, 200, 40);
 		staticBalance_Ctrl_X.setBounds(950, 310, 200, 20);
 		staticBalance_Ctrl_Y.setBounds(930, 330, 20, 200);
 		staticBalance_Div_Pitch.setBounds(920, 330, 20, 100);
 		staticBalance_Div_Roll.setBounds(950, 300, 100, 20);
 
-		sitStand_Thresh_Sit.setBounds(650, 290, 200, 40);
-		sitStand_Thresh_Stand.setBounds(650, 330, 200, 40);
-		sitStand_FlipState.setBounds(650, 380, 200, 40);
-		sitStand_isStanding.setBounds(640, 420, 200, 40);
+		sitStand_Thresh_Sit.setBounds(50, 110, 200, 40);
+		sitStand_Thresh_Stand.setBounds(50, 190, 200, 40);
+		sitStand_FlipState.setBounds(50, 270, 200, 40);
+		sitStand_isStanding.setBounds(50, 350, 200, 40);
 
-		HS_TimingMode.setBounds(650, 290, 200, 40);
-		HS_Tolerance.setBounds(650, 330, 200, 40);
+		HS_TimingMode.setBounds(50, 110, 200, 40);
+		HS_Tolerance.setBounds(50, 190, 200, 40);
+		HS_AccThresh.setBounds(50, 270, 200, 40);
 	}
 };
 
