@@ -17,7 +17,6 @@ GaitSonificationAudioProcessor::GaitSonificationAudioProcessor()
 	setTempo(120);
 	gaitAnalysis.setupReceivers();
 	updateAudioParameter(1, 1);
-	soniMappingCompute.setSampleRate(gaitAnalysis.sensorInfo.IMU_SampleRate);
 	initializeClocking();
 	startTimer(1);	
 }
@@ -103,9 +102,11 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	if (isStandby) mapVal = 0;
 	else
 	{
-		mapVal = jlimit(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].minVal,
-			audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].maxVal,
-			getCurrentMappingValue());
+		//mapVal = jlimit(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].minVal,
+			//audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].maxVal,
+			//getCurrentMappingValue());
+
+		mapVal = jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
 		sequencer.AP_Val = mapVal;
 	}
 
@@ -133,46 +134,47 @@ void GaitSonificationAudioProcessor::sensorCallback()
 // COMPUTE PRESENT AP VALUE
 float GaitSonificationAudioProcessor::getCurrentMappingValue()
 {
-	// LOAD SONIFICATION-RELATED PARAMS TO LOCAL VARIABLES
-	short activeGaitParam = gaitAnalysis.gaitParams.activeGaitParam;
-	String mp_Name = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].name;
-	float targetValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].target;
-	short desiredBehavior = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].desiredBehavior;
-	float range = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].maxVal
-		- gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].minVal;
-	float currentValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[activeGaitParam].currentValue;
-	float toleranceBW = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].toleranceBW;
-	float order_MappingFunc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].mappingOrder;
-	int numQuantLevels = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].quantLevels;
-	float smoothingFc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc;
+	//// LOAD SONIFICATION-RELATED PARAMS TO LOCAL VARIABLES
+	//short activeGaitParam = gaitAnalysis.gaitParams.activeGaitParam;
+	//String mp_Name = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].name;
+	//float targetValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].target;
+	//short desiredBehavior = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].desiredBehavior;
+	//float range = gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].maxVal
+	//	- gaitAnalysis.gaitParams.gaitParam_ObjectArray[activeGaitParam].minVal;
+	//float currentValue = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+	//	[activeGaitParam].currentValue;
+	//float toleranceBW = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].toleranceBW;
+	//float order_MappingFunc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].mappingOrder;
+	//int numQuantLevels = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].quantLevels;
+	//float smoothingFc = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc;
 
-	// SEPARATE FOR 2D PROJECTION ZONE
-	if (mp_Name == "Trunk Projection Zone")
-	{
-		if (!soniMappingCompute.isSoniSource_Slider)
-			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
-			[(int)gaitAnalysis.gaitParams.gaitParam_ObjectArray[2].currentValue - 1];
-		else
-			return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
-			[(int)(soniMappingCompute.soniVal_Slider * 5)];
-	}
+	//// SEPARATE FOR 2D PROJECTION ZONE
+	//if (mp_Name == "Trunk Projection Zone")
+	//{
+	//	if (!soniMappingCompute.isSoniSource_Slider)
+	//		return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
+	//		[(int)gaitAnalysis.gaitParams.gaitParam_ObjectArray[2].currentValue - 1];
+	//	else
+	//		return gaitAnalysis.staticBalance_ZoneMaps[gaitAnalysis.staticBalance_ZoneMap_Current - 1]
+	//		[(int)(soniMappingCompute.soniVal_Slider * 5)];
+	//}
 
-	// IF NOT 2D PROJECTION, CHECK AND HANDLE DYNAMIC TARGET SCENARIO
-	else
-		if (isTargetDynamic)
-		{
-			// HANDLE DYNAMIC TARGET
-		}
+	//// IF NOT 2D PROJECTION, CHECK AND HANDLE DYNAMIC TARGET SCENARIO
+	//else
+	//	if (isTargetDynamic)
+	//	{
+	//		// HANDLE DYNAMIC TARGET
+	//	}
 
-	// COMBINE SONI PARAMS INTO ARRAY TO SEND SONIMAPPINGCOMPUTE
-	float functionParamSet[6] = { order_MappingFunc, toleranceBW, numQuantLevels, smoothingFc, range, desiredBehavior };
+	//// COMBINE SONI PARAMS INTO ARRAY TO SEND SONIMAPPINGCOMPUTE
+	//float functionParamSet[6] = { order_MappingFunc, toleranceBW, numQuantLevels, smoothingFc, range, desiredBehavior };
 
-	// CHECK IF SLIDER SONIFICATION ENABLED, ELSE OPERATE ON PRESENT MP VALUE
-	if (!soniMappingCompute.isSoniSource_Slider)
-		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue(currentValue, targetValue, functionParamSet));
-	else
-		return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue_SliderSource(soniMappingCompute.soniVal_Slider, targetValue, functionParamSet));
+	//// CHECK IF SLIDER SONIFICATION ENABLED, ELSE OPERATE ON PRESENT MP VALUE
+	//if (!soniMappingCompute.isSoniSource_Slider)
+	//	return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue(currentValue, targetValue, functionParamSet));
+	//else
+	//	return jlimit((float)0, (float)1, soniMappingCompute.computeParamValue_SliderSource(soniMappingCompute.soniVal_Slider, targetValue, functionParamSet));
+	return 0;
 }
 
 // TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE

@@ -23,8 +23,6 @@ public:
 	Label soni_isSliderSource_Label;
 	Slider soni_sliderSource;
 	Label soni_sliderSource_Label;
-	ComboBox desiredBehavior;
-	Label gaitParam_DesiredBehavior_Label;
 	ToggleButton realTimeVisualize;
 	Label realTimeVisualize_Label;
 	ComboBox exerciseMode;
@@ -43,22 +41,17 @@ public:
 		isStandbyToggleLabel.setColour(isStandbyToggleLabel.backgroundColourId, Colours::green);
 		isStandbyToggleLabel.attachToComponent(&isStandbyToggle, true);
 
-		// DESIRED PARAM BEHAVIOR
-		desiredBehavior.addItem("Less Than", 1);
-		desiredBehavior.addItem("Equal To", 2);
-		desiredBehavior.addItem("Greater Than", 3);
-		desiredBehavior.setSelectedId(1);
-		desiredBehavior.setColour(desiredBehavior.backgroundColourId, Colours::green);
-
 		// RECORD GAIT PARAM
 		recordGaitParam.setButtonText("Rec Gait Param");
 		recordGaitParam.setColour(recordGaitParam.buttonColourId, Colours::red);
 
 		// TARGET SETTER
+		gaitParam_setTarget.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
 		gaitParam_setTarget.setRange(0, 1);
 		gaitParam_setTarget.setNumDecimalPlacesToDisplay(2);
-		gaitParam_setTarget.setValue(0);
-		gaitParam_setTarget.setColour(gaitParam_setTarget.backgroundColourId, Colours::green);
+		gaitParam_setTarget.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 1, 1);
+		gaitParam_setTarget.setColour(gaitParam_setTarget.backgroundColourId, Colours::red);
+		gaitParam_setTarget.setColour(gaitParam_setTarget.trackColourId, Colours::green);
 
 		// SONIFICATION MODE: SLIDER / SENSOR
 
@@ -91,8 +84,6 @@ public:
 		isStandbyToggle.setVisible(on);
 		gaitParam_CurrentValue.setVisible(on);
 		recordGaitParam.setVisible(on);
-		desiredBehavior.setVisible(on);
-		gaitParam_DesiredBehavior_Label.setVisible(on);
 		gaitParam_targetValue.setVisible(on);
 		gaitParam_setTarget.setVisible(on);
 		soni_isSliderSource.setVisible(on);
@@ -116,7 +107,7 @@ public:
 
 		// COLUMN 2
 		gaitParam_Current.setBounds(270, 40, 200, 40);
-		desiredBehavior.setBounds(270, 110, 200, 40);
+		//desiredBehavior.setBounds(270, 110, 200, 40);
 		gaitParam_CurrentValue.setBounds(270, 190, 200, 40);
 		gaitParam_targetValue.setBounds(270, 270, 200, 40);
 		gaitParam_setTarget.setBounds(270, 350, 200, 40);

@@ -6,7 +6,6 @@
 #include "GaitAnalysis.h"
 #include "Sequencer.h"
 #include "FaustStrings.h"
-#include "SoniMappingCompute.h"
 #include "audioParamInfo.h"
 #include "windows.h"
 
@@ -87,7 +86,7 @@ public:
 			[audioParams.activeAudioParam].name;
 		imuRecord.currentRow_FullLog_FLOAT[5] = isTargetDynamic ? dynamicTarget :
 			gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].target;
+			[gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
 		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.baseBeats
 			[sequencer.index_baseBeat].name;
 
@@ -154,8 +153,6 @@ public:
 			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
 			audioParams.activeAudioParam = index - 1;
 			sequencer.soni_AP_Name = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
-			soniMappingCompute.setFilterFc
-			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].smoothingFc);
 			soniAddress_Primary = sequencer.faustStrings.getSonificationStringAddress
 			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
 			
@@ -247,7 +244,6 @@ public:
 	}
 
 	//Sonification
-	SoniMappingCompute soniMappingCompute;								// Compute AP Value
 	float mapVal = 0;													// AP Value					
 	short exerciseMode_Present = 0;										
 	

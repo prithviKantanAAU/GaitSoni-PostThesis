@@ -14,8 +14,12 @@ public:
 	short numSensorLocations = 3;					// BODILY LOCATIONS
 	std::string names_DesiredBehavior[3] = { "Less Than", "Equal To", "Greater Than" };
 	String exerciseModes[10] = { "Testing","Static Upright","Dynamic Trunk","Jerk Feedback","STS Angle Cue","Gait" };
-
 	GaitParam_Single gaitParam_ObjectArray[30];
+	float AP_Val = 0;
+	float order_MapFunc = 1;
+	float numQuant = 0;
+	bool isSliderMode = true;
+	float sliderVal = 0;
 
 	gaitParamInfo() 
 	{
@@ -26,7 +30,7 @@ public:
 		gaitParam_ObjectArray[0].setName_SensorReq("Inclination (+-) - ML",
 			sensorReqArray0,numSensorLocations);
 		gaitParam_ObjectArray[0].set_isIncluded_UseScenarios(useCaseArray0, num_UseScenarios);
-		gaitParam_ObjectArray[0].initialize(0, 0.01, -45, 45);
+		gaitParam_ObjectArray[0].initialize(-45, 45, -15, 15);
 		numMovementParams++;
 
 		// 1					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -36,7 +40,7 @@ public:
 		gaitParam_ObjectArray[1].setName_SensorReq("Inclination (+-) - AP",
 			sensorReqArray1, numSensorLocations);
 		gaitParam_ObjectArray[1].set_isIncluded_UseScenarios(useCaseArray1, num_UseScenarios);
-		gaitParam_ObjectArray[1].initialize(0, 0.01, -45, 45);
+		gaitParam_ObjectArray[1].initialize(-45, 45, -15, 15);
 		numMovementParams++;
 
 		// 2					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -46,7 +50,7 @@ public:
 		gaitParam_ObjectArray[2].setName_SensorReq("Trunk Projection Zone",
 			sensorReqArray2, numSensorLocations);
 		gaitParam_ObjectArray[2].set_isIncluded_UseScenarios(useCaseArray2, num_UseScenarios);
-		gaitParam_ObjectArray[2].initialize(0, 0.01, 1, 6);
+		gaitParam_ObjectArray[2].initialize(1, 6, 1, 2);
 		numMovementParams++;
 
 		// 3					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -56,7 +60,7 @@ public:
 		gaitParam_ObjectArray[3].setName_SensorReq("RMS Acc ML",
 			sensorReqArray3, numSensorLocations);
 		gaitParam_ObjectArray[3].set_isIncluded_UseScenarios(useCaseArray3, num_UseScenarios);
-		gaitParam_ObjectArray[3].initialize(0, 0.01, 0, 20);
+		gaitParam_ObjectArray[3].initialize(0, 20, 0, 5);
 		numMovementParams++;
 
 		// 4					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -66,7 +70,7 @@ public:
 		gaitParam_ObjectArray[4].setName_SensorReq("RMS Acc AP",
 			sensorReqArray4, numSensorLocations);
 		gaitParam_ObjectArray[4].set_isIncluded_UseScenarios(useCaseArray4, num_UseScenarios);
-		gaitParam_ObjectArray[4].initialize(0, 0.01, 0, 20);
+		gaitParam_ObjectArray[4].initialize(0, 20, 0, 5);
 		numMovementParams++;
 
 		// 5					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -76,7 +80,7 @@ public:
 		gaitParam_ObjectArray[5].setName_SensorReq("Scalar Jerk",
 			sensorReqArray5, numSensorLocations);
 		gaitParam_ObjectArray[5].set_isIncluded_UseScenarios(useCaseArray5, num_UseScenarios);
-		gaitParam_ObjectArray[5].initialize(0, 0.01, 0, 25);
+		gaitParam_ObjectArray[5].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
 		// 6					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -86,7 +90,7 @@ public:
 		gaitParam_ObjectArray[6].setName_SensorReq("Jerk - X",
 			sensorReqArray6, numSensorLocations);
 		gaitParam_ObjectArray[6].set_isIncluded_UseScenarios(useCaseArray6, num_UseScenarios);
-		gaitParam_ObjectArray[6].initialize(0, 0.01, 0, 25);
+		gaitParam_ObjectArray[6].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
 		// 7					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -96,7 +100,7 @@ public:
 		gaitParam_ObjectArray[7].setName_SensorReq("Jerk - Y",
 			sensorReqArray7, numSensorLocations);
 		gaitParam_ObjectArray[7].set_isIncluded_UseScenarios(useCaseArray7, num_UseScenarios);
-		gaitParam_ObjectArray[7].initialize(0, 0.01, 0, 25);
+		gaitParam_ObjectArray[7].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
 		// 8					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -106,7 +110,7 @@ public:
 		gaitParam_ObjectArray[8].setName_SensorReq("Jerk - Z",
 			sensorReqArray8, numSensorLocations);
 		gaitParam_ObjectArray[8].set_isIncluded_UseScenarios(useCaseArray8, num_UseScenarios);
-		gaitParam_ObjectArray[8].initialize(0, 0.01, 0, 25);
+		gaitParam_ObjectArray[8].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
 		// 9					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -116,7 +120,7 @@ public:
 		gaitParam_ObjectArray[9].setName_SensorReq("Sway Vel - ML",
 			sensorReqArray9, numSensorLocations);
 		gaitParam_ObjectArray[9].set_isIncluded_UseScenarios(useCaseArray9, num_UseScenarios);
-		gaitParam_ObjectArray[9].initialize(0, 0.01, 0, 200);
+		gaitParam_ObjectArray[9].initialize(0, 200, 0, 20);
 		numMovementParams++;
 
 		// 10				   	   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -126,7 +130,7 @@ public:
 		gaitParam_ObjectArray[10].setName_SensorReq("Sway Vel - AP",
 			sensorReqArray10, numSensorLocations);
 		gaitParam_ObjectArray[10].set_isIncluded_UseScenarios(useCaseArray10, num_UseScenarios);
-		gaitParam_ObjectArray[10].initialize(0, 0.01, 0, 200);
+		gaitParam_ObjectArray[10].initialize(0, 200, 0, 20);
 		numMovementParams++;
 
 		// 11				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -136,7 +140,7 @@ public:
 		gaitParam_ObjectArray[11].setName_SensorReq("HS Timing",
 			sensorReqArray11, numSensorLocations);
 		gaitParam_ObjectArray[11].set_isIncluded_UseScenarios(useCaseArray11, num_UseScenarios);
-		gaitParam_ObjectArray[11].initialize(0, 0.01, 0, 1);
+		gaitParam_ObjectArray[11].initialize(0, 1, 0, 0);
 		numMovementParams++;
 
 		// 12				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -146,7 +150,7 @@ public:
 		gaitParam_ObjectArray[12].setName_SensorReq("HS Trigger",
 			sensorReqArray12, numSensorLocations);
 		gaitParam_ObjectArray[12].set_isIncluded_UseScenarios(useCaseArray12, num_UseScenarios);
-		gaitParam_ObjectArray[12].initialize(0, 0.01, 0, 1);
+		gaitParam_ObjectArray[12].initialize(0, 1, 0, 0);
 		numMovementParams++;
 
 		// 13				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
@@ -156,9 +160,9 @@ public:
 		gaitParam_ObjectArray[13].setName_SensorReq("STS Cue",
 			sensorReqArray13, numSensorLocations);
 		gaitParam_ObjectArray[13].set_isIncluded_UseScenarios(useCaseArray13, num_UseScenarios);
-		gaitParam_ObjectArray[13].initialize(0, 0.01, 0, 1);
+		gaitParam_ObjectArray[13].initialize(0, 1, 0, 0);
 		numMovementParams++;
-
+		
 		populate_MP_Matrix();
 	};
 
@@ -177,13 +181,82 @@ public:
 		}
 	};
 
-	void setTargetValue(float val)
+	void setTargetValue(float normVal, bool isMax)
 	{
-		gaitParam_ObjectArray[activeGaitParam].target = gaitParam_ObjectArray[activeGaitParam].minVal
-			+ val * (gaitParam_ObjectArray[activeGaitParam].maxVal 	- gaitParam_ObjectArray[activeGaitParam].minVal);
+		float realVal = gaitParam_ObjectArray[activeGaitParam].minVal
+			+ normVal * (gaitParam_ObjectArray[activeGaitParam].maxVal 
+				- gaitParam_ObjectArray[activeGaitParam].minVal);
+
+		gaitParam_ObjectArray[activeGaitParam].updateValue_Target(realVal, isMax);
 	};
 
-	void setDesiredBehavior(short val) { gaitParam_ObjectArray[activeGaitParam].desiredBehavior = val;	};
+	double calc_AP_Val()
+	{
+		GaitParam_Single *present_MP_Obj = &gaitParam_ObjectArray[activeGaitParam];
+		float MP_Val = 0;
+		if (isSliderMode)
+		{
+			MP_Val = present_MP_Obj->minVal + sliderVal * (present_MP_Obj->maxVal - present_MP_Obj->minVal);
+		}
+		else
+		{
+			MP_Val = present_MP_Obj->currentValue;
+		}
+
+		float adaptiveRange = 0;
+		float error = 0;
+		float MP_MIN = present_MP_Obj->minVal;
+		float MP_MAX = present_MP_Obj->maxVal;
+		float MP_MIN_TGT = present_MP_Obj->target_MIN;
+		float MP_MAX_TGT = present_MP_Obj->target_MAX;
+
+		// IF TARGET MET, RETURN 0
+		if (MP_Val <= MP_MAX_TGT && MP_Val >= MP_MIN_TGT)
+			return 0;
+
+		else
+		{
+			if (MP_Val < MP_MIN_TGT)
+			{
+				adaptiveRange = MP_MIN_TGT - MP_MIN;
+				error = (MP_MIN_TGT - MP_Val) / adaptiveRange;
+			}
+
+			else if (MP_Val > MP_MAX_TGT)
+			{
+				adaptiveRange = MP_MAX - MP_MAX_TGT;
+				error = (MP_Val - MP_MAX_TGT) / adaptiveRange;
+			}
+
+			AP_Val = pow(error, order_MapFunc);
+			return quantizeParam(AP_Val, numQuant);
+		}
+	};
+
+	double quantizeParam(float currentParamValue, int numQuantizationSteps)
+	{
+		float quantizedParam = 0;
+		if (numQuantizationSteps == 0)
+			return currentParamValue;
+
+		else
+		{
+			float quantizationStepSize = 1 / (float)numQuantizationSteps;
+
+			float diff = 100;
+			for (int i = 0; i < numQuantizationSteps + 1; i++)
+			{
+				float currentStepForTest = 0;
+				currentStepForTest += i * quantizationStepSize;
+				if (diff > fabs(currentParamValue - currentStepForTest))
+				{
+					diff = currentParamValue - currentStepForTest;
+				}
+			}
+			quantizedParam = currentParamValue - diff;
+			return quantizedParam;
+		}
+	};
 
 	void updateGaitParameter(int index) {	activeGaitParam = index - 1;   };
 	

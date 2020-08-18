@@ -1,6 +1,7 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
+#include "gaitParamInfo.h"
 #include "UI_MusicControls_General.h"
 #include "UI_MusicControls_Inbuilt.h"
 #include "UI_MusicControls_IndividualTrack.h"
@@ -147,8 +148,6 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.recordGaitParam);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_Name);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_CurrentValue);
-		addAndMakeVisible(ui_bmbf_gen.desiredBehavior);
-		addAndMakeVisible(ui_bmbf_gen.gaitParam_DesiredBehavior_Label);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_targetValue);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_setTarget);
 		addAndMakeVisible(ui_bmbf_gen.soni_isSliderSource);

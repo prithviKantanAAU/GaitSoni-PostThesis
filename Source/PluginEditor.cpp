@@ -243,8 +243,6 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	ui_bmbf_gen.isStandbyToggleLabel.setColour(ui_bmbf_gen.isStandbyToggleLabel.backgroundColourId, Colours::green);
 	ui_bmbf_gen.isStandbyToggleLabel.attachToComponent(&ui_bmbf_gen.isStandbyToggle, true);
 
-	// DESIRED PARAM BEHAVIOR
-	ui_bmbf_gen.desiredBehavior.addListener(this);
 
 	// RECORD GAIT PARAM
 	ui_bmbf_gen.recordGaitParam.setButtonText("Rec Gait Param");
@@ -271,20 +269,29 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	// TARGET SETTER
 	ui_bmbf_gen.gaitParam_setTarget.onValueChange = [this]
 	{
-		processor.gaitAnalysis.gaitParams.setTargetValue(ui_bmbf_gen.gaitParam_setTarget.getValue());
+		float target_MIN = ui_bmbf_gen.gaitParam_setTarget.getMinValue();
+		float target_MAX = ui_bmbf_gen.gaitParam_setTarget.getMaxValue();
+		processor.gaitAnalysis.gaitParams.setTargetValue(target_MIN, false);
+		processor.gaitAnalysis.gaitParams.setTargetValue(target_MAX, true);
 		ui_bmbf_gen.gaitParam_targetValue.setText
-		("Target Value: " + String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].target,2), dontSendNotification);
+		(
+			"Target Range: " + String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN,2) + " to " + 
+			String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MAX, 2),
+			dontSendNotification
+		);
 	};
 	ui_bmbf_gen.gaitParam_targetValue.setText
 	("Target Value: " + String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].target, 2), dontSendNotification);
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN, 2), dontSendNotification);
 
 	// SONIFICATION MODE: SLIDER / SENSOR
 
 	ui_bmbf_gen.soni_isSliderSource.onStateChange = [this]
 	{
-		processor.soniMappingCompute.setSonificationMode(ui_bmbf_gen.soni_isSliderSource.getToggleState());
+		processor.gaitAnalysis.gaitParams.isSliderMode
+		 = (ui_bmbf_gen.soni_isSliderSource.getToggleState());
 		if (ui_bmbf_gen.soni_isSliderSource.getToggleState())
 		{
 			ui_bmbf_gen.soni_isSliderSource_Label.setText("Source: Slider", dontSendNotification);
@@ -305,7 +312,7 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 
 	ui_bmbf_gen.soni_sliderSource.onValueChange = [this]
 	{
-		processor.soniMappingCompute.setSoniVal_Slider(ui_bmbf_gen.soni_sliderSource.getValue());
+		processor.gaitAnalysis.gaitParams.sliderVal = ui_bmbf_gen.soni_sliderSource.getValue();
 	};
 	updateControls_gaitParam(false);
 
@@ -528,26 +535,6 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		//HAS TO GO EVENTUALLY
 	}
 
-	if (box == &ui_bmbf_gen.desiredBehavior)
-	{
-		processor.gaitAnalysis.gaitParams.setDesiredBehavior((int)ui_bmbf_gen.desiredBehavior.getSelectedId() - 1);
-		switch (ui_bmbf_gen.desiredBehavior.getSelectedId())
-		{
-		case 1:
-			ui_bmbf_gen.desiredBehavior.setColour(ui_bmbf_gen.desiredBehavior.backgroundColourId, Colours::green);
-			ui_rtv_1d.rtv_targetRange.setColour(ui_rtv_1d.rtv_targetRange.backgroundColourId, Colours::green);
-			break;
-		case 2:
-			ui_bmbf_gen.desiredBehavior.setColour(ui_bmbf_gen.desiredBehavior.backgroundColourId, Colours::blue);
-			ui_rtv_1d.rtv_targetRange.setColour(ui_rtv_1d.rtv_targetRange.backgroundColourId, Colours::blue);
-			break;
-		case 3:
-			ui_bmbf_gen.desiredBehavior.setColour(ui_bmbf_gen.desiredBehavior.backgroundColourId, Colours::grey);
-			ui_rtv_1d.rtv_targetRange.setColour(ui_rtv_1d.rtv_targetRange.backgroundColourId, Colours::grey);
-			break;
-		}
-	}
-
 	if (box == &ui_bmbf_ex.staticBalance_FeedbackSlope)
 		processor.gaitAnalysis.staticBalance_ZoneMap_Current = ui_bmbf_ex.staticBalance_FeedbackSlope.getSelectedId();
 
@@ -650,31 +637,35 @@ void GaitSonificationAudioProcessorEditor::repopulateLists(short exerciseMode)
 // HANDLE CHOSEN MP CHANGE - UI UPDATE
 void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallback)
 {
+	float gp_MIN = 0;
+	float gp_MAX = 0;
+	float target_MIN = 0;
+	float target_MAX = 0;
+	gaitParamInfo *gaitParamPointer = &processor.gaitAnalysis.gaitParams;
 	if (isCallback)
 	{
-		ui_bmbf_gen.gaitParam_CurrentValue.setText("Current Value: "
-			+ String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-				[processor.gaitAnalysis.gaitParams.activeGaitParam].currentValue,2), dontSendNotification);
-
-		ui_bmbf_gen.gaitParam_targetValue.setText("Target Value: "
-			+ String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-				[processor.gaitAnalysis.gaitParams.activeGaitParam].target,2), dontSendNotification);
+		ui_bmbf_gen.gaitParam_targetValue.setText
+		(
+			"Target Range: " + String(gaitParamPointer->gaitParam_ObjectArray
+				[gaitParamPointer->activeGaitParam].target_MIN, 2) + " to " +
+			String(gaitParamPointer->gaitParam_ObjectArray
+				[gaitParamPointer->activeGaitParam].target_MAX, 2),
+			dontSendNotification
+		);
 	}
 	else
 	{
-		ui_bmbf_gen.desiredBehavior.setSelectedId(processor.gaitAnalysis.gaitParams.
-			gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].desiredBehavior + 1);
+		target_MIN = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].target_MIN;
+		target_MAX = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].target_MAX;
+		gp_MIN = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].minVal;
+		gp_MAX = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].maxVal;
 
-		float targetSliderVal = (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].target
-								- processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal)
-								/(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal
-									- processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal);
-
-		ui_bmbf_gen.gaitParam_setTarget.setValue(targetSliderVal);
+		ui_bmbf_gen.gaitParam_setTarget.setMinValue((target_MIN - gp_MIN) / (gp_MAX - gp_MIN));
+		ui_bmbf_gen.gaitParam_setTarget.setMaxValue((target_MAX - gp_MIN) / (gp_MAX - gp_MIN));
 	}
 }
 
@@ -830,16 +821,16 @@ void GaitSonificationAudioProcessorEditor::updateProjectionZoneVisualizer()
 // REAL TIME UPDATE 1D VISUALIZER
 void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 {
-	float originalTarget = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].target;
+	float originalTarget_MIN = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
+	float originalTarget_MAX = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
 	float minValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
 	float maxValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal;
 	float currentValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].currentValue;
-	short desiredBeh = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].desiredBehavior;
 
 	float chosenTarget = processor.isTargetDynamic ?
 		processor.dynamicTarget : originalTarget;
