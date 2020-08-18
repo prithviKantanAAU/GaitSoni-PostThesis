@@ -18,7 +18,6 @@ public:
 	Slider gaitParam_setTarget;
 	ToggleButton enable_dynTarget;
 	Label enable_dynTarget_Label;
-	Label audioParam_Name;
 	ToggleButton soni_isSliderSource;
 	Label soni_isMusical_Label;
 	Label soni_isSliderSource_Label;

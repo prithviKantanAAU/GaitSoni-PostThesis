@@ -151,7 +151,6 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_DesiredBehavior_Label);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_targetValue);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_setTarget);
-		addAndMakeVisible(ui_bmbf_gen.audioParam_Name);
 		addAndMakeVisible(ui_bmbf_gen.soni_isSliderSource);
 		addAndMakeVisible(ui_bmbf_gen.soni_sliderSource);
 		addAndMakeVisible(ui_bmbf_gen.soni_isSliderSource_Label);
@@ -308,8 +307,11 @@ private:
 	{
 		ui_musiCon_gen.song_TimeLeft.setText("Remaining Time: "
 			+ std::to_string((int)processor.sequencer.timeLeft_Song) + " s", dontSendNotification);
-		ringVisualize.refreshBoxPositions(processor.sequencer.musicPhase.presentPhase_Rad);
-		refreshRingBoxPositions();
+		if (presentMusiCon_Disp == 1)
+		{
+			ringVisualize.refreshBoxPositions(processor.sequencer.musicPhase.presentPhase_Rad);
+			refreshRingBoxPositions();
+		}
 	}
 	
 	//Change song progress bar colour
@@ -430,7 +432,6 @@ private:
 	void repopulateLists(short exerciseMode);
 	void comboBoxChanged(ComboBox *box) override;
 	void updateControls_gaitParam(bool isCallback);
-	void updateControls_audioParam(bool isCallback);
 
 	// Calibration
 	void calibrateTarget_handlePress();

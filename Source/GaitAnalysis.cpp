@@ -167,7 +167,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 {
 	float magnitude = sqrt(pow(accBuf[0],2) + pow(accBuf[1], 2) + pow(accBuf[2], 2));
-
+	
 	R_acc_est[0] = accBuf[0] / magnitude;
 	R_acc_est[1] = accBuf[2] / magnitude;
 	R_acc_est[2] = accBuf[1] / magnitude;
@@ -354,19 +354,48 @@ void GaitAnalysis::getSwayVelocity(float *gyrBuf)
 	boundValuesAndStore("Sway Vel - AP", fabs(gyrBuf[2]));
 }
 
-// REWRITE - HS TIMING CALIBRATION
-void GaitAnalysis::updateHS_Calibration(float strideDuration_Latest)
+// DETECT HS INSTANTS FROM ACC IMPACT
+bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 {
-	calibration_stepCount++;
-	hs_Intervals[(calibration_stepCount - 1) % 2] = strideDuration_Latest;
-	strideDur_Mean = 0;
-	for (int i = 0; i < 2; i++)
-	{	strideDur_Mean += hs_Intervals[i];	}
-	strideDur_Mean /= 2.0;
-	strideInterval = strideDur_Mean / 2.0;
-	strideDur_COV = calcArraySTD(hs_Intervals, &strideDur_Mean, 2);
-	calibrationValues_Temp[11] = strideDur_Mean;
-	calibrationValues_Temp[12] = strideDur_Mean;
+	float accX_filt = isLeft ? hfen_foot_L.applyHFEN_PreProcess(accBuf[0], 'x')
+		: hfen_foot_R.applyHFEN_PreProcess(accBuf[0], 'x');
+	float accY_filt = isLeft ? hfen_foot_L.applyHFEN_PreProcess(accBuf[1], 'y')
+		: hfen_foot_R.applyHFEN_PreProcess(accBuf[1], 'y');
+	float accZ_filt = isLeft ? hfen_foot_L.applyHFEN_PreProcess(accBuf[2], 'z')
+		: hfen_foot_R.applyHFEN_PreProcess(accBuf[2], 'z');
+	float norm = pow(accX_filt, 2) + pow(accY_filt, 2) + pow(accZ_filt, 2);
+	bool stepDetected = false;
+	HS_timeOut = 0.8 * beatInterval;
+
+	if (HS_timeDone > HS_timeOut)
+	{
+		if (isThreshCross(norm, HS_thresh_pos, norm_acc_z1, true))
+		{
+			if (HS_isExpected_L)
+			{
+				if (isLeft)
+				{
+					stepDetected = true;
+					HS_isExpected_L = false;
+					HS_isExpected_R = true;
+					HS_timeDone = 0;
+				}
+			}
+
+			if (HS_isExpected_R)
+			{
+				if (!isLeft)
+				{
+					stepDetected = true;
+					HS_isExpected_L = true;
+					HS_isExpected_R = false;
+					HS_timeDone = 0;
+				}
+			}
+		}
+	}
+	HS_timeDone += 1.0 / (float)fs;
+	return stepDetected;
 }
 
 // CALCULATE HS TIMING PERFORMANCE FEATURE
@@ -408,50 +437,6 @@ void GaitAnalysis::calcTimingPerformanceFeature_2(float *accBuf_L, float *accBuf
 	boundValuesAndStore("HS Timing", featureValue);
 };
 
-// DETECT HS INSTANTS FROM ACC IMPACT
-bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
-{
-	float accX_filt = isLeft? hfen_foot_L.applyHFEN_PreProcess(accBuf[0], 'x') 
-							: hfen_foot_R.applyHFEN_PreProcess(accBuf[0], 'x');
-	float accY_filt = isLeft ? hfen_foot_L.applyHFEN_PreProcess(accBuf[1], 'y')
-							 : hfen_foot_R.applyHFEN_PreProcess(accBuf[1], 'y');
-	float accZ_filt = isLeft ? hfen_foot_L.applyHFEN_PreProcess(accBuf[2], 'z')
-							 : hfen_foot_R.applyHFEN_PreProcess(accBuf[2], 'z');
-	float norm = pow(accX_filt, 2) + pow(accY_filt, 2) + pow(accZ_filt, 2);
-	bool stepDetected = false;
-	HS_timeOut = 0.8 * beatInterval;
-
-	if (HS_timeDone > HS_timeOut)
-	{
-		if (isThreshCross(norm, HS_thresh_pos, norm_acc_z1, true))
-		{
-			if (HS_isExpected_L) 
-			{
-				if (isLeft)
-				{
-					stepDetected = true;
-					HS_isExpected_L = false;
-					HS_isExpected_R = true;
-					HS_timeDone = 0;
-				}
-			}
-
-			if (HS_isExpected_R)
-			{
-				if (!isLeft)
-				{
-					stepDetected = true;
-					HS_isExpected_L = true;
-					HS_isExpected_R = false;
-					HS_timeDone = 0;
-				}
-			}
-		}
-	}
-	HS_timeDone += 1.0 / (float)fs;
-	return stepDetected;
-}
-
 // CALCULATE HS TRIGGER FEATURE
 void GaitAnalysis::drumTrigger(float *accBuf_L, float *accBuf_R, bool isCalibrating)
 {
@@ -481,5 +466,22 @@ void GaitAnalysis::drumTrigger(float *accBuf_L, float *accBuf_R, bool isCalibrat
 	}
 
 	boundValuesAndStore("HS Trigger", mapVal);
+}
+
+// REWRITE - HS TIMING CALIBRATION
+void GaitAnalysis::updateHS_Calibration(float strideDuration_Latest)
+{
+	calibration_stepCount++;
+	hs_Intervals[(calibration_stepCount - 1) % 2] = strideDuration_Latest;
+	strideDur_Mean = 0;
+	for (int i = 0; i < 2; i++)
+	{
+		strideDur_Mean += hs_Intervals[i];
+	}
+	strideDur_Mean /= 2.0;
+	strideInterval = strideDur_Mean / 2.0;
+	strideDur_COV = calcArraySTD(hs_Intervals, &strideDur_Mean, 2);
+	calibrationValues_Temp[11] = strideDur_Mean;
+	calibrationValues_Temp[12] = strideDur_Mean;
 }
 

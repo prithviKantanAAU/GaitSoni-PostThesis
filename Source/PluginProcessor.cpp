@@ -162,10 +162,7 @@ float GaitSonificationAudioProcessor::getCurrentMappingValue()
 	else
 		if (isTargetDynamic)
 		{
-			targetValue = soniMappingCompute.getDynamicTarget(targetValue, soniMappingCompute.movementFunc_Order,
-				tempo, dynamicTarget_phaseTime);
-			dynamicTarget = targetValue;
-			toleranceBW = soniMappingCompute.movement_ErrorTolerance;
+			// HANDLE DYNAMIC TARGET
 		}
 
 	// COMBINE SONI PARAMS INTO ARRAY TO SEND SONIMAPPINGCOMPUTE

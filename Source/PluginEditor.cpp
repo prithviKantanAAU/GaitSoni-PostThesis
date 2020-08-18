@@ -308,7 +308,6 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		processor.soniMappingCompute.setSoniVal_Slider(ui_bmbf_gen.soni_sliderSource.getValue());
 	};
 	updateControls_gaitParam(false);
-	updateControls_audioParam(false);
 
 	// EXERCISE MODE
 	for (int i = 0; i < processor.gaitAnalysis.gaitParams.num_UseScenarios; i++)
@@ -403,7 +402,7 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	//Desired Movement Amplitude
 	ui_dyn.desired_Amplitude.onValueChange = [this]
 	{
-		processor.soniMappingCompute.dyn_desired_Amplitude = ui_dyn.desired_Amplitude.getValue();
+		// HAS TO GO EVENTUALLY
 	};
 
 	//Desired Movement Frequency
@@ -412,13 +411,13 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	//Movement Function Order
 	ui_dyn.movementFunc_Order.onValueChange = [this]
 	{
-		processor.soniMappingCompute.movementFunc_Order = ui_dyn.movementFunc_Order.getValue();
+		//HAS TO GO EVENTUALLY
 	};
 
 	//Movement Error Tolerance
 	ui_dyn.movement_errorTolerance.onValueChange = [this]
 	{
-		processor.soniMappingCompute.movement_ErrorTolerance = ui_dyn.movement_errorTolerance.getValue();
+		// HAS TO GO EVENTUALLY
 	};
 
 	//Calibrate Target
@@ -459,6 +458,8 @@ void GaitSonificationAudioProcessorEditor::configureRealTimeVisualizer()
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
 	float maxValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal;
+	ui_rtv_1d.rtv_minBound.setText(String((int)minValue), dontSendNotification);
+	ui_rtv_1d.rtv_maxBound.setText(String((int)maxValue), dontSendNotification);
 	ui_rtv_1d.configureBounds(minValue, maxValue);
 }
 
@@ -514,21 +515,17 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		processor.gaitAnalysis.gaitParams.updateGaitParameter(ui_bmbf_gen.gaitParam_Current.getSelectedId());
 		updateControls_gaitParam(false);
 		updateCalibrationLabels();
-		ui_rtv_1d.rtv_minBound.setText(std::to_string((int)processor.gaitAnalysis.gaitParams.
-			gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal), dontSendNotification);
-		ui_rtv_1d.rtv_minBound.setText(std::to_string((int)processor.gaitAnalysis.gaitParams.
-			gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal), dontSendNotification);
+		configureRealTimeVisualizer();
 	}
 
 	if (box == &ui_bmbf_gen.audioParam_Current)
 	{
 		processor.updateAudioParameter(ui_bmbf_gen.audioParam_Current.getSelectedId(), 1);
-		updateControls_audioParam(false);
 	}
 
 	if (box == &ui_dyn.desired_MovementFreq)
 	{
-		processor.soniMappingCompute.movementFreqSetting = ui_dyn.desired_MovementFreq.getSelectedId();
+		//HAS TO GO EVENTUALLY
 	}
 
 	if (box == &ui_bmbf_gen.desiredBehavior)
@@ -665,13 +662,6 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 	}
 	else
 	{
-		ui_bmbf_gen.gaitParam_Name.setText(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].name, dontSendNotification);
-		
-		ui_bmbf_gen.gaitParam_DesiredBehavior_Label.setText
-		(processor.gaitAnalysis.gaitParams.names_DesiredBehavior
-			[processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[processor.gaitAnalysis.gaitParams.activeGaitParam].desiredBehavior], dontSendNotification);
 		ui_bmbf_gen.desiredBehavior.setSelectedId(processor.gaitAnalysis.gaitParams.
 			gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].desiredBehavior + 1);
 
@@ -686,14 +676,6 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 
 		ui_bmbf_gen.gaitParam_setTarget.setValue(targetSliderVal);
 	}
-}
-
-// HANDLE CHOSEN AP CHANGE - UI UPDATE
-void GaitSonificationAudioProcessorEditor::updateControls_audioParam(bool isCallback)
-{
-	if (!isCallback)
-		ui_bmbf_gen.audioParam_Name.setText(processor.audioParams.audioParam_ObjectArray
-			[processor.audioParams.activeAudioParam].name, dontSendNotification);
 }
 
 // TOGGLE TAB ON/OFF - PERIPHERALS
@@ -715,59 +697,53 @@ void GaitSonificationAudioProcessorEditor::toggleSonificationControlsTab(bool on
 // UI TIMER CALLBACK FUNCTION
 void GaitSonificationAudioProcessorEditor::timerCallback()
 {
+	// CHECK FOR TAB CHANGES
+	presentTab = tabs->getCurrentTabIndex();
+	if (presentTab == 0)							sensorConfig_updateLabels();
+	if (previousTab != presentTab)					switchTab(presentTab);
+	previousTab = presentTab;
+
 	// UPDATE OSC CONNECTION STATUS DISPLAY
 	updateOSC_ConnectionDisplay();
-
-	// CHECK FOR TAB CHANGES
-	int currentTab = tabs->getCurrentTabIndex();
-	if (currentTab == 0)							sensorConfig_updateLabels();
-	if (previousTab != currentTab)					switchTab(currentTab);
-	previousTab = currentTab;
-
-	// SONG PROGRESS BAR
-	if (currentTab == 1)
-	{
-		ui_musiCon_gen.song_Progress_Val = processor.sequencer.songProgress;
-		handleProgressBarColour();
-	}
-	
-
-	// IF SONIFICATION TAB, UPDATE UI IN REALTIME
-	if (currentTab == 2)
-	{
-		updateControls_audioParam(true);
-		updateControls_gaitParam(true);
-		ui_dyn.dynTargetLabel.setText("Target: " +
-			String(processor.dynamicTarget,2), dontSendNotification);
-	}
-	if (currentTab == 1 && processor.sequencer.isPlaying)		updateTimeLabels();
-
-	// UPDATE STS TEXT
-	if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
-	{
-		String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing" : "Sitting";
-		ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
-	}
-
-	// CHECK IF CALIBRATING, UPDATE UI
-	if (processor.isCalibrating)
-		updateCalibrationLabels();
-
-	// CHECK IF VISUALIZING, UPDATE UI
-	if (isRealTimeVisualize)
-		updateRealTimeVisualizer();
 
 	// CHECK IF TRUNK PROJECTION ZONE, UPDATE UI
 	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].name == "Trunk Projection Zone")
 		updateProjectionZoneVisualizer();
+
+	// SONG PROGRESS BAR
+	if (presentTab == 1)
+	{
+		ui_musiCon_gen.song_Progress_Val = processor.sequencer.songProgress;
+		if (processor.sequencer.isPlaying)		updateTimeLabels();
+		//handleProgressBarColour();
+	}
+
+	// IF SONIFICATION TAB, UPDATE UI IN REALTIME
+	if (presentTab == 2)
+	{
+		updateControls_gaitParam(true);
+
+		if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
+		{
+			String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing" : "Sitting";
+			ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
+		}
+
+		// CHECK IF CALIBRATING, UPDATE UI
+		if (processor.isCalibrating)
+			updateCalibrationLabels();
+
+		// CHECK IF VISUALIZING, UPDATE UI
+		if (isRealTimeVisualize)
+			updateRealTimeVisualizer();
+	}
 }
 
 // SWITCH UI TAB
 void GaitSonificationAudioProcessorEditor::switchTab(int currentTab)
 {
 	// SET FLAGS BASED ON TAB INDEX
-	presentTab = currentTab;
 	switch (currentTab)
 	{
 	case 0:
@@ -789,7 +765,6 @@ void GaitSonificationAudioProcessorEditor::switchTab(int currentTab)
 	togglePeripheralsTab(isPeripheralsTab);
 	toggleMusicControlsTab(isMusicControlsTab);
 	toggleMusicControls_Secondary(currentTab);
-
 	toggleSonificationControlsTab(isSonificationTab);
 }
 
@@ -934,25 +909,28 @@ void GaitSonificationAudioProcessorEditor::calibrateTarget_handlePress()
 // HANDLE BUTTON PRESS - CALIBRATE SAVE
 void GaitSonificationAudioProcessorEditor::calibrateTarget_SaveHandle()
 {
+	short mp_active = processor.gaitAnalysis.gaitParams.activeGaitParam;
 	processor.isCalibrating = false;
-	processor.gaitAnalysis.saveCalibration(processor.gaitAnalysis.gaitParams.activeGaitParam);
+	processor.gaitAnalysis.saveCalibration(mp_active);
 	updateCalibrationLabels();
-	float paramRange = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal -
-		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
+	float paramRange = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].maxVal -
+		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].minVal;
 	float newTempo = 0;
 	ui_mpCal.calibrateTarget.setVisible(true);
 	ui_mpCal.calibrateTarget_Discard.setVisible(false);
 	ui_mpCal.calibrateTarget_Save.setVisible(false);
 	float staticBalance_coordinateDistance = 0;
+	
 
-	if (processor.gaitAnalysis.gaitParams.activeGaitParam == 11 || processor.gaitAnalysis.gaitParams.activeGaitParam == 12) //HANDLE TEMPO SETTING
+	if ( processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "HS Timing"
+		|| processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "HS Trigger") 
 	{
 		newTempo = 120 / processor.gaitAnalysis.calibrationValues[processor.gaitAnalysis.gaitParams.activeGaitParam];
 		ui_musiCon_gen.tempo_Slider.setValue(newTempo);
 		ui_bmbf_ex.HS_Tolerance.setValue(processor.gaitAnalysis.strideDur_COV);
 	}
 
-	if (processor.gaitAnalysis.gaitParams.activeGaitParam == 2)
+	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "Trunk Projection Zone")
 	{
 		staticBalance_coordinateDistance =
 			sqrt(pow(processor.gaitAnalysis.staticBalance_BoundsCoordinates[1][0]
@@ -967,26 +945,28 @@ void GaitSonificationAudioProcessorEditor::calibrateTarget_SaveHandle()
 	}
 
 	else
-		ui_bmbf_gen.gaitParam_setTarget.setValue(processor.gaitAnalysis.calibrationValues[processor.gaitAnalysis.gaitParams.activeGaitParam] / paramRange);
+		ui_bmbf_gen.gaitParam_setTarget.setValue(processor.gaitAnalysis.calibrationValues[mp_active] / paramRange);
 }
 
 // HANDLE BUTTON PRESS - CALIBRATE DISCARD
 void GaitSonificationAudioProcessorEditor::calibrateTarget_DiscardHandle()
 {
+	short mp_active = processor.gaitAnalysis.gaitParams.activeGaitParam;
 	processor.isCalibrating = false;
-	processor.gaitAnalysis.discardCalibration(processor.gaitAnalysis.gaitParams.activeGaitParam);
+	processor.gaitAnalysis.discardCalibration(mp_active);
 	ui_mpCal.calibrate_presentTarget.setText("Current Target: "
-		+ String(processor.gaitAnalysis.calibrationValues[processor.gaitAnalysis.gaitParams.activeGaitParam], 2), dontSendNotification);
+		+ String(processor.gaitAnalysis.calibrationValues[mp_active], 2), dontSendNotification);
 	ui_mpCal.calibrateTarget.setVisible(true);
 	ui_mpCal.calibrateTarget_Discard.setVisible(false);
 	ui_mpCal.calibrateTarget_Save.setVisible(false);
 
-	if (processor.gaitAnalysis.gaitParams.activeGaitParam == 2)
+	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "Trunk Projection Zone")
 	{
 		processor.gaitAnalysis.staticBalance_BoundsCoordinates[processor.gaitAnalysis.staticBalance_calibrationMode][0] = 0;
 		processor.gaitAnalysis.staticBalance_BoundsCoordinates[processor.gaitAnalysis.staticBalance_calibrationMode][0] = 1;
 	}
 
-	if (processor.gaitAnalysis.gaitParams.activeGaitParam == 11 || processor.gaitAnalysis.gaitParams.activeGaitParam == 12)
+	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "HS Timing"
+		|| processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].name == "HS Trigger")
 		processor.gaitAnalysis.flush_HSArray();
 }

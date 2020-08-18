@@ -49,7 +49,7 @@ public:
 	float lastMaximum = 0;
 	float lastMinimum = 0;
 
-	// flush Delays
+	// FLUSH DELAY ELEMENTS
 	void flushDelays()
 	{
 		m_f_Xz_1 = 0;
@@ -57,7 +57,8 @@ public:
 		m_f_Yz_1 = 0;
 		m_f_Yz_2 = 0;
 	}
-
+	
+	// LOW PASS COEFFICIENTS
 	void calculateLPFCoeffs(float fCutoffFreq, float fQ, float fs)
 	{
 		// use same terms as in book:
@@ -85,6 +86,7 @@ public:
 		m_f_b2 = 2 * fBeta;
 	}
 
+	// HIGH PASS COEFFICIENTS
 	void calculateHPFCoeffs(float fCutoffFreq, float fQ, float fs)
 	{
 		// use same terms as in book:
@@ -112,7 +114,7 @@ public:
 		m_f_b2 = 2 * fBeta;
 	}
 
-		// Do the filter: given input xn, calculate output yn and return it
+	// FILTER EACH SAMPLE
 	float doBiQuad(float f_xn,float thresh)
 	{
 		isMaxima = false;
@@ -122,7 +124,6 @@ public:
 		isThreshCrossing_Pos = false;
 		isThreshCrossing_Neg = false;
 
-		// just do the difference equation: y(n) = a0x(n) + a1x(n-1) + a2x(n-2) - b1y(n-1) - b2y(n-2)
 		float yn = m_f_a0 * f_xn + m_f_a1 * m_f_Xz_1 + m_f_a2 * m_f_Xz_2 
 				   - m_f_b1 * m_f_Yz_1 - m_f_b2 * m_f_Yz_2;
 
