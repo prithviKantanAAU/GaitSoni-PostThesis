@@ -19,6 +19,7 @@ public:
 	float order_MapFunc = 1;
 	float numQuant = 0;
 	bool isSliderMode = true;
+	bool isPolarityNormal = true;
 	float sliderVal = 0;
 
 	gaitParamInfo() 
@@ -212,7 +213,7 @@ public:
 
 		// IF TARGET MET, RETURN 0
 		if (MP_Val <= MP_MAX_TGT && MP_Val >= MP_MIN_TGT)
-			return 0;
+			return isPolarityNormal ? 0 : 1;
 
 		else
 		{
@@ -228,6 +229,7 @@ public:
 				error = (MP_Val - MP_MAX_TGT) / adaptiveRange;
 			}
 
+			error = isPolarityNormal ? error : (1 - error);
 			AP_Val = pow(error, order_MapFunc);
 			return quantizeParam(AP_Val, numQuant);
 		}

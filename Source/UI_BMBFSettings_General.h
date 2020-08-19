@@ -31,6 +31,11 @@ public:
 	Label gaitParam_Current_Label;
 	ComboBox audioParam_Current;
 	Label audioParam_Current_Label;
+	Slider soni_Order;
+	Label soni_Order_Label;
+	Slider soni_QuantLevels;
+	Label soni_QuantLevels_Label;
+	TextButton invertPolarity;
 
 	void configure()
 	{
@@ -77,6 +82,31 @@ public:
 
 		//Enable Real Time Visualize
 		realTimeVisualize.setToggleState(true, dontSendNotification);
+
+		//Soni Order
+		soni_Order.setRange(0.1, 10);
+		soni_Order.setValue(1);
+		soni_Order.setSkewFactor(0.4);
+		soni_Order.setNumDecimalPlacesToDisplay(2);
+		soni_Order.setColour(soni_Order.trackColourId, Colours::blue);
+		soni_Order.setColour(soni_Order.backgroundColourId, Colours::yellow);
+		soni_Order_Label.setText("Mapping Func Order", dontSendNotification);
+		soni_Order_Label.attachToComponent(&soni_Order, false);
+
+		//Soni Quant
+		soni_QuantLevels.setRange(0, 50);
+		soni_QuantLevels.setValue(0);
+		soni_QuantLevels.setSkewFactor(0.4);
+		soni_QuantLevels.setNumDecimalPlacesToDisplay(0);
+		soni_QuantLevels.setColour(soni_QuantLevels.trackColourId, Colours::blue);
+		soni_QuantLevels.setColour(soni_QuantLevels.backgroundColourId, Colours::yellow);
+		soni_QuantLevels_Label.setText("Quant Levels", dontSendNotification);
+		soni_QuantLevels_Label.attachToComponent(&soni_QuantLevels, false);
+
+		//INVERT MAPPING POLARITY
+		invertPolarity.setButtonText("Polarity Normal");
+		invertPolarity.setColour(invertPolarity.buttonColourId, Colours::green);
+
 	}
 
 	void toggleVisible(bool on)
@@ -97,6 +127,11 @@ public:
 		enable_dynTarget.setVisible(on);
 		enable_dynTarget_Label.setVisible(on);
 		realTimeVisualize.setVisible(on);
+		soni_Order.setVisible(on);
+		soni_Order_Label.setVisible(on);
+		soni_QuantLevels.setVisible(on);
+		soni_QuantLevels_Label.setVisible(on);
+		invertPolarity.setVisible(on);
 	}
 
 	void setLayout()
@@ -107,8 +142,8 @@ public:
 
 		// COLUMN 2
 		gaitParam_Current.setBounds(270, 40, 200, 40);
-		//desiredBehavior.setBounds(270, 110, 200, 40);
-		gaitParam_CurrentValue.setBounds(270, 190, 200, 40);
+		soni_Order.setBounds(270, 110, 200, 40);
+		soni_QuantLevels.setBounds(270, 190, 200, 40);
 		gaitParam_targetValue.setBounds(270, 270, 200, 40);
 		gaitParam_setTarget.setBounds(270, 350, 200, 40);
 
@@ -116,7 +151,8 @@ public:
 		audioParam_Current.setBounds(490, 40, 200, 40);
 		soni_isSliderSource.setBounds(620, 110, 200, 40);
 		soni_sliderSource.setBounds(490, 190, 200, 40);
-		recordGaitParam.setBounds(490, 270, 200, 40);
+		invertPolarity.setBounds(490, 270, 200, 40);
+		recordGaitParam.setBounds(490, 350, 200, 40);
 
 		// COLUMN 4
 		enable_dynTarget.setBounds(890, 40, 200, 40);

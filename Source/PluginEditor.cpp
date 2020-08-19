@@ -326,6 +326,35 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	ui_bmbf_gen.audioParam_Current.addListener(this);
 	repopulateLists(1);
 
+	// MAPPING FUNCTION ORDER
+	ui_bmbf_gen.soni_Order.onValueChange = [this]
+	{
+		processor.gaitAnalysis.gaitParams.order_MapFunc = ui_bmbf_gen.soni_Order.getValue();
+	};
+
+	// NUM AP QUANTIZATION LEVELS
+	ui_bmbf_gen.soni_QuantLevels.onValueChange = [this]
+	{
+		processor.gaitAnalysis.gaitParams.numQuant = ui_bmbf_gen.soni_QuantLevels.getValue();
+	};
+
+	// MAPPING POLARITY
+	ui_bmbf_gen.invertPolarity.onClick = [this]
+	{
+		if (processor.gaitAnalysis.gaitParams.isPolarityNormal)
+		{
+			processor.gaitAnalysis.gaitParams.isPolarityNormal = false;
+			ui_bmbf_gen.invertPolarity.setButtonText("Polarity Reversed");
+			ui_bmbf_gen.invertPolarity.setColour(ui_bmbf_gen.invertPolarity.buttonColourId, Colours::darkgoldenrod);
+		}
+		else
+		{
+			processor.gaitAnalysis.gaitParams.isPolarityNormal = true;
+			ui_bmbf_gen.invertPolarity.setButtonText("Polarity Normal");
+			ui_bmbf_gen.invertPolarity.setColour(ui_bmbf_gen.invertPolarity.buttonColourId, Colours::green);
+		}
+	};
+
 	//Trunk Balance - Center X
 	ui_bmbf_ex.staticBalance_Ctrl_X.onValueChange = [this]
 	{
@@ -832,33 +861,21 @@ void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 	float currentValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].currentValue;
 
-	float chosenTarget = processor.isTargetDynamic ?
-		processor.dynamicTarget : originalTarget;
+	float chosenTarget_MIN = processor.isTargetDynamic ?
+		processor.dynamicTarget : originalTarget_MIN;
+	float chosenTarget_MAX = processor.isTargetDynamic ?
+		processor.dynamicTarget : originalTarget_MAX;
 	float paramRange = (maxValue - minValue);
 	float paramMin = minValue;
 	float paramMax = maxValue;
-	float currentVal = processor.soniMappingCompute.isSoniSource_Slider ? paramMin + processor.soniMappingCompute.soniVal_Slider * paramRange :
-						min(max(currentValue,
-						paramMin),paramMax);
+	float currentVal = processor.gaitAnalysis.gaitParams.isSliderMode ? paramMin + processor.gaitAnalysis.gaitParams.sliderVal * paramRange :
+						min(max(currentValue,paramMin),paramMax);
 	float targetStartPoint = 0;		float targetWidth = 0;	
 	float pixelMultiplier = 1 / paramRange * ui_rtv_1d.rtv_width;
 	float currentStartPoint = (currentVal-paramMin) * pixelMultiplier;
-	switch (desiredBeh)
-	{
-	case 0:
-		targetStartPoint = 0;
-		targetWidth = fmax(20.0, chosenTarget * pixelMultiplier);
-		break;
-	case 1:
-		targetStartPoint = (chosenTarget - paramMin) * pixelMultiplier;
-		targetWidth = 20;
-		break;
-	case 2:
-		targetStartPoint = chosenTarget * pixelMultiplier;
-		targetWidth = fmax(20.0,(maxValue - 
-			chosenTarget) * pixelMultiplier);
-		break;
-	}
+
+	targetStartPoint = (chosenTarget_MIN - paramMin) * pixelMultiplier;
+	targetWidth = fmax(20, (chosenTarget_MAX - chosenTarget_MIN) * pixelMultiplier);
 	ui_rtv_1d.rtv_targetRange.setBounds(ui_rtv_1d.rtv_startX + targetStartPoint, ui_rtv_1d.rtv_startY - 90 - ui_rtv_1d.rtv_ht / 2, targetWidth, ui_rtv_1d.rtv_ht);
 	ui_rtv_1d.rtv_currentValue.setBounds(ui_rtv_1d.rtv_startX + currentStartPoint, ui_rtv_1d.rtv_startY - 90 + ui_rtv_1d.rtv_ht / 2, 20, ui_rtv_1d.rtv_ht);
 	if (processor.mapVal < 0.001)

@@ -158,6 +158,11 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_Current);
 		addAndMakeVisible(ui_bmbf_gen.audioParam_Current);
 		addAndMakeVisible(ui_bmbf_gen.realTimeVisualize);
+		addAndMakeVisible(ui_bmbf_gen.soni_Order);
+		addAndMakeVisible(ui_bmbf_gen.soni_Order_Label);
+		addAndMakeVisible(ui_bmbf_gen.soni_QuantLevels);
+		addAndMakeVisible(ui_bmbf_gen.soni_QuantLevels_Label);
+		addAndMakeVisible(ui_bmbf_gen.invertPolarity);
 	}
 	void addControls_DynTarget()
 	{
@@ -247,6 +252,7 @@ private:
 		addAndMakeVisible(ui_rtv_1d.rtv_currentValue);
 		addAndMakeVisible(ui_rtv_1d.rtv_targetRange);
 		addAndMakeVisible(ui_rtv_1d.rtv_fullRangeBar);
+		addAndMakeVisible(ui_rtv_1d.rtv_outerBound);
 	}
 	void addControls_SensorConfig()
 	{
