@@ -154,7 +154,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Master EQ Set Band 1 F
 	ui_musiCon_gen.song_master_EQ_B1_F.onValueChange = [this]
 	{
-		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_F.c_str(),
+		processor.sequencer.dspFaust.setParamValue(processor.sequencer.faustStrings.MasterEQ_1_F.c_str(),
 			ui_musiCon_gen.song_master_EQ_B1_F.getValue());
 		ui_musiCon_gen.song_master_EQ_B1_F_Lab.setText("F", dontSendNotification);
 	};
@@ -162,20 +162,20 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	// Master EQ Set Band 2 F
 	ui_musiCon_gen.song_master_EQ_B2_F.onValueChange = [this]
 	{
-		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_F.c_str(), ui_musiCon_gen.song_master_EQ_B2_F.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.sequencer.faustStrings.MasterEQ_2_F.c_str(), ui_musiCon_gen.song_master_EQ_B2_F.getValue());
 		ui_musiCon_gen.song_master_EQ_B2_F_Lab.setText("F", dontSendNotification);
 	};
 
 	// Master EQ Set Band 1 G
 	ui_musiCon_gen.song_master_EQ_B1_G.onValueChange = [this]
 	{
-		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_1_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B1_G.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.sequencer.faustStrings.MasterEQ_1_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B1_G.getValue());
 	};
 
 	// Master EQ Set Band 2 G
 	ui_musiCon_gen.song_master_EQ_B2_G.onValueChange = [this]
 	{
-		processor.sequencer.dspFaust.setParamValue(processor.faustStrings.MasterEQ_2_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B2_G.getValue());
+		processor.sequencer.dspFaust.setParamValue(processor.sequencer.faustStrings.MasterEQ_2_Gain.c_str(), ui_musiCon_gen.song_master_EQ_B2_G.getValue());
 	};
 
 	for (int i = 0; i < 8; i++)

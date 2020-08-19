@@ -87,6 +87,9 @@ public:
 		imuRecord.currentRow_FullLog_FLOAT[5] = isTargetDynamic ? dynamicTarget :
 			gaitAnalysis.gaitParams.gaitParam_ObjectArray
 			[gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
+		imuRecord.currentRow_FullLog_FLOAT[6] = isTargetDynamic ? dynamicTarget :
+			gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
 		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.baseBeats
 			[sequencer.index_baseBeat].name;
 
@@ -94,29 +97,29 @@ public:
 		switch (exerciseMode_Present)
 		{
 		case 2:		// SB
-			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.staticBalance_Div_Pitch;
-			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Roll;
-			imuRecord.currentRow_FullLog_FLOAT[8] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Pitch;
+			imuRecord.currentRow_FullLog_FLOAT[8] = gaitAnalysis.staticBalance_Div_Roll;
+			imuRecord.currentRow_FullLog_FLOAT[9] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
 			break;
 		case 3:		// DB
-			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.staticBalance_Div_Pitch;
-			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Roll;
-			imuRecord.currentRow_FullLog_FLOAT[8] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.staticBalance_Div_Pitch;
+			imuRecord.currentRow_FullLog_FLOAT[8] = gaitAnalysis.staticBalance_Div_Roll;
+			imuRecord.currentRow_FullLog_FLOAT[9] = (float)gaitAnalysis.staticBalance_ZoneMap_Current;
 			break;
 		case 4:		// STS - JERK
-			imuRecord.currentRow_FullLog_FLOAT[6] = 0;
 			imuRecord.currentRow_FullLog_FLOAT[7] = 0;
 			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			imuRecord.currentRow_FullLog_FLOAT[9] = 0;
 			break;
 		case 5:		// STS - ANGLE
-			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.sitStand_Thresh_Sit;
-			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.sitStand_Thresh_Stand;
-			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.sitStand_Thresh_Sit;
+			imuRecord.currentRow_FullLog_FLOAT[8] = gaitAnalysis.sitStand_Thresh_Stand;
+			imuRecord.currentRow_FullLog_FLOAT[9] = 0;
 			break;
 		case 6:		// GAIT - RHYTHM
-			imuRecord.currentRow_FullLog_FLOAT[6] = gaitAnalysis.isHalfTime ? 2.0 : 1.0;
-			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.HS_IntervalTolerance;
-			imuRecord.currentRow_FullLog_FLOAT[8] = 0;
+			imuRecord.currentRow_FullLog_FLOAT[7] = gaitAnalysis.isHalfTime ? 2.0 : 1.0;
+			imuRecord.currentRow_FullLog_FLOAT[8] = gaitAnalysis.HS_IntervalTolerance;
+			imuRecord.currentRow_FullLog_FLOAT[9] = 0;
 			break;
 		}
 
@@ -192,16 +195,15 @@ public:
 		sequencer.midiTickIncrement = sequencer.isTripletMode ? 320 : 240;
 		sequencer.ticksPerMS = 960 / (4 * intervalMs) * intervalMultiplier;
 		interPulseIntervalMs = intervalMs * intervalMultiplier;
-		sequencer.dspFaust.setParamValue(faustStrings.Tempo.c_str(),value);
+		sequencer.dspFaust.setParamValue(sequencer.faustStrings.Tempo.c_str(),value);
 		gaitAnalysis.beatInterval = 60/value;
 		sequencer.musicPhase.setPhaseInc(tempo, 1000);
 		if (isTargetDynamic)
 			isCalibrated_dynTargetPhase = false;
 	};
+	
 	double interPulseIntervalMs = 0.0;							// Tempo Dependent - Expected Pulse Time INC
-	
 	bool clockTriggeredLast = false;							// Is Clock Presently in Triggered State?
-	
 	void initializeClocking();									// Basic Clocking Init
 	
 	// Check - 16th Note Pulse Due?? Only for timekeeping, no more clocking
@@ -215,33 +217,8 @@ public:
 	void triggerClock(bool polarity);							//Set FAUST Master Clock to 1/0
 	void clockCallback();										//Operations when clock triggered
 
-	// Music Mapping
-
-	FaustStrings faustStrings;									// Faust Address Strings
-
 	// Music Sequencing
-
 	Sequencer sequencer;										//Sequencer Object
-
-	
-
-	//Arrange Note KeyNumbers Asc -> Sequencer
-	void arrangeChordNotes_Asc(float *infoArray, int totalLength)		
-	{
-		float temp = 0;
-		for (int i = 0; i < totalLength/2; i++)
-		{
-			for (int j = i + 1; j < totalLength/2; j++)
-			{
-				if (infoArray[j] < infoArray[i])
-				{
-					temp = infoArray[i];
-					infoArray[i] = infoArray[j];
-					infoArray[j] = temp;
-				}
-			}
-		}
-	}
 
 	//Sonification
 	float mapVal = 0;													// AP Value					

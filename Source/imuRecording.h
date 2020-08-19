@@ -18,7 +18,7 @@ public:
 	bool isRecording_Sensor = false;							// Flag - is sensor logging enabled?
 	float timeElapsed_REC = 0;									// Time Elapsed - Sensor Logging
 
-	std::string format_GP = "%f,%f,%f,%f,%s,%f,%s,%f,%s,%f,%f,%f,\n";		// Format - Full Log
+	std::string format_GP = "%f,%f,%f,%f,%s,%f,%s,%f,%f,%s,%f,%f,%f,\n";	// Format - Full Log
 	std::string format_RAW = "%f,%f,%f,%f,%f,%f,%f,\n";						// Format - RAW IMU Log
 
 	float currentRow_FullLog_FLOAT[20];
@@ -38,10 +38,11 @@ public:
 			currentRow_FullLog_FLOAT[4],
 			currentRow_FullLog_STRING[1],
 			currentRow_FullLog_FLOAT[5],
-			currentRow_FullLog_STRING[2],
 			currentRow_FullLog_FLOAT[6],
+			currentRow_FullLog_STRING[2],
 			currentRow_FullLog_FLOAT[7],
-			currentRow_FullLog_FLOAT[8]
+			currentRow_FullLog_FLOAT[8],
+			currentRow_FullLog_FLOAT[9]
 			   );
 	}
 
