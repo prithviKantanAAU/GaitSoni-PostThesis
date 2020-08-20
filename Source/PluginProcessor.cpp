@@ -86,10 +86,26 @@ void GaitSonificationAudioProcessor::clockCallback()
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
 void GaitSonificationAudioProcessor::sensorCallback()
 {
+	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
+
 	// UPDATE IMU BUFFERS FOR ALL ACTIVE SENSORS
 	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
 		if (gaitAnalysis.sensorInfo.isOnline[i])
 			gaitAnalysis.sensors_OSCReceivers[i].updateBuffers();
+
+	// IF DYNAMIC REACHING, ENABLE DYN TRAJECTORY, UPDATE CENTER COORDINATES
+	if (exerciseMode_Present == 3)
+	{
+		dynZoneCenter.barsElapsed = sequencer.barsElapsed;
+		dynReach_CenterCoordinates[0] = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
+		dynReach_CenterCoordinates[1] = gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
+
+		dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad,
+											dynReach_CenterCoordinates);
+
+		gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
+		gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
+	}
 
 	// COMPUTE CHOSEN MOVEMENT PARAM
 	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);

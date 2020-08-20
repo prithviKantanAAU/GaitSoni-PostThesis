@@ -7,6 +7,7 @@
 #include "Sequencer.h"
 #include "FaustStrings.h"
 #include "audioParamInfo.h"
+#include "dynTrajectory.h"
 #include "windows.h"
 
 class GaitSonificationAudioProcessor : public AudioProcessor, public HighResolutionTimer
@@ -175,7 +176,6 @@ public:
 	// Audio Parameter Calculation 
 	bool isStandby = false;										// Standby Mode - No MP Sonification
 	audioParamInfo audioParams;									// Audio Param Info
-	float getCurrentMappingValue();								// Get Present Soni Mapping Value - Sensor
 	std::string soniAddress_Primary = "";						// MP Sonification AP - FAUST Address
 	std::string soniAddress_Cue = "";							// Cue AP - FAUST Address
 
@@ -218,7 +218,10 @@ public:
 	void clockCallback();										//Operations when clock triggered
 
 	// Music Sequencing
-	Sequencer sequencer;										//Sequencer Object
+	Sequencer sequencer;										
+
+	// Dyn Trajectory
+	dynTrajectory dynZoneCenter;
 
 	//Sonification
 	float mapVal = 0;													// AP Value					
