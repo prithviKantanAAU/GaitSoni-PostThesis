@@ -17,12 +17,12 @@ public:
 		"Circle",
 		"Diamond",
 		"Square",
-		"",
-		"",
+		"Plus Shape",
+		"Cross Shape",
 		""
 	};
 
-	int currentShape = 5;
+	int currentShape = 8;
 	bool isMirrored = false;
 	float radius_Deg = 15;
 	float period_Bars = 1;
@@ -37,8 +37,8 @@ public:
 		0,
 		4,
 		4,
-		0,
-		0,
+		8,
+		8,
 		0
 	};
 
@@ -51,6 +51,8 @@ public:
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},			// Circle
 		{0, 1, 0, -1, 0, 0, 0, 0, 0, 0},		// Diamond
 		{1, 1, -1, -1, 0, 0, 0, 0, 0, 0},		// Square
+		{0, 0, 0, 1, 0, 0, 0, -1, 0, 0},		// Plus Sign
+		{0, 1, 0, 1, 0, -1, 0, -1, 0, 0},		// Cross Shape
 	};
 
 	int segment_Y[10][10] =
@@ -62,6 +64,8 @@ public:
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},			// Circle
 		{1, 0, -1, 0, 0, 0, 0, 0, 0, 0},		// Diamond
 		{1, -1, -1, 1, 0, 0, 0, 0, 0, 0},		// Square
+		{0, 1, 0, 0, 0, -1, 0, 0, 0, 0},		// Plus Sign
+		{0, 1, 0, -1, 0, -1, 0, 1, 0, 0},		// Cross Shape
 	};
 
 	void getCenterCoordinates(float phase, float *outArray_XY)
@@ -105,7 +109,7 @@ public:
 		val_Y = radius_Deg * (currentSegment_start_Y * phase_tillSegEnd
 			+ currentSegment_end_Y * phase_sinceSegStart ) / rad_perSegment;
 
-		xyArray[0] = val_X;
+		xyArray[0] = isMirrored ? val_X : -1 * val_X;
 		xyArray[1] = val_Y;
 	}
 
