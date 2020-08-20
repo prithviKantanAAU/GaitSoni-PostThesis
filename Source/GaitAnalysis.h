@@ -200,14 +200,21 @@ public:
 	//Calibration
 	float calibrationValues[30] = { 0.0 };
 	float calibrationValues_Temp[30] = { 0.0 };
-	float param_Z1 = 0.0;
 	short calibration_stepCount = 0;
 	
-	void calibrateMaximum(short activeGaitParam)
+	void calibrateMaximum(String paramName, bool isCalibrating)
 	{
-		if (gaitParams.gaitParam_ObjectArray[activeGaitParam].currentValue > calibrationValues_Temp[activeGaitParam])
-			calibrationValues_Temp[activeGaitParam] = gaitParams.gaitParam_ObjectArray[activeGaitParam].currentValue;
-		param_Z1 = gaitParams.gaitParam_ObjectArray[activeGaitParam].currentValue;
+		short mp_Idx = 0;
+		if (isCalibrating)
+		{
+			for (int i = 0; i < gaitParams.numMovementParams; i++)
+			{
+				if (paramName == gaitParams.gaitParam_ObjectArray[i].name)
+					mp_Idx = i;
+			}
+			if (abs(gaitParams.gaitParam_ObjectArray[mp_Idx].currentValue) > calibrationValues_Temp[mp_Idx])
+				calibrationValues_Temp[mp_Idx] = gaitParams.gaitParam_ObjectArray[mp_Idx].currentValue;
+		}
 	};
 
 	void saveCalibration(short activeGaitParam)
@@ -219,7 +226,6 @@ public:
 	void discardCalibration(short activeGaitParam)
 	{
 		calibrationValues_Temp[activeGaitParam] = 0.0;
-		param_Z1 = 0.0;
 	}
 	
 	// HS CALIBRATION - REPLACE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

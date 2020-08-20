@@ -99,12 +99,8 @@ void GaitSonificationAudioProcessor::sensorCallback()
 		gaitAnalysis.trunk_CalibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
 
 	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
-	if (isStandby) mapVal = 0;
-	else
-	{
-		mapVal = jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
-		sequencer.AP_Val = mapVal;
-	}
+	mapVal = isStandby ? 0 : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
+	sequencer.AP_Val = mapVal;
 
 	// CHECK MUSIC PLAYBACK
 	if (sequencer.isPlaying)

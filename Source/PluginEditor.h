@@ -446,6 +446,13 @@ private:
 	// Refresh Calibration Status Label when MP changed
 	void updateCalibrationLabels()
 	{
+		short mpVal = processor.gaitAnalysis.gaitParams.activeGaitParam;
+
+		if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mpVal].calibrationType != 0)
+			ui_mpCal.toggleVisible(false);
+		else if (presentTab == 2)
+			ui_mpCal.toggleVisible(true);
+
 		if (processor.gaitAnalysis.isParamCalibrated[processor.gaitAnalysis.gaitParams.activeGaitParam] || processor.isCalibrating)
 		{
 			ui_mpCal.calibrate_presentTarget.setText("Calibrated Target: "

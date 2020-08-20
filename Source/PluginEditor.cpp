@@ -921,8 +921,9 @@ void GaitSonificationAudioProcessorEditor::calibrateTarget_SaveHandle()
 	processor.isCalibrating = false;
 	processor.gaitAnalysis.saveCalibration(mp_active);
 	updateCalibrationLabels();
-	float paramRange = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].maxVal -
-		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].minVal;
+	float param_Min = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].minVal;
+	float param_Max = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray[mp_active].maxVal;
+	float paramRange = param_Max - param_Min;
 	float newTempo = 0;
 	ui_mpCal.calibrateTarget.setVisible(true);
 	ui_mpCal.calibrateTarget_Discard.setVisible(false);
@@ -953,7 +954,15 @@ void GaitSonificationAudioProcessorEditor::calibrateTarget_SaveHandle()
 	}
 
 	else
-		ui_bmbf_gen.gaitParam_setTarget.setValue(processor.gaitAnalysis.calibrationValues[mp_active] / paramRange);
+	{
+		ui_bmbf_gen.gaitParam_setTarget
+			.setMaxValue((processor.gaitAnalysis.calibrationValues[mp_active] - param_Min + paramRange / 10)/ paramRange);
+		if (param_Max == paramRange)
+			ui_bmbf_gen.gaitParam_setTarget.setMinValue(0);
+		else
+			ui_bmbf_gen.gaitParam_setTarget
+			.setMinValue((processor.gaitAnalysis.calibrationValues[mp_active] - param_Min - paramRange / 10) / paramRange);
+	}
 }
 
 // HANDLE BUTTON PRESS - CALIBRATE DISCARD

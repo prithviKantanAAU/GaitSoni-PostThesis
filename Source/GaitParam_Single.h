@@ -25,6 +25,8 @@ public:
 	float target_MAX = 0;
 	float minVal = 0;
 	float maxVal = 0;
+	short calibrationType = 0;				// 0 = Maximum // 1 = STS // 2 = HS // 3 = Zones
+	void setCalibrationType(short val) { calibrationType = val; };
 	
 	void updateValue_Current(float val)											// Periodic Call 1
 	{

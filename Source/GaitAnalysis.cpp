@@ -72,6 +72,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 1
@@ -79,6 +80,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 2
@@ -93,48 +95,56 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	if (mpName == "RMS Acc ML")
 	{
 		getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 4
 	if (mpName == "RMS Acc AP")
 	{
 		getRMS_Acc(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 5
 	if (mpName == "Scalar Jerk")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 6
 	if (mpName == "Jerk - X")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 7
 	if (mpName == "Jerk - Y")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 8
 	if (mpName == "Jerk - Z")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 9
 	if (mpName == "Sway Vel - ML")
 	{
 		getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 10
 	if (mpName == "Sway Vel - AP")
 	{
 		getSwayVelocity(sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 11
