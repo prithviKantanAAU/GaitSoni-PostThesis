@@ -384,11 +384,29 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 			10 - ui_bmbf_ex.staticBalance_Div_Pitch.getValue();
 	};
 
-	//Trunk Balance - Feedback Slope
+	// Trunk Balance - Feedback Slope
 	ui_bmbf_ex.staticBalance_FeedbackSlope.addListener(this);
 
-	// SB Calibration Mode
-	ui_bmbf_ex.staticBalance_calibrationMode.addListener(this);
+	// Dyn Trajectory Shape
+	ui_bmbf_ex.dynTrajectory_Shape.addListener(this);
+	for (int i = 0; i < processor.dynZoneCenter.numShapes; i++)
+		ui_bmbf_ex.dynTrajectory_Shape.addItem(processor.dynZoneCenter.shapes[i], i + 1);
+	ui_bmbf_ex.dynTrajectory_Shape.setSelectedId(1);
+
+	// Dyn Trajectory Period
+	ui_bmbf_ex.dynTrajectory_Period.addListener(this);
+
+	// Dyn Trajectory Mirror
+	ui_bmbf_ex.dynTrajectory_Mirror.onClick = [this]
+	{
+		processor.dynZoneCenter.isMirrored = processor.dynZoneCenter.isMirrored ? false : true;
+	};
+
+	// Dyn Trajectory Radius
+	ui_bmbf_ex.dynTrajectory_Radius.onValueChange = [this]
+	{
+		processor.dynZoneCenter.radius_Deg = ui_bmbf_ex.dynTrajectory_Radius.getValue();
+	};
 
 	// SST - Stand Thresh
 	ui_bmbf_ex.sitStand_Thresh_Stand.onValueChange = [this]
@@ -422,38 +440,30 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	};
 
 	// HS Acc Threshold
-	// Simulation Frequency
 	ui_bmbf_ex.HS_AccThresh.onValueChange = [this]
 	{
 		processor.gaitAnalysis.HS_thresh_pos = ui_bmbf_ex.HS_AccThresh.getValue();
 	};
 
-	//Enable Dynamic Target
-	ui_bmbf_gen.enable_dynTarget.onStateChange = [this]
+	// SAVE SYSTEM SNAPSHOT
+	ui_bmbf_gen.saveSnapshot.onClick = [this]
 	{
-		processor.isTargetDynamic = ui_bmbf_gen.enable_dynTarget.getToggleState();
-		ui_dyn.toggleVisible(ui_bmbf_gen.enable_dynTarget.getToggleState());
+		processor.storeSystemSnapshot();
 	};
 
-	//Desired Movement Amplitude
-	ui_dyn.desired_Amplitude.onValueChange = [this]
+	// LOAD SETTINGS
+	ui_bmbf_gen.loadSnapshot.onClick = [this]
 	{
-		// HAS TO GO EVENTUALLY
-	};
-
-	//Desired Movement Frequency
-	ui_dyn.desired_MovementFreq.addListener(this);
-
-	//Movement Function Order
-	ui_dyn.movementFunc_Order.onValueChange = [this]
-	{
-		//HAS TO GO EVENTUALLY
-	};
-
-	//Movement Error Tolerance
-	ui_dyn.movement_errorTolerance.onValueChange = [this]
-	{
-		// HAS TO GO EVENTUALLY
+		String filePath = "";
+		FileChooser songChooser("Please select a valid settings file:",
+			File::getSpecialLocation(File::userHomeDirectory), "*.csv");
+		if (songChooser.browseForFileToOpen())
+		{
+			File settingsFile(songChooser.getResult());
+			filePath = settingsFile.getFullPathName();
+			processor.sysSnapshot.readSnapshot(filePath);
+			snapshot_updateSliders();
+		}
 	};
 
 	//Calibrate Target
@@ -559,16 +569,11 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		processor.updateAudioParameter(ui_bmbf_gen.audioParam_Current.getSelectedId(), 1);
 	}
 
-	if (box == &ui_dyn.desired_MovementFreq)
-	{
-		//HAS TO GO EVENTUALLY
-	}
+	if (box == &ui_bmbf_ex.dynTrajectory_Period)
+		processor.dynZoneCenter.period_Bars = ui_bmbf_ex.dynTrajectory_Period.getSelectedId();
 
-	if (box == &ui_bmbf_ex.staticBalance_FeedbackSlope)
-		processor.gaitAnalysis.staticBalance_ZoneMap_Current = ui_bmbf_ex.staticBalance_FeedbackSlope.getSelectedId();
-
-	if (box == &ui_bmbf_ex.staticBalance_calibrationMode)
-		processor.gaitAnalysis.staticBalance_calibrationMode = ui_bmbf_ex.staticBalance_calibrationMode.getSelectedId() - 1;
+	if (box == &ui_bmbf_ex.dynTrajectory_Shape)
+		processor.dynZoneCenter.currentShape = ui_bmbf_ex.dynTrajectory_Shape.getSelectedId() - 1;
 
 	if (box == &ui_bmbf_ex.HS_TimingMode)
 		processor.gaitAnalysis.isHalfTime = ui_bmbf_ex.HS_TimingMode.getSelectedId() == 1 ? false : true;
@@ -708,7 +713,6 @@ void GaitSonificationAudioProcessorEditor::togglePeripheralsTab(bool on)
 void GaitSonificationAudioProcessorEditor::toggleSonificationControlsTab(bool on)
 {
 	ui_bmbf_gen.toggleVisible(on);
-	ui_dyn.toggleVisible(on && processor.isTargetDynamic);
 	ui_bmbf_ex.toggleVisible(ui_bmbf_gen.exerciseMode.getSelectedId(), on);
 	ui_mpCal.toggleVisible(on);
 	ui_rtv_1d.toggleVisible(on);
@@ -802,7 +806,6 @@ void GaitSonificationAudioProcessorEditor::resized()
 {	
 	ui_bmbf_gen.setLayout();
 	ui_bmbf_ex.setLayout();
-	ui_dyn.setLayout();
 	ui_mpCal.setLayout();
 	ui_musiCon_gen.setLayout();
 	ui_musiCon_inbuilt.setLayout();
@@ -861,10 +864,8 @@ void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 	float currentValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].currentValue;
 
-	float chosenTarget_MIN = processor.isTargetDynamic ?
-		processor.dynamicTarget : originalTarget_MIN;
-	float chosenTarget_MAX = processor.isTargetDynamic ?
-		processor.dynamicTarget : originalTarget_MAX;
+	float chosenTarget_MIN = originalTarget_MIN;
+	float chosenTarget_MAX = originalTarget_MAX;
 	float paramRange = (maxValue - minValue);
 	float paramMin = minValue;
 	float paramMax = maxValue;

@@ -36,6 +36,8 @@ public:
 	Slider soni_QuantLevels;
 	Label soni_QuantLevels_Label;
 	TextButton invertPolarity;
+	TextButton saveSnapshot;
+	TextButton loadSnapshot;
 
 	void configure()
 	{
@@ -103,10 +105,17 @@ public:
 		soni_QuantLevels_Label.setText("Quant Levels", dontSendNotification);
 		soni_QuantLevels_Label.attachToComponent(&soni_QuantLevels, false);
 
-		//INVERT MAPPING POLARITY
+		// INVERT MAPPING POLARITY
 		invertPolarity.setButtonText("Polarity Normal");
 		invertPolarity.setColour(invertPolarity.buttonColourId, Colours::green);
 
+		// SAVE SNAPSHOT
+		saveSnapshot.setButtonText("Save Settings");
+		saveSnapshot.setColour(saveSnapshot.buttonColourId, Colours::blue);
+
+		// LOAD SNAPSHOT
+		loadSnapshot.setButtonText("Load Settings");
+		loadSnapshot.setColour(loadSnapshot.buttonColourId, Colours::darkgoldenrod);
 	}
 
 	void toggleVisible(bool on)
@@ -132,6 +141,8 @@ public:
 		soni_QuantLevels.setVisible(on);
 		soni_QuantLevels_Label.setVisible(on);
 		invertPolarity.setVisible(on);
+		saveSnapshot.setVisible(on);
+		loadSnapshot.setVisible(on);
 	}
 
 	void setLayout()
@@ -155,7 +166,8 @@ public:
 		recordGaitParam.setBounds(490, 350, 200, 40);
 
 		// COLUMN 4
-		enable_dynTarget.setBounds(890, 40, 200, 40);
+		saveSnapshot.setBounds(710, 40, 200, 40);
+		loadSnapshot.setBounds(710, 110, 200, 40);
 
 		// TOP RIGHT
 		isStandbyToggle.setBounds(1090, 40, 150, 40);

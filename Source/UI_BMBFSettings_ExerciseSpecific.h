@@ -17,7 +17,12 @@ public:
 	Slider staticBalance_Ctrl_Y;
 	ComboBox staticBalance_FeedbackSlope; 
 	Label staticBalance_FeedbackSlope_Label;
-	ComboBox staticBalance_calibrationMode;
+
+	Slider dynTrajectory_Radius;
+	Label dynTrajectory_Radius_Label;
+	ComboBox dynTrajectory_Shape;
+	ComboBox dynTrajectory_Period;
+	TextButton dynTrajectory_Mirror;
 
 	ComboBox HS_TimingMode;
 	Slider HS_Tolerance;
@@ -58,18 +63,28 @@ public:
 		staticBalance_Div_Pitch.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		staticBalance_Div_Pitch.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
 
-		//Trunk Balance - Feedback Slope
-		staticBalance_FeedbackSlope.addItem("Gradual", 1);
-		staticBalance_FeedbackSlope.addItem("Medium", 2);
-		staticBalance_FeedbackSlope.addItem("Steep", 3);
-		staticBalance_FeedbackSlope.setSelectedId(1);
-		staticBalance_FeedbackSlope_Label.setText("Change Rate", dontSendNotification);
-		staticBalance_FeedbackSlope_Label.attachToComponent(&staticBalance_FeedbackSlope, false);
+		// DYN RADIUS
+		dynTrajectory_Radius.setValue(15);
+		dynTrajectory_Radius.setRange(1, 20);
+		dynTrajectory_Radius.setColour(dynTrajectory_Radius.backgroundColourId, Colours::blue);
+		dynTrajectory_Radius.setColour(dynTrajectory_Radius.trackColourId, Colours::yellow);
+		dynTrajectory_Radius.setNumDecimalPlacesToDisplay(0);
+		dynTrajectory_Radius_Label.setText("Trajectory Radius", dontSendNotification);
+		dynTrajectory_Radius_Label.attachToComponent(&dynTrajectory_Radius, false);
 
-		//Trunk Balance - Calibration Mode
-		staticBalance_calibrationMode.addItem("Calibrate Ideal", 1);
-		staticBalance_calibrationMode.addItem("Calibrate Extreme", 2);
-		staticBalance_calibrationMode.setSelectedId(1);
+		// DYN TRAJECTORY PERIOD
+		dynTrajectory_Period.addItem("1 Bar", 1);
+		dynTrajectory_Period.addItem("2 Bars", 2);
+		dynTrajectory_Period.addItem("4 Bars", 4);
+		dynTrajectory_Period.addItem("8 Bars", 8);
+		dynTrajectory_Period.setSelectedId(1);
+
+		// DYN TRAJECTORY SHAPE
+		// INITIALIZED OUTSIDE
+
+		// DYN TRAJECTORY MIRROR
+		dynTrajectory_Mirror.setButtonText("Mirror L/R");
+		dynTrajectory_Mirror.setColour(dynTrajectory_Mirror.buttonColourId, Colours::blue);
 
 		// SST - Stand Angle Thresh
 		sitStand_Thresh_Stand.setValue(15);
@@ -117,6 +132,7 @@ public:
 	{
 		bool isTesting = (exMode == 1);
 		bool isSB_orDB = (exMode == 2 || exMode == 3);
+		bool isDB = (exMode == 3);
 		bool isSTS = (exMode == 4 || exMode == 5);
 		bool isGait = (exMode == 6);
 
@@ -124,9 +140,14 @@ public:
 		staticBalance_Div_Roll.setVisible(soniTab && isSB_orDB);
 		staticBalance_Div_Pitch.setVisible(soniTab && isSB_orDB);
 		staticBalance_FeedbackSlope.setVisible(soniTab && isSB_orDB);
-		staticBalance_calibrationMode.setVisible(soniTab && isSB_orDB);
 		staticBalance_Ctrl_X.setVisible(soniTab && isSB_orDB);
 		staticBalance_Ctrl_Y.setVisible(soniTab && isSB_orDB);
+
+		// DB
+		dynTrajectory_Shape.setVisible(soniTab && isDB);
+		dynTrajectory_Mirror.setVisible(soniTab && isDB);
+		dynTrajectory_Period.setVisible(soniTab && isDB);
+		dynTrajectory_Radius.setVisible(soniTab && isDB);
 
 		// STS
 		sitStand_Thresh_Stand.setVisible(soniTab && isSTS);
@@ -142,8 +163,6 @@ public:
 
 	void setLayout()
 	{
-		staticBalance_FeedbackSlope.setBounds(50, 110, 200, 40);
-		staticBalance_calibrationMode.setBounds(50, 190, 200, 40);
 		staticBalance_Ctrl_X.setBounds(950, 310, 200, 20);
 		staticBalance_Ctrl_Y.setBounds(930, 330, 20, 200);
 		staticBalance_Div_Pitch.setBounds(920, 330, 20, 100);
@@ -153,6 +172,11 @@ public:
 		sitStand_Thresh_Stand.setBounds(50, 190, 200, 40);
 		sitStand_FlipState.setBounds(50, 270, 200, 40);
 		sitStand_isStanding.setBounds(50, 350, 200, 40);
+
+		dynTrajectory_Shape.setBounds(50, 110, 200, 40);
+		dynTrajectory_Mirror.setBounds(50, 190, 200, 40);
+		dynTrajectory_Period.setBounds(50, 270, 200, 40);
+		dynTrajectory_Radius.setBounds(50, 350, 200, 40);
 
 		HS_TimingMode.setBounds(50, 110, 200, 40);
 		HS_Tolerance.setBounds(50, 190, 200, 40);

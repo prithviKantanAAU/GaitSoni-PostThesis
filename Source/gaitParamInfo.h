@@ -12,7 +12,6 @@ public:
 	short indices_MP[10][30] = { 0 };				// PER EXERCISE MODE - MP INDICES
 	short num_MP[10] = { 0 };						// PER EXERCISE MODE - MP COUNT
 	short numSensorLocations = 3;					// BODILY LOCATIONS
-	std::string names_DesiredBehavior[3] = { "Less Than", "Equal To", "Greater Than" };
 	String exerciseModes[10] = { "Testing","Static Upright","Dynamic Trunk","Jerk Feedback","STS Angle Cue","Gait" };
 	GaitParam_Single gaitParam_ObjectArray[30];
 	float AP_Val = 0;

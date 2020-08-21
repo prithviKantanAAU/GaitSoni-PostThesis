@@ -2,6 +2,7 @@
 #include <ctime>
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OSC_Class.h"
+#include "systemSnapshot.h"
 #include "imuRecording.h"
 #include "GaitAnalysis.h"
 #include "Sequencer.h"
@@ -22,6 +23,62 @@ public:
 
 	// Sensor Logging //
 	imuRecording imuRecord;										// IMU Recording Class Object
+
+	// System Snapshot //
+	systemSnapshot sysSnapshot;
+
+	void storeSystemSnapshot()
+	{
+		// INITIALIZE PATHS, STORE INFO
+		sysSnapshot.filePath_Snapshot = sysSnapshot.forRootDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
+		sysSnapshot.filePath_Snapshot = sysSnapshot.filePath_Snapshot.upToLastOccurrenceOf("\\", true, false);
+		sysSnapshot.filePath_Snapshot += "Settings Snapshot" + imuRecord.getCurrentTime();
+		String snapshotFilename = sysSnapshot.filePath_Snapshot + +"\\Settings.csv";
+		CreateDirectory(sysSnapshot.filePath_Snapshot.toStdString().c_str(), NULL);
+		sysSnapshot.snapshot = fopen(snapshotFilename.toStdString().c_str(), "w");
+
+		// COPY INFO TO OBJECT
+		sysSnapshot.exerciseMode = gaitAnalysis.gaitParams.exerciseModes[exerciseMode_Present - 1];
+		sysSnapshot.MP = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+						[gaitAnalysis.gaitParams.activeGaitParam].name;
+		sysSnapshot.order_MapFunc = gaitAnalysis.gaitParams.order_MapFunc;
+		sysSnapshot.quantLevels = gaitAnalysis.gaitParams.numQuant;
+		sysSnapshot.target_MIN = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+								[gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
+		sysSnapshot.target_MAX = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+								[gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
+		sysSnapshot.polarity = gaitAnalysis.gaitParams.isPolarityNormal ? 1 : -1;
+		sysSnapshot.tempo = tempo;
+		sysSnapshot.rhythm = sequencer.currentMusic.baseBeats[sequencer.index_baseBeat].name;
+		
+		for (int i = 0; i < 8; i++)
+		{
+			sysSnapshot.trackMutes[i] = sequencer.muteValues[i];
+			sysSnapshot.variants[i] = sequencer.currentMusic.baseBeats
+									  [sequencer.index_baseBeat].variantConfig[i];
+			sysSnapshot.trackGains[i] = sequencer.currentMusic.baseBeats
+									  [sequencer.index_baseBeat].variantConfig_GAINS[i];
+		}
+
+		sysSnapshot.SB_C_X = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
+		sysSnapshot.SB_C_Y = gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
+		sysSnapshot.SB_Wid_X = gaitAnalysis.staticBalance_Div_Roll;
+		sysSnapshot.SB_Wid_Y = gaitAnalysis.staticBalance_Div_Pitch;
+
+		sysSnapshot.DB_Shape = dynZoneCenter.shapes[dynZoneCenter.currentShape];
+		sysSnapshot.DB_Mirrored = dynZoneCenter.isMirrored ? 1 : -1;
+		sysSnapshot.DB_Period = dynZoneCenter.period_Bars;
+		sysSnapshot.DB_Radius = dynZoneCenter.radius_Deg;
+
+		sysSnapshot.STS_angle_preSit = gaitAnalysis.sitStand_Thresh_Sit;
+		sysSnapshot.STS_angle_preStand = gaitAnalysis.sitStand_Thresh_Stand;
+
+		sysSnapshot.Gait_TimingMode = gaitAnalysis.isHalfTime ? "Half Time" : "Normal";
+		sysSnapshot.Gait_ErrorTolerance = gaitAnalysis.HS_IntervalTolerance;
+		sysSnapshot.Gait_AccThresh = gaitAnalysis.HS_thresh_pos;
+
+		sysSnapshot.writeFile();
+	}
 	
 	// Start sensor logging															
 	void startRecording_Sensor()								
@@ -85,10 +142,10 @@ public:
 		imuRecord.currentRow_FullLog_FLOAT[4] = value;
 		imuRecord.currentRow_FullLog_STRING[1] = audioParams.audioParam_ObjectArray
 			[audioParams.activeAudioParam].name;
-		imuRecord.currentRow_FullLog_FLOAT[5] = isTargetDynamic ? dynamicTarget :
+		imuRecord.currentRow_FullLog_FLOAT[5] = 
 			gaitAnalysis.gaitParams.gaitParam_ObjectArray
 			[gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
-		imuRecord.currentRow_FullLog_FLOAT[6] = isTargetDynamic ? dynamicTarget :
+		imuRecord.currentRow_FullLog_FLOAT[6] = 
 			gaitAnalysis.gaitParams.gaitParam_ObjectArray
 			[gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
 		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.baseBeats
@@ -198,8 +255,6 @@ public:
 		sequencer.dspFaust.setParamValue(sequencer.faustStrings.Tempo.c_str(),value);
 		gaitAnalysis.beatInterval = 60/value;
 		sequencer.musicPhase.setPhaseInc(tempo, 1000);
-		if (isTargetDynamic)
-			isCalibrated_dynTargetPhase = false;
 	};
 	
 	double interPulseIntervalMs = 0.0;							// Tempo Dependent - Expected Pulse Time INC
@@ -232,10 +287,6 @@ public:
 	{
 		exerciseMode_Present = exerciseMode;
 	};
-	bool isTargetDynamic = false;										// Target Static/Dynamic -> SoniMappingCompute
-	float dynamicTarget = 0;											// Dyn Target Value -> SoniMappingCompute
-	float dynamicTarget_phaseTime = 0;									// Dyn Target Phase Time -> SoniMappingCompute
-	bool isCalibrated_dynTargetPhase = false;							// is Dyn Target Calibrated? -> SoniMappingCompute
 	bool isCalibrating = false;											// Is MP Calibrating? -> GaitAnalysis?
 
 	// UNWANTED // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

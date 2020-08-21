@@ -23,7 +23,6 @@ public:
 
 	UI_BMBFSettings_ExerciseSpecific ui_bmbf_ex;
 	UI_BMBFSettings_General ui_bmbf_gen;
-	UI_DynTarget ui_dyn;
 	UI_MPCalibrate ui_mpCal;
 	UI_MusicControls_General ui_musiCon_gen;
 	UI_MusicControls_Inbuilt ui_musiCon_inbuilt;
@@ -105,7 +104,6 @@ private:
 	{
 		addControls_BMBF_ExSpec();
 		addControls_BMBF_GEN();
-		addControls_DynTarget();
 		addControls_MPCalibrate();
 		addControls_Music_GEN();
 		addControls_Music_INBUILT();
@@ -123,10 +121,14 @@ private:
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_Div_Roll);
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_Div_Roll_Label);
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_FeedbackSlope);
-		addAndMakeVisible(ui_bmbf_ex.staticBalance_calibrationMode);
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_FeedbackSlope_Label);
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_Ctrl_X);
 		addAndMakeVisible(ui_bmbf_ex.staticBalance_Ctrl_Y);
+
+		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Shape);
+		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Radius);
+		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Period);
+		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Mirror);
 
 		addAndMakeVisible(ui_bmbf_ex.sitStand_Thresh_Sit);
 		addAndMakeVisible(ui_bmbf_ex.sitStand_Thresh_Sit_Label);
@@ -163,21 +165,10 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.soni_QuantLevels);
 		addAndMakeVisible(ui_bmbf_gen.soni_QuantLevels_Label);
 		addAndMakeVisible(ui_bmbf_gen.invertPolarity);
+		addAndMakeVisible(ui_bmbf_gen.saveSnapshot);
+		addAndMakeVisible(ui_bmbf_gen.loadSnapshot);
 	}
-	void addControls_DynTarget()
-	{
-		addAndMakeVisible(ui_bmbf_gen.enable_dynTarget);
-		addAndMakeVisible(ui_dyn.dynTargetLabel);
-		addAndMakeVisible(ui_bmbf_gen.enable_dynTarget_Label);
-		addAndMakeVisible(ui_dyn.desired_Amplitude);
-		addAndMakeVisible(ui_dyn.desired_Amplitude_Label);
-		addAndMakeVisible(ui_dyn.desired_MovementFreq);
-		addAndMakeVisible(ui_dyn.desired_MovementFreq_Label);
-		addAndMakeVisible(ui_dyn.movementFunc_Order);
-		addAndMakeVisible(ui_dyn.movementFunc_Order_Label);
-		addAndMakeVisible(ui_dyn.movement_errorTolerance);
-		addAndMakeVisible(ui_dyn.movement_errorTolerance_Label);
-	}
+	
 	void addControls_MPCalibrate()
 	{
 		addAndMakeVisible(ui_mpCal.calibrateTarget);
@@ -699,6 +690,106 @@ private:
 				Colour::fromFloatRGBA(rgbArray[0], rgbArray[1], rgbArray[2], boxAlpha_Segment));
 		}
 	};
+
+	void snapshot_updateSliders()
+	{
+		// EXERCISE MODE
+		for (int i = 0; i < processor.gaitAnalysis.gaitParams.num_UseScenarios; i++)
+		{
+			if (processor.gaitAnalysis.gaitParams.exerciseModes[i] == processor.sysSnapshot.exerciseMode)
+				ui_bmbf_gen.exerciseMode.setSelectedId(i + 1);
+		}
+
+		// MP
+		for (int i = 0; i < processor.gaitAnalysis.gaitParams.numMovementParams; i++)
+		{
+			if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[i].name == processor.sysSnapshot.MP)
+				ui_bmbf_gen.gaitParam_Current.setSelectedId(i + 1);
+		}
+
+		// MAPPING ORDER
+		ui_bmbf_gen.soni_Order.setValue(processor.sysSnapshot.order_MapFunc);
+
+		// QUANT LEVELS
+		ui_bmbf_gen.soni_QuantLevels.setValue(processor.sysSnapshot.quantLevels);
+
+		// PARAM RANGE
+		float paramRange = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal - processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
+		float minVal = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
+
+		// TARGET MIN
+		ui_bmbf_gen.gaitParam_setTarget.setMinValue((processor.sysSnapshot.target_MIN - minVal)/paramRange);
+
+		// TARGET MAX
+		ui_bmbf_gen.gaitParam_setTarget.setMaxValue((processor.sysSnapshot.target_MAX - minVal)/paramRange);
+
+		// POLARITY
+		processor.gaitAnalysis.gaitParams.isPolarityNormal = (processor.sysSnapshot.polarity == 1);
+		if (!processor.gaitAnalysis.gaitParams.isPolarityNormal)
+		{
+			processor.gaitAnalysis.gaitParams.isPolarityNormal = false;
+			ui_bmbf_gen.invertPolarity.setButtonText("Polarity Reversed");
+			ui_bmbf_gen.invertPolarity.setColour(ui_bmbf_gen.invertPolarity.buttonColourId, Colours::darkgoldenrod);
+		}
+		else
+		{
+			processor.gaitAnalysis.gaitParams.isPolarityNormal = true;
+			ui_bmbf_gen.invertPolarity.setButtonText("Polarity Normal");
+			ui_bmbf_gen.invertPolarity.setColour(ui_bmbf_gen.invertPolarity.buttonColourId, Colours::green);
+		}
+		
+		// TEMPO
+		ui_musiCon_gen.tempo_Slider.setValue(processor.sysSnapshot.tempo);
+
+		// RHYTHM
+		for (int i = 0; i < 20; i++)
+		{
+			if (processor.sysSnapshot.rhythm == processor.sequencer.currentMusic.baseBeats[i].name)
+			{
+				processor.sequencer.index_baseBeat = i;
+				processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
+				setRhythmSpecificVariants();
+				processor.sequencer.initializeTracksForPlayback();
+				setGainSliders();
+				refreshBeatLabels();
+				channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
+			}
+		}
+
+		// TRACK GAINS, VARIANT, MUTES
+		for (int i = 0; i < 8; i++)
+		{
+			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sysSnapshot.trackGains[i]);
+			ui_musiCon_gen.song_track_Mute[i].setToggleState(processor.sysSnapshot.trackMutes[i] == 1,dontSendNotification);
+			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sysSnapshot.variants[i]);
+		}
+
+		ui_bmbf_ex.staticBalance_Ctrl_X.setValue(processor.sysSnapshot.SB_C_X);
+		ui_bmbf_ex.staticBalance_Ctrl_Y.setValue(processor.sysSnapshot.SB_C_Y);
+		ui_bmbf_ex.staticBalance_Div_Roll.setValue(processor.sysSnapshot.SB_Wid_X);
+		ui_bmbf_ex.staticBalance_Div_Roll.setValue(processor.sysSnapshot.SB_Wid_X);
+			
+		processor.dynZoneCenter.isMirrored = processor.sysSnapshot.DB_Mirrored;
+		for (int i = 0; i < processor.dynZoneCenter.numShapes; i++)
+		{
+			if (processor.dynZoneCenter.shapes[i] == processor.sysSnapshot.DB_Shape)
+				ui_bmbf_ex.dynTrajectory_Shape.setSelectedId(i + 1);
+		}
+		ui_bmbf_ex.dynTrajectory_Period.setSelectedId(processor.sysSnapshot.DB_Period);
+		ui_bmbf_ex.dynTrajectory_Radius.setValue(processor.sysSnapshot.DB_Radius);
+			
+		ui_bmbf_ex.sitStand_Thresh_Sit.setValue(processor.sysSnapshot.STS_angle_preSit);
+		ui_bmbf_ex.sitStand_Thresh_Stand.setValue(processor.sysSnapshot.STS_angle_preStand);
+			
+		ui_bmbf_ex.HS_AccThresh.setValue(processor.sysSnapshot.Gait_AccThresh);
+		ui_bmbf_ex.HS_TimingMode.setSelectedId(processor.sysSnapshot.Gait_TimingMode == "Half Time" ? 2 : 1);
+		ui_bmbf_ex.HS_Tolerance.setValue(processor.sysSnapshot.Gait_ErrorTolerance);
+		
+	}
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GaitSonificationAudioProcessorEditor)
 };

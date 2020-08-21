@@ -21,7 +21,8 @@ public:
 		"Cross Shape",
 		""
 	};
-
+	
+	int numShapes = 9;
 	int currentShape = 8;
 	bool isMirrored = false;
 	float radius_Deg = 15;
@@ -117,7 +118,7 @@ public:
 	{
 		float val_X = radius_Deg * cos(phase);
 		float val_Y = radius_Deg * sin(phase);
-		xyArray[0] = val_X;
+		xyArray[0] = isMirrored ? val_X : -1 * val_X;
 		xyArray[1] = val_Y;
 	}
 };

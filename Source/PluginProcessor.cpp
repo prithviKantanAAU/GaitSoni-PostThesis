@@ -48,7 +48,6 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 	{
 		// INCREMENT BASIC PLAYBACK COUNTERS
 		sequencer.timeElapsed_SONG += 0.001;
-		dynamicTarget_phaseTime += 0.001;
 		pulsesElapsed = pulsesElapsed % 100;
 		sequencer.midiTicksElapsed += sequencer.ticksPerMS;
 		sequencer.tapTempoCounter = min(1, sequencer.tapTempoCounter + 0.001);		// Limit to 1
