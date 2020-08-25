@@ -1,5 +1,6 @@
 #pragma once
 #define barsInMelMeasure 4
+#define FLT_MIN_PLUS          1.175494351e-38         /* min positive value */
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "DspFaust.h"
@@ -216,16 +217,13 @@ public:
 	float cookMIDIVel(float midiVel, short trackIndex, String APName)
 	{
 		float output = 0;
-		float humanizeAmount = (-30 + fetchNewRandomIndex(60)) / 30.0;
-		/*if (midiVel < 64)
-			output = fmin(0 + humanizeAmount + 3 * midiVel / 64.0, 2.999);
+		if (midiVel < 64)
+			output = fmin(0 + 3 * midiVel / 64.0, 2.999);
 		else if (midiVel < 96)
-			output = fmin(3 + humanizeAmount + 3 * (midiVel - 64) / 32.0, 5.999);
-		else*/
-			output = fmin(6 + humanizeAmount + 3 * midiVel / 128.0,9);
+			output = fmin(3 + 3 * (midiVel - 64) / 32.0, 5.999);
+		else
+			output = fmin(6 + 3 * (midiVel - 96) / 32.0, 9);
 
-		if (trackIdx_to_midiTrack_map[trackIndex] == 0 && APName == "Mel Degree")
-			output *= sqrt(fmax(0.3,fmin(1, musicPhase.emphFunc_Present)));
 		return output;
 	};
 

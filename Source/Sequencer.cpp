@@ -17,7 +17,6 @@ void Sequencer::resetCounters()
 	beatsElapsed = 0;
 	barsElapsed = 0;
 	beatsElapsed_withinBar = 0;
-	currentMusic.baseBeats[index_baseBeat].Idx_nextEvent = 0;
 }
 
 // INCREMENT SIXTEENTH PULSE COUNTER, CHECK BEAT AND BAR COMPLETION
@@ -213,7 +212,6 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	double timeStamp_IntervalEnd_MOD = midiTicksElapsed
 		- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
 	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - ticksPerMS;
-	
 
 	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
 	ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
@@ -292,19 +290,6 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 							mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex]
 						);
 						copyPitches_ToDependentTracks(trackIndex);
-						/*for (int l = 0; l < numTracks; l++)
-						{
-							if (trackIdx_to_midiTrack_map[l] == targetTrackIdx)
-							{
-								pitches[nextVoiceIndex[l]][l] = midiNoteLimit(
-									currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
-									mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][l],
-									mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][l]
-								);
-								if (currentMusic.numVoices[trackIndex] > 1) arrangePitches_Asc(trackIndex);
-								nextVoiceIndex[l] = (nextVoiceIndex[l] + 1) % currentMusic.numVoices[l];
-							}
-						}*/
 						break;
 					case 2:
 						break;
@@ -370,10 +355,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	if (!isVel_FromSongFile[trackIndex])
 	{
 		nextEventIndex = percObj->eventIdx_ByTrack_NEXT[trackIndex];
-		finalEventIndex = (int)fmax(0,percObj->eventCount_ByTrack[trackIndex] - 1);
+		finalEventIndex = percObj->eventCount_ByTrack[trackIndex] - 1;
 		numEvents_toHandle = 0;
 
-		for (int i = nextEventIndex; i < finalEventIndex; i++)
+		for (int i = nextEventIndex; i <= finalEventIndex; i++)
 		{
 			eventIdx_LOOP_Trackwise = percObj->eventIdx_ByTrack_ALL[i][trackIndex];
 			eventTimeStamp = percObj->infoMatrix[eventIdx_LOOP_Trackwise][3];
@@ -410,8 +395,8 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					{
 						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
-							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[j][2], trackIndex, cue_AP_Name);
-							//vels[i][trackIndex] = 9;
+							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[eventIdx_LOOP_Trackwise][2], trackIndex, cue_AP_Name);
+							
 							percObj->incrementEventsHandled(trackIndex);	 			// INCREMENT EVENT COUNT
 						}
 					}
@@ -453,19 +438,6 @@ void Sequencer::mapNew_MIDIEvents()
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
-
-					// CHECK FOR PITCH DEPENDENT TRACKS (IF APPLICABLE)
-					/*if (trackIdx_to_midiTrack_map[presentTrack - 1] > -1)
-					{
-						for (int i = 1; i <= numTracks; i++)
-						{
-								if (trackIdx_to_midiTrack_map[presentTrack - 1] == trackIdx_to_midiTrack_map[i - 1])
-								{
-									faustAddress = faustStrings.getMusicAddress(i, "P", currentVoice);
-									dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
-								}
-						}
-					}*/
 				}
 
 				// VELOCITY

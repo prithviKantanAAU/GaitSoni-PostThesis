@@ -160,9 +160,6 @@ public:
 				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
 				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
 				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
-
-				// Add 2 ticks for zero time
-				beatContainer->infoMatrix[j][3] += beatContainer->infoMatrix[j][3] == 0 ? 2 : 0;
 			}
 			if (currentMidiMessage.isNoteOff())
 			{
