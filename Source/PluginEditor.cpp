@@ -466,6 +466,14 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		}
 	};
 
+	// SONI VOLUME
+	ui_bmbf_gen.soni_Vol.onValueChange = [this]
+	{
+		float soniVol = ui_bmbf_gen.soni_Vol.getValue();
+		std::string faustAddress = processor.sequencer.faustStrings.SoniVol;
+		processor.sequencer.dspFaust.setParamValue(faustAddress.c_str(), soniVol);
+	};
+
 	//Calibrate Target
 	ui_mpCal.calibrateTarget.onClick = [this]
 	{

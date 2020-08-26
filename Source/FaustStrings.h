@@ -20,6 +20,7 @@ public:
 
 	// Master Volume and Track Mute
 	std::string MasterVol = "Mapping_Tabs/Mixer_And_Master/Master_Gain/Master_Gain";
+	std::string SoniVol = baseName + "Mapping_Tabs/Mixer_And_Master/Master_Gain/Soni_Buss_Gain";
 	std::string trackVariant_Base = "Mapping_Tabs/Mixer_And_Master/Track_Variant/Variant_";
 
 	std::string trackGain_Base = "Mapping_Tabs/Mixer_And_Master/Track_Gain/";

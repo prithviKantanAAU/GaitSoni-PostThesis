@@ -38,6 +38,8 @@ public:
 	TextButton invertPolarity;
 	TextButton saveSnapshot;
 	TextButton loadSnapshot;
+	Slider soni_Vol;
+	Label soni_Vol_Label;
 
 	void configure()
 	{
@@ -116,6 +118,15 @@ public:
 		// LOAD SNAPSHOT
 		loadSnapshot.setButtonText("Load Settings");
 		loadSnapshot.setColour(loadSnapshot.buttonColourId, Colours::darkgoldenrod);
+
+		// SONI VOLUME
+		soni_Vol.setRange(-10, 20);
+		soni_Vol.setValue(-8);
+		soni_Vol.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
+		soni_Vol.setColour(soni_Order.trackColourId, Colours::blue);
+		soni_Vol.setColour(soni_Order.backgroundColourId, Colours::yellow);
+		soni_Vol_Label.setText("Soni Vol", dontSendNotification);
+		soni_Vol_Label.attachToComponent(&soni_Vol, false);
 	}
 
 	void toggleVisible(bool on)
@@ -143,6 +154,7 @@ public:
 		invertPolarity.setVisible(on);
 		saveSnapshot.setVisible(on);
 		loadSnapshot.setVisible(on);
+		soni_Vol.setVisible(on);
 	}
 
 	void setLayout()
@@ -168,6 +180,7 @@ public:
 		// COLUMN 4
 		saveSnapshot.setBounds(710, 40, 200, 40);
 		loadSnapshot.setBounds(710, 110, 200, 40);
+		soni_Vol.setBounds(710, 190, 200, 40);
 
 		// TOP RIGHT
 		isStandbyToggle.setBounds(1090, 40, 150, 40);

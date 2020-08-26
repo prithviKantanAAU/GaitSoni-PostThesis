@@ -167,6 +167,8 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.invertPolarity);
 		addAndMakeVisible(ui_bmbf_gen.saveSnapshot);
 		addAndMakeVisible(ui_bmbf_gen.loadSnapshot);
+		addAndMakeVisible(ui_bmbf_gen.soni_Vol);
+		addAndMakeVisible(ui_bmbf_gen.soni_Vol_Label);
 	}
 	
 	void addControls_MPCalibrate()

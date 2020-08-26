@@ -47,7 +47,7 @@ public:
 		audioParam_ObjectArray[4].initializeSoniParams(0.4, 0, 1, 0, 0, 100);
 
 		// 6					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray7[10] = { true, false, false, true, false, true, true };
+		bool useCaseArray7[10] = { true, false, true, true, false, true, true };
 		audioParam_ObjectArray[5].set_nameTypeAddress("Filtered Noise", 11, 1);
 		audioParam_ObjectArray[5].set_isIncluded_UseScenarios(useCaseArray7, num_UseScenarios);
 		audioParam_ObjectArray[5].initializeSoniParams(0.7, 0, 1, 0, 0, 100);
@@ -71,7 +71,7 @@ public:
 		audioParam_ObjectArray[8].initializeSoniParams(1, 0, 1, 0, 0, 100);
 
 		// 10					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray12[10] = { true, true, false, false, true, false, false };
+		bool useCaseArray12[10] = { true, true, true, false, true, false, false };
 		audioParam_ObjectArray[9].set_nameTypeAddress("Music Stop", 4, 1);
 		audioParam_ObjectArray[9].set_isIncluded_UseScenarios(useCaseArray12, num_UseScenarios);
 		audioParam_ObjectArray[9].initializeSoniParams(1, 0, 1, 0, 0, 100);
