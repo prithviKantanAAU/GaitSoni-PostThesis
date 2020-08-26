@@ -55,10 +55,17 @@ private:
 	void sensorConfig_updateLabels()				
 	{
 		String text = "";
+		int batteryLevel = 0;
+		bool isSensorOnline = false;
+		String batteryText = "";
 		for (int i = 0; i < 3; i++)
 		{
 			text = processor.gaitAnalysis.sensorInfo.isOnline[i] ? "ON" : "OFF";
 			ui_sensorCon.Status[i].setText(text,dontSendNotification);
+			isSensorOnline = processor.gaitAnalysis.sensorInfo.isOnline[i];
+			batteryLevel = processor.gaitAnalysis.sensorInfo.batteryPercent[i];
+			batteryText = isSensorOnline ? String(batteryLevel) : "N/A";
+			ui_sensorCon.BatteryLevel[i].setText(batteryText, dontSendNotification);
 			if (processor.gaitAnalysis.sensorInfo.isOnline[i])
 				ui_sensorCon.BiasComp[i].setVisible(true);
 			else
@@ -254,6 +261,7 @@ private:
 		addAndMakeVisible(ui_sensorCon.Port_Header);
 		addAndMakeVisible(ui_sensorCon.Location_Header);
 		addAndMakeVisible(ui_sensorCon.BiasComp_Header);
+		addAndMakeVisible(ui_sensorCon.BatteryLevel_Header);
 		for (int i = 0; i < 3; i++)
 		{
 			addAndMakeVisible(ui_sensorCon.SrNo[i]);
@@ -261,6 +269,7 @@ private:
 			addAndMakeVisible(ui_sensorCon.Port[i]);
 			addAndMakeVisible(ui_sensorCon.Location[i]);
 			addAndMakeVisible(ui_sensorCon.BiasComp[i]);
+			addAndMakeVisible(ui_sensorCon.BatteryLevel[i]);
 		}
 	}
 	void addControls_TabSpecific()

@@ -46,7 +46,11 @@ public:
 	void updateSensorStatus()
 	{
 		for (int i = 0; i < sensorInfo.numSensorsMax; i++)
+		{
 			sensorInfo.isOnline[i] = sensors_OSCReceivers[i].isSensorActive();
+			if (sensorInfo.isOnline[i])
+				sensorInfo.batteryPercent[i] = sensors_OSCReceivers[i].level_Battery;
+		}
 		sensorInfo.check_isAssignedAndOnline_FootSensors();
 		sensorInfo.check_isAssignedAndOnline_TrunkSensor();
 	};

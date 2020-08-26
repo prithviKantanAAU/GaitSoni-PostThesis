@@ -11,6 +11,7 @@ public:
 	std::string sensors_OSCAddress[3] = { "/S1","/S2","/S3" };
 	short bodyLocation[5] = { 1, 2, 3 };
 	bool isOnline[5] = { false, false, false };
+	int batteryPercent[5] = { 0 };
 
 	void updateStatus(int port, bool status)
 	{

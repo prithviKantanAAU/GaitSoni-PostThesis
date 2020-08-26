@@ -1,81 +1,36 @@
-/*
-  ==============================================================================
-
-   This file is part of the JUCE examples.
-   Copyright (c) 2017 - ROLI Ltd.
-
-   The code included in this file is provided under the terms of the ISC license
-   http://www.isc.org/downloads/software-support-policy/isc-license. Permission
-   To use, copy, modify, and/or distribute this software for any purpose with or
-   without fee is hereby granted provided that the above copyright notice and
-   this permission notice appear in all copies.
-
-   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES,
-   WHETHER EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR
-   PURPOSE, ARE DISCLAIMED.
-
-  ==============================================================================
-*/
-
-/*******************************************************************************
- The block below describes the properties of this PIP. A PIP is a short snippet
- of code that can be read by the Projucer and used to generate a JUCE project.
-
- BEGIN_JUCE_PIP_METADATA
-
- name:             OSCDemo
- version:          1.0.0
- vendor:           JUCE
- website:          http://juce.com
- description:      Application using the OSC protocol.
-
- dependencies:     juce_core, juce_data_structures, juce_events, juce_graphics,
-				   juce_gui_basics, juce_osc
- exporters:        xcode_mac, vs2017, linux_make
-
- type:             Component
- mainClass:        OSCDemo
-
- useLocalCopy:     1
-
- END_JUCE_PIP_METADATA
-
-*******************************************************************************/
-
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "BiQuad.h"
 
-
-//==============================================================================
-
-//==============================================================================
 class OSCReceiverUDP_Sensor : public Component,
 	private OSCReceiver,
 	private OSCReceiver::ListenerWithOSCAddress<OSCReceiver::MessageLoopCallback>
 {
 public:
-	//==============================================================================
 	bool connectionStatus = false;
 	int portNumber = 0;
-	std::string oscAddress = "";
+	
+	// DATA BUFFERS
 	float oscDataArray[10] = { 0.0 };
-	bool messageReady = false;
-	short messageSize = 6;
+	short messageSize = 7;
 	float acc[3] = { 0.0 }; float acc_Buf[3] = { 0.0 };
 	float gyr[3] = { 0.0 }; float gyr_Buf[3] = { 0.0 };
+	
+	// BATTERY LEVEL
+	float level_Battery = 0.0;
+	
+	// MESSAGE COUNT FOR ONLINE STATUS
 	int messageCount_Recvd = 0;
 	int messageCount_Recvd_z1 = 0;
 	short messageCount_Recvd_smpl_z0 = 0;
 	short messageCount_Recvd_smpl_z1 = 0;
 	float isMessageRecvd_smpl_z0 = 0;
 
+	// FILTERING
 	float fs = 100;
 	BiQuad LPF_Acc[3];
 	BiQuad LPF_Gyr[3];
 	float filterFc = 20;
-	//Modes: 0 - trunk inclination
-	short sensorMode = 0;
 
 	OSCReceiverUDP_Sensor()
 	{
@@ -85,11 +40,6 @@ public:
 	~OSCReceiverUDP_Sensor()
 	{
 		disconnect();
-	}
-
-	void setSensorMode(short newMode)
-	{
-		sensorMode = newMode;
 	}
 
 	void setSampleRate(float value)
@@ -162,27 +112,43 @@ public:
 	//==============================================================================
 	void oscMessageReceived(const OSCMessage& message) override
 	{
-		messageReady = false;
 		messageCount_Recvd++;
-		auto it = message.begin();
-
-		for (int i = 0; i < message.size(); i++)
+		if (message.size() == messageSize)
 		{
-			if (message.size() == 6 && message[i].isFloat32())
-				if (message.size() == messageSize && message[i].isFloat32())
+			for (int i = 0; i < message.size(); i++)
+			{
+				if (message[i].isFloat32())
 				{
 					oscDataArray[i] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
-					if (i < 3)
+					switch (i)
 					{
-						acc[i % 3] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
-					}
-					else
-					{
-						gyr[i % 3] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+					case 0:
+						acc[0] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 1:
+						acc[1] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 2:
+						acc[2] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 3:
+						gyr[0] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 4:
+						gyr[1] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 5:
+						gyr[2] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 6:
+						level_Battery = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					default:
+						break;
 					}
 				}
+			}
 		}
-		messageReady = true;
 	}
 
 	bool isSensorActive()

@@ -19,7 +19,9 @@ public:
 	Label Location_Header;				// Column Header - Sensor Bodily Location
 	Label BiasComp_Header;				// Column Header - IMU Bias Compensation
 	TextButton BiasComp[3];				// Column Button - IMU Bias Compensation
-	ComboBox Location[3];				// Column Values - Sensor Bodily Location	
+	ComboBox Location[3];				// Column Values - Sensor Bodily Location
+	Label BatteryLevel_Header;			// Column Header - Battery Level
+	Label BatteryLevel[3];				// Column Values - Battery Level
 
 	void addElements()
 	{
@@ -33,6 +35,7 @@ public:
 		Port_Header.setText("UDP Port", dontSendNotification);
 		Location_Header.setText("Body Location", dontSendNotification);
 		BiasComp_Header.setText("Bias Compensation", dontSendNotification);
+		BatteryLevel_Header.setText("Battery Level", dontSendNotification);
 		for (int i = 0; i < 3; i++)
 		{
 			SrNo[i].setText(String(i + 1), dontSendNotification);
@@ -55,6 +58,7 @@ public:
 		Location_Header.setVisible(on);
 		Port_Header.setVisible(on);
 		BiasComp_Header.setVisible(on);
+		BatteryLevel_Header.setVisible(on);
 		for (int i = 0; i < 3; i++)
 		{
 			Location[i].setVisible(on);
@@ -62,6 +66,7 @@ public:
 			SrNo[i].setVisible(on);
 			Status[i].setVisible(on);
 			BiasComp[i].setVisible(on);
+			BatteryLevel[i].setVisible(on);
 		}
 	}
 
@@ -72,6 +77,7 @@ public:
 		Port_Header.setBounds(300, 400, 100, 40);
 		Location_Header.setBounds(400, 400, 100, 40);
 		BiasComp_Header.setBounds(550, 400, 200, 40);
+		BatteryLevel_Header.setBounds(760, 400, 200, 40);
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -80,6 +86,7 @@ public:
 			Port[i].setBounds(300, 400 + 50 * (i + 1), 100, 40);
 			Location[i].setBounds(400, 400 + 50 * (i + 1), 100, 40);
 			BiasComp[i].setBounds(550, 400 + 50 * (i + 1), 200, 40);
+			BatteryLevel[i].setBounds(760, 400 + 50 * (i + 1), 200, 40);
 		}
 	}
 };
