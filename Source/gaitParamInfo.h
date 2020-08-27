@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "GaitParam_Single.h"
+#include "BiQuad.h"
 
 class gaitParamInfo
 {
@@ -20,6 +21,8 @@ public:
 	bool isSliderMode = true;
 	bool isPolarityNormal = true;
 	float sliderVal = 0;
+	BiQuad apSmooth;
+	float apSmooth_Fc = 0;
 
 	gaitParamInfo() 
 	{
@@ -168,6 +171,9 @@ public:
 		numMovementParams++;
 		
 		populate_MP_Matrix();
+
+		apSmooth.flushDelays();
+		apSmooth.calculateLPFCoeffs(50, 0.7, 100);
 	};
 
 	void populate_MP_Matrix()
@@ -234,8 +240,17 @@ public:
 
 			error = isPolarityNormal ? error : (1 - error);
 			AP_Val = pow(error, order_MapFunc);
+			if (apSmooth_Fc > 0.01)
+			AP_Val = apSmooth.doBiQuad(AP_Val, 0);
 			return quantizeParam(AP_Val, numQuant);
 		}
+	};
+
+	void set_APSmooth_fc(float freq)
+	{
+		apSmooth_Fc = freq;
+		if (freq > 0.01)
+		apSmooth.calculateLPFCoeffs(freq, 0.7, 100);
 	};
 
 	double quantizeParam(float currentParamValue, int numQuantizationSteps)

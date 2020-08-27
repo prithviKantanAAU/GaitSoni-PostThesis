@@ -40,6 +40,10 @@ public:
 	TextButton loadSnapshot;
 	Slider soni_Vol;
 	Label soni_Vol_Label;
+	Slider apSmooth_Fc;
+	Label apSmooth_Fc_Label;
+	Slider imuSmooth_Fc;
+	Label imuSmooth_Fc_Label;
 
 	void configure()
 	{
@@ -127,6 +131,24 @@ public:
 		soni_Vol.setColour(soni_Order.backgroundColourId, Colours::yellow);
 		soni_Vol_Label.setText("Soni Vol", dontSendNotification);
 		soni_Vol_Label.attachToComponent(&soni_Vol, false);
+
+		// AP Smoothing
+		apSmooth_Fc.setRange(0, 10);
+		apSmooth_Fc.setValue(0);
+		apSmooth_Fc.setNumDecimalPlacesToDisplay(2);
+		apSmooth_Fc.setColour(soni_Order.trackColourId, Colours::blue);
+		apSmooth_Fc.setColour(soni_Order.backgroundColourId, Colours::yellow);
+		apSmooth_Fc_Label.setText("AP Smoothing Fc", dontSendNotification);
+		apSmooth_Fc_Label.attachToComponent(&apSmooth_Fc, false);
+
+		// IMU Smoothing
+		imuSmooth_Fc.setRange(0.5, 50);
+		imuSmooth_Fc.setValue(20);
+		imuSmooth_Fc.setNumDecimalPlacesToDisplay(2);
+		imuSmooth_Fc.setColour(soni_Order.trackColourId, Colours::blue);
+		imuSmooth_Fc.setColour(soni_Order.backgroundColourId, Colours::yellow);
+		imuSmooth_Fc_Label.setText("IMU Smoothing Fc", dontSendNotification);
+		imuSmooth_Fc_Label.attachToComponent(&imuSmooth_Fc, false);
 	}
 
 	void toggleVisible(bool on)
@@ -155,11 +177,12 @@ public:
 		saveSnapshot.setVisible(on);
 		loadSnapshot.setVisible(on);
 		soni_Vol.setVisible(on);
+		apSmooth_Fc.setVisible(on);
+		imuSmooth_Fc.setVisible(on);
 	}
 
 	void setLayout()
 	{
-		
 		// COLUMN 1
 		exerciseMode.setBounds(50, 40, 200, 40);
 
@@ -174,13 +197,15 @@ public:
 		audioParam_Current.setBounds(490, 40, 200, 40);
 		soni_isSliderSource.setBounds(620, 110, 200, 40);
 		soni_sliderSource.setBounds(490, 190, 200, 40);
-		invertPolarity.setBounds(490, 270, 200, 40);
-		recordGaitParam.setBounds(490, 350, 200, 40);
+		imuSmooth_Fc.setBounds(490, 270, 200, 40);
+		apSmooth_Fc.setBounds(490, 350, 200, 40);
 
 		// COLUMN 4
 		saveSnapshot.setBounds(710, 40, 200, 40);
 		loadSnapshot.setBounds(710, 110, 200, 40);
 		soni_Vol.setBounds(710, 190, 200, 40);
+		recordGaitParam.setBounds(710, 270, 200, 40);
+		invertPolarity.setBounds(710, 350, 200, 40);
 
 		// TOP RIGHT
 		isStandbyToggle.setBounds(1090, 40, 150, 40);

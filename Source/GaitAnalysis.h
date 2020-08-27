@@ -25,6 +25,15 @@ public:
 	HFEN_HPF hfen_foot_L;
 	HFEN_HPF hfen_foot_R;
 
+	void setFc_imuSmooth(float freq)
+	{
+		for (int i = 0; i < sensorInfo.numSensorsMax; i++)
+		{
+			sensors_OSCReceivers[i].filterFc = freq;
+			sensors_OSCReceivers[i].initializeFilters();
+		}
+	}
+
 	// CHECK WHETHER ONLY REQUIRED SENSORS ARE ONLINE
 	bool areRequiredSensorsOnline()
 	{

@@ -474,6 +474,18 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		processor.sequencer.dspFaust.setParamValue(faustAddress.c_str(), soniVol);
 	};
 
+	// AP SMOOTHING FC
+	ui_bmbf_gen.apSmooth_Fc.onValueChange = [this]
+	{
+		processor.gaitAnalysis.gaitParams.set_APSmooth_fc(ui_bmbf_gen.apSmooth_Fc.getValue());
+	};
+
+	// AP SMOOTHING FC
+	ui_bmbf_gen.imuSmooth_Fc.onValueChange = [this]
+	{
+		processor.gaitAnalysis.setFc_imuSmooth(ui_bmbf_gen.imuSmooth_Fc.getValue());
+	};
+
 	//Calibrate Target
 	ui_mpCal.calibrateTarget.onClick = [this]
 	{
