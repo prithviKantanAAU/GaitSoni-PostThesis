@@ -30,6 +30,10 @@ public:
 	float fs = 100;
 	BiQuad LPF_Acc[3];
 	BiQuad LPF_Gyr[3];
+
+	BiQuad LPF_Acc_2[3];
+	BiQuad LPF_Gyr_2[3];
+
 	float filterFc = 20;
 
 	OSCReceiverUDP_Sensor()
@@ -56,6 +60,11 @@ public:
 			LPF_Acc[i].calculateLPFCoeffs(filterFc, 0.7,fs);
 			LPF_Gyr[i].flushDelays();
 			LPF_Gyr[i].calculateLPFCoeffs(filterFc, 0.7,fs);
+
+			LPF_Acc_2[i].flushDelays();
+			LPF_Acc_2[i].calculateLPFCoeffs(filterFc, 0.7, fs);
+			LPF_Gyr_2[i].flushDelays();
+			LPF_Gyr_2[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 		}
 	}
 
@@ -100,6 +109,9 @@ public:
 		{
 			acc_Buf[i] = LPF_Acc[i].doBiQuad(acc[i], 0);
 			gyr_Buf[i] = LPF_Gyr[i].doBiQuad(gyr[i], 0);
+
+			acc_Buf[i] = LPF_Acc_2[i].doBiQuad(acc_Buf[i], 0);
+			gyr_Buf[i] = LPF_Gyr_2[i].doBiQuad(gyr_Buf[i], 0);
 		}
 		updateBias(acc_Buf, gyr_Buf);
 		compensateBias(acc_Buf, gyr_Buf);

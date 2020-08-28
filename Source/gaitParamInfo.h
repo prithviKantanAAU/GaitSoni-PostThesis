@@ -84,7 +84,7 @@ public:
 		gaitParam_ObjectArray[5].setName_SensorReq("Scalar Jerk",
 			sensorReqArray5, numSensorLocations);
 		gaitParam_ObjectArray[5].set_isIncluded_UseScenarios(useCaseArray5, num_UseScenarios);
-		gaitParam_ObjectArray[5].initialize(0, 25, 0, 5);
+		gaitParam_ObjectArray[5].initialize(0, 100, 0, 15);
 		numMovementParams++;
 
 		// 6					   TEST   SB     DB    JERK  ANGLE  GAIT   PHASE

@@ -135,6 +135,7 @@ public:
 		// AP Smoothing
 		apSmooth_Fc.setRange(0, 10);
 		apSmooth_Fc.setValue(0);
+		apSmooth_Fc.setSkewFactor(0.4);
 		apSmooth_Fc.setNumDecimalPlacesToDisplay(2);
 		apSmooth_Fc.setColour(soni_Order.trackColourId, Colours::blue);
 		apSmooth_Fc.setColour(soni_Order.backgroundColourId, Colours::yellow);
@@ -144,6 +145,7 @@ public:
 		// IMU Smoothing
 		imuSmooth_Fc.setRange(0.5, 50);
 		imuSmooth_Fc.setValue(20);
+		imuSmooth_Fc.setSkewFactor(0.4);
 		imuSmooth_Fc.setNumDecimalPlacesToDisplay(2);
 		imuSmooth_Fc.setColour(soni_Order.trackColourId, Colours::blue);
 		imuSmooth_Fc.setColour(soni_Order.backgroundColourId, Colours::yellow);
