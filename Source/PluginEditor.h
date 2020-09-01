@@ -176,8 +176,8 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.loadSnapshot);
 		addAndMakeVisible(ui_bmbf_gen.soni_Vol);
 		addAndMakeVisible(ui_bmbf_gen.soni_Vol_Label);
-		addAndMakeVisible(ui_bmbf_gen.apSmooth_Fc);
-		addAndMakeVisible(ui_bmbf_gen.apSmooth_Fc_Label);
+		addAndMakeVisible(ui_bmbf_gen.medianFilter_Length);
+		addAndMakeVisible(ui_bmbf_gen.medianFilter_Length_Label);
 		addAndMakeVisible(ui_bmbf_gen.imuSmooth_Fc);
 		addAndMakeVisible(ui_bmbf_gen.imuSmooth_Fc_Label);
 	}

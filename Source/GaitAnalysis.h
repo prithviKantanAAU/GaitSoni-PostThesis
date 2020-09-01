@@ -34,6 +34,14 @@ public:
 		}
 	}
 
+	void set_medianFilter_N(int n)
+	{
+		for (int i = 0; i < sensorInfo.numSensorsMax; i++)
+		{
+			sensors_OSCReceivers[i].set_medianFilter_N(n);
+		}
+	}
+
 	// CHECK WHETHER ONLY REQUIRED SENSORS ARE ONLINE
 	bool areRequiredSensorsOnline()
 	{
@@ -90,9 +98,9 @@ public:
 		gaitParams.gaitParam_ObjectArray[gaitParamIndex].currentValue = jlimit(minVal, maxVal, value);
 	};
 
-	int rms_Length = 5;														// RMS LENGTH IN SENSOR SAMPLES
-	float rmsWindow_ML[10] = { 0.0 };										// RMS WINDOW - ML
-	float rmsWindow_AP[10] = { 0.0 };										// RMS WINDOW - AP
+	int rms_Length = 10;													// RMS LENGTH IN SENSOR SAMPLES
+	float rmsWindow_ML[100] = { 0.0 };										// RMS WINDOW - ML
+	float rmsWindow_AP[100] = { 0.0 };										// RMS WINDOW - AP
 	
 	float accX_z1 = 0.0;	float accY_z1 = 0.0;	float accZ_z1 = 0.0;	// DELAYED ACC SAMPLES - XYZ
 	float R_acc_est_z1[3] = { 0.0 };										// DELAYED ACC ESTIMATE - XYZ

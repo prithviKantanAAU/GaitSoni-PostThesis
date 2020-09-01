@@ -58,7 +58,7 @@ public:
 		numMovementParams++;
 
 		// 3					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray3[10] = { true, true, false, false, false, false, false };
+		bool useCaseArray3[10] = { false, false, false, false, false, false, false };
 		//							TRUNK FEET
 		bool sensorReqArray3[5] = { true, false };
 		gaitParam_ObjectArray[3].setName_SensorReq("RMS Acc ML",
@@ -68,7 +68,7 @@ public:
 		numMovementParams++;
 
 		// 4					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray4[10] = { true, true, false, false, false, false, false };
+		bool useCaseArray4[10] = { false, false, false, false, false, false, false };
 		//							TRUNK FEET
 		bool sensorReqArray4[5] = { true, false };
 		gaitParam_ObjectArray[4].setName_SensorReq("RMS Acc AP",

@@ -1,6 +1,7 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "BiQuad.h"
+#include "medianFilter.h"
 
 class OSCReceiverUDP_Sensor : public Component,
 	private OSCReceiver,
@@ -9,6 +10,8 @@ class OSCReceiverUDP_Sensor : public Component,
 public:
 	bool connectionStatus = false;
 	int portNumber = 0;
+	MedianFilter medFilter_ACC[3];
+	MedianFilter medFilter_GYR[3];
 	
 	// DATA BUFFERS
 	float oscDataArray[10] = { 0.0 };
@@ -85,6 +88,15 @@ public:
 		messageSize = size;
 	}
 
+	void set_medianFilter_N(int n)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			medFilter_ACC[i].filterLength = n;
+			medFilter_GYR[i].filterLength = n;
+		}
+	}
+
 	void refreshConnection()
 	{
 		disconnect();
@@ -107,6 +119,9 @@ public:
 	{
 		for (int i = 0; i < 3; i++)
 		{
+			acc[i] = medFilter_ACC[i].doFiltering(acc[i]);
+			gyr[i] = medFilter_GYR[i].doFiltering(gyr[i]);
+
 			acc_Buf[i] = LPF_Acc[i].doBiQuad(acc[i], 0);
 			gyr_Buf[i] = LPF_Gyr[i].doBiQuad(gyr[i], 0);
 
