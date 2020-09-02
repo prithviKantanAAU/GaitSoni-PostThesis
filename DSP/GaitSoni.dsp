@@ -38,7 +38,6 @@ FB_DEL_CS = 0.8;						WET_DEL_CS = 0.4;
 DMP_KS_CS = 0.99;						FREQ_OFFSET_LR = 0.7;
 
 //Sonifications
-SONI_GAIN_DB = -8;
 LIST_FREQ_DISTFACTORS = 0.05,-0.03,0.31,-0.27;																// CHORD FREQ DIST FACTORS
 SONI_SB_Z2_ONOFF = waveform {1, 1, 1, 1, 0, 0,		1, 1, 1, 0, 0, 1,		1, 1, 1, 0, 1, 0,		1, 1, 0, 0, 0, 0,			
 				   			 1, 1, 0, 0, 0, 0,		1, 0, 0, 0, 0, 0,		1, 1, 0, 0, 0, 0,		1, 1, 1, 0, 0, 1};
@@ -150,6 +149,7 @@ Soni_X_J1_MelBaseFreq = 				soniSlider(9);									// Melody Tonic Frequency
 Soni_X_J2_Pitched = 					soniSlider(10);									// Pitched Disturbance
 Soni_X_J3_Whoosh = 						soniSlider(11);									// Noise Disturbance
 
+SONI_GAIN_DB = masterGainGroup(vslider("Soni Buss Gain",-8,-10,2,0.01));
 masterGain = masterGainGroup(vslider("Master Gain",-6,-96,12,0.01) : ba.db2linear);
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // F U N C T I O N S // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -299,20 +299,21 @@ CR_SMPL_V1(i) = 0,i : CR_FILES;			CR_SMPL_V2(i) = 1,i : CR_FILES;			CR_SMPL_V3(i
 HH_SMPL_V1_1(i) = 0,i : HH_V1_FILES;	HH_SMPL_V1_2(i) = 1,i : HH_V1_FILES;	HH_SMPL_V1_3(i) = 2,i : HH_V1_FILES;
 HH_SMPL_V2_1(i) = 0,i : HH_V2_FILES;	HH_SMPL_V2_2(i) = 1,i : HH_V2_FILES;	HH_SMPL_V2_3(i) = 2,i : HH_V2_FILES;
 
-fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger) = output
+fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger,vel) = output
   with
 {
   fc_cooked = fc : si.smooth(ba.tau2pole(0.005));
   output = os.osc(fc_cooked + dev) * ampEnv;
   dev = I * ampEnv * modFreq * os.triangle(modFreq);
-  I = I_fixed + (I_ampDependent + I_freq) * (ampEnv);
+  I = I_fixed + (I_ampDependent * (0.5 + velFactor) + I_freq) * (ampEnv);
   I_freq = 4 * (fc - 300)/300;
   modFreq = (modRatio + Soni_X_P3_ChordFreqDist) * fc_cooked;
-  release_basic = ba.tempo(ba.tempo(tempo))/ma.SR;
+  release_basic = ba.tempo(ba.tempo(tempo))/ma.SR * (1 + velFactor * 2);
   env_basic = en.ar(a,release_basic,trigger);
   triggerCooked = (env_basic > 0.5) + (env_basic > env_basic');
   chosenEnv = en.adsr(a,d,s,r,triggerCooked),	en.adsre(a,d,s,r,triggerCooked), en.ar(a,r,trigger), en.are(a,r,trigger), en.arfe(a,r,0.3,trigger) : ba.selectn(5,envType); 
   ampEnv = chosenEnv : si.smooth(ba.tau2pole(a));
+  velFactor = 1 : applyVelocity(vel,trigger,9);
 };
 
 leadSynth(fundamental,synthFunc,velocity,trigger,synthRelease,synthCutoff) = output
@@ -320,8 +321,9 @@ with
 {																			
   output = melSynth,melSynth;																					// OUTPUT SUMMING
   melSynth = synthFunc(fundamentalCooked) * env : applyVelocity(velocity,trigger,9);							// MEL COMPONENT
-  fundamentalCooked = 2 * fundamental * soniVibratoLFO : limit(20,5000);
+  fundamentalCooked = 2 * fundamental * soniVibratoLFO * velVibrato : limit(20,5000);
   env = en.ar(0.001,synthRelease,trigger);																		// MEL ENVELOPE
+  velVibrato = 1 + (0.02 * ((200 - tempo)/140) : applyVelocity(velocity,trigger,9)) * os.osc(tempo/15) : si.smooth(ba.tau2pole(0.001));
   soniVibratoLFO = 1 + Soni_X_P3_ChordFreqDist * os.osc(tempo/15) * 0.5 : si.smoo;								// CF DIST SONI - VIBRATO LFO
 };
 
@@ -456,7 +458,7 @@ Soni_J3_Whoosh = no.noise : filter(frequency) : _*(gain) <: _,_ with												
 };
 
 // BELL TRIGGER
-Soni_STS1_Bell = pm.churchBell(1,10000,0.8,1,Soni_X_STS1_Bell) * en.ar(0.001,2,Soni_X_STS1_Bell) <: stereodBGain(12);
+Soni_STS1_Bell = pm.churchBell(1,10000,0.8,1,Soni_X_STS1_Bell) * en.ar(0.001,2,Soni_X_STS1_Bell) <: stereodBGain(15);
 
 // WAH WAH
 Soni_STS3_LFO = os.osc(tempo/60);
@@ -520,7 +522,7 @@ chordVel(noteIdx) =  V_LIST_C 	  : ba.selectn(4,noteIdx);																	// VEL
 chordTrg(noteIdx) =  TRG_LIST_C	  : ba.selectn(4,noteIdx);																	// TRG SELECTOR
 chord_SF_V1(trigger,freq) = pianoSim_singleNote(freq,trigger);																// CHORD - SF VARIANT 1
 chord_SF_V2(trigger,freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
-											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger);					// CHORD - SF VARIANT 2
+											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger,7);				// CHORD - SF VARIANT 2
 chord_SF_V3(trigger,freq) = os.CZresTrap(0.5*(1+os.osc(freq)),4.54) * en.are(0.001,2,trigger);
 chord_notePanFunc(idx) = ba.take(idx+1,PANPOS_NOTES);
 chordSynthFunc(trigger,freq) = chord_SF_V1(trigger,freq), chord_SF_V2(trigger,freq), chord_SF_V3(trigger,freq) : ba.selectn(3,VAR_4 - 1);
@@ -532,9 +534,9 @@ chordTrack = chordSum : stereoChannel(4);
 F0_R = KEYNUM_R : Soni_J1_FreqWarpFactor;																					// CALCULATE F0 HZ
 riff_V1 = fmSynth(F0_R,MOD_NUM_R,FREQ_FACTOR_R,RL_R,MOD_DEPTH_R,TRG_R);														// RIFF VARIANT 1
 riff_V2 = fmSynth_Versatile(F0_R,BASSLINE_MRATIO,BASSLINE_I_FIXED,BASSLINE_I_ENV,
-											  BASSLINE_A,BASSLINE_D,BASSLINE_S,BASSLINE_R,BASSLINE_ENVTYPE,TRG_R);			// RIFF VARIANT 2
+											  BASSLINE_A,BASSLINE_D,BASSLINE_S,BASSLINE_R,BASSLINE_ENVTYPE,TRG_R,V_R);		// RIFF VARIANT 2
 riff_V3 = fmSynth_Versatile(F0_R,AGGRO_MRATIO,AGGRO_I_FIXED,AGGRO_I_ENV,
-											  AGGRO_A,AGGRO_D,AGGRO_S,AGGRO_R,AGGRO_ENVTYPE,TRG_R);							// RIFF VARIANT 2
+											  AGGRO_A,AGGRO_D,AGGRO_S,AGGRO_R,AGGRO_ENVTYPE,TRG_R,V_R);						// RIFF VARIANT 2
 riffSynth = riff_V1,riff_V2,riff_V3 : ba.selectn(3,VAR_5 - 1);
 riffTrack = riffSynth : applyVelocity(V_R,TRG_R,9) : monoChannel(5) : getPanFunction(0);
 
@@ -544,9 +546,9 @@ F0_M = KEYNUM_M : Soni_J1_FreqWarpFactor;
 M_FreqFactor = (F0_M - 300)/700 : si.smooth(ba.tau2pole(0.001));
 M_V1(freq) = os.CZresTrap(0.5*(1+os.osc(freq)),(25 * en.are(0.001,2,TRG_M) + M_FreqFactor)) * en.are(0.001,2,TRG_M);		// MELODY SF - VARIANT 1
 M_V2(freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
-											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,TRG_M);					// MELODY SF - VARIANT 2
+											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,TRG_M,V_M);				// MELODY SF - VARIANT 2
 M_V3(freq) = fmSynth_Versatile(freq,TRUMPET_MRATIO,TRUMPET_I_FIXED,TRUMPET_I_ENV,
-											  TRUMPET_A,TRUMPET_D,TRUMPET_S,TRUMPET_R,TRUMPET_ENVTYPE,TRG_M);				// MELODY SF - VARIANT 3
+											  TRUMPET_A,TRUMPET_D,TRUMPET_S,TRUMPET_R,TRUMPET_ENVTYPE,TRG_M,V_M);			// MELODY SF - VARIANT 3
 M_SynthFunc(freq) = M_V1(freq),M_V2(freq),M_V3(freq) : ba.selectn(3,VAR_6 - 1);
 M_FX1 = dotted_delay(FB_DEL_M,BT_SMPL,WET_DEL_M),dotted_delay(FB_DEL_M,2*BT_SMPL,WET_DEL_M);								// DEFINE STEREO DOTTED DELAY
 melodySynth = leadSynth(F0_M,M_SynthFunc,V_M,TRG_M,RL_M,FC_LP_M);														// SYNTHESIZE MELODY
