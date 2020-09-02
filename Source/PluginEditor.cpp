@@ -427,7 +427,10 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	};
 
 	// SST - Is Standing Label
-	String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing" : "Sitting";
+	String sts_angle = String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[1].currentValue,2);
+	String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing - " + sts_angle
+																	   : "Sitting - " + sts_angle;
 	ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
 
 	// Timing Mode
@@ -770,7 +773,10 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 
 		if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
 		{
-			String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing" : "Sitting";
+			String sts_angle = String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[1].currentValue, 2);
+			String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing - " + sts_angle + " deg"
+				: "Sitting - " + sts_angle + " deg";
 			ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
 		}
 
