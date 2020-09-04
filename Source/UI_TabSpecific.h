@@ -22,6 +22,6 @@ public:
 
 	void setLayout()
 	{
-		status_SensorConnection.setBounds(1000, 550, 200, 20);
+		status_SensorConnection.setBounds(5, 40, 30, 40);
 	}
 };

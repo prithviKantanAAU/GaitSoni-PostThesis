@@ -67,9 +67,9 @@ public:
 
 	void setLayout()
 	{
-		calibrateTarget.setBounds(50, 700, 200, 40);
-		calibrate_presentTarget.setBounds(270, 700, 200, 40);
-		calibrateTarget_Discard.setBounds(710, 700, 200, 40);
-		calibrateTarget_Save.setBounds(930, 700, 200, 40);
+		calibrateTarget.setBounds(50, 650, 200, 40);
+		calibrate_presentTarget.setBounds(270, 650, 200, 40);
+		calibrateTarget_Discard.setBounds(50, 700, 200, 40);
+		calibrateTarget_Save.setBounds(270, 700, 200, 40);
 	}
 };

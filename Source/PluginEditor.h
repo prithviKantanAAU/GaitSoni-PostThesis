@@ -88,10 +88,10 @@ private:
 	{
 		if (processor.gaitAnalysis.areRequiredSensorsOnline())
 		{
-			ui_tabSpec.status_SensorConnection.setText("Reqd. Sensors: ONLINE", dontSendNotification);
+			ui_tabSpec.status_SensorConnection.setText("", dontSendNotification);
 			ui_tabSpec.status_SensorConnection.setColour
-			(ui_tabSpec.status_SensorConnection.textColourId, Colours::green);
-			if (!processor.imuRecord.isRecording_Sensor)				// WHY THE FUCK IS THIS HERE?
+			(ui_tabSpec.status_SensorConnection.backgroundColourId, Colours::green);
+			if (!processor.imuRecord.isRecording_Sensor)
 			{
 				ui_bmbf_gen.recordGaitParam.setButtonText("Rec Gait Param");
 				ui_bmbf_gen.recordGaitParam.setColour(ui_bmbf_gen.recordGaitParam.buttonColourId, Colours::red);
@@ -99,9 +99,9 @@ private:
 		}
 		else
 		{
-			ui_tabSpec.status_SensorConnection.setText("Reqd. Sensors: OFFLINE", dontSendNotification);
+			ui_tabSpec.status_SensorConnection.setText("", dontSendNotification);
 			ui_bmbf_gen.recordGaitParam.setColour(ui_bmbf_gen.recordGaitParam.buttonColourId, Colours::darkred);
-			ui_tabSpec.status_SensorConnection.setColour(ui_tabSpec.status_SensorConnection.textColourId, Colours::red);
+			ui_tabSpec.status_SensorConnection.setColour(ui_tabSpec.status_SensorConnection.backgroundColourId, Colours::red);
 		}
 	}
 	
