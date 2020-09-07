@@ -8,10 +8,13 @@ public:
 	short numSensorsMax = 3;
 	float IMU_SampleRate = 100;
 	int UDP_Ports[5] = { 9999, 9998, 9997 };
+	int UDP_Ports_REMOTE[5] = {8888, 8887, 8886};
+	OSCSender connectionVerify_IP[3];
 	std::string sensors_OSCAddress[3] = { "/S1","/S2","/S3" };
-	short bodyLocation[5] = { 1, 2, 3 };
+	short bodyLocation[5] = { 4, 4, 4 };
 	bool isOnline[5] = { false, false, false };
 	int batteryPercent[5] = { 0 };
+	String remoteIP[5] = { "" };
 
 	void updateStatus(int port, bool status)
 	{

@@ -61,6 +61,18 @@ private:
 		for (int i = 0; i < 3; i++)
 		{
 			text = processor.gaitAnalysis.sensorInfo.isOnline[i] ? "ON" : "OFF";
+			
+			if (processor.gaitAnalysis.sensorInfo.isOnline[i])
+			{
+				ui_sensorCon.WLAN_IP[i].setColour(ui_sensorCon.WLAN_IP[i].backgroundColourId, Colours::green);
+				ui_sensorCon.WLAN_IP[i].setReadOnly(true);
+			}
+			else
+			{
+				ui_sensorCon.WLAN_IP[i].setColour(ui_sensorCon.WLAN_IP[i].backgroundColourId, Colours::red);
+				ui_sensorCon.WLAN_IP[i].setReadOnly(false);
+			}
+
 			ui_sensorCon.Status[i].setText(text,dontSendNotification);
 			isSensorOnline = processor.gaitAnalysis.sensorInfo.isOnline[i];
 			batteryLevel = processor.gaitAnalysis.sensorInfo.batteryPercent[i];
@@ -260,7 +272,7 @@ private:
 	}
 	void addControls_SensorConfig()
 	{
-		addAndMakeVisible(ui_sensorCon.SrNo_Header);
+		addAndMakeVisible(ui_sensorCon.IP_Header);
 		addAndMakeVisible(ui_sensorCon.Status_Header);
 		addAndMakeVisible(ui_sensorCon.Port_Header);
 		addAndMakeVisible(ui_sensorCon.Location_Header);
@@ -268,7 +280,7 @@ private:
 		addAndMakeVisible(ui_sensorCon.BatteryLevel_Header);
 		for (int i = 0; i < 3; i++)
 		{
-			addAndMakeVisible(ui_sensorCon.SrNo[i]);
+			addAndMakeVisible(ui_sensorCon.WLAN_IP[i]);
 			addAndMakeVisible(ui_sensorCon.Status[i]);
 			addAndMakeVisible(ui_sensorCon.Port[i]);
 			addAndMakeVisible(ui_sensorCon.Location[i]);

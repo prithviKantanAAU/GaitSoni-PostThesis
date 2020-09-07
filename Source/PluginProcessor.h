@@ -10,6 +10,10 @@
 #include "audioParamInfo.h"
 #include "dynTrajectory.h"
 #include "windows.h"
+#include <windows.h>
+#include <wlanapi.h>
+#include <iphlpapi.h>
+#include <netioapi.h>
 
 class GaitSonificationAudioProcessor : public AudioProcessor, public HighResolutionTimer
 {
@@ -204,6 +208,7 @@ public:
 	int pulseInterval_sensorCallback = 10;						// Pulse Interval - Sensor -> GaitAnalysis								
 	GaitAnalysis gaitAnalysis;									// MP Computation Object
 	void sensorCallback();										// Sensor Callback
+	void ipVerify_AssignedSensors();								// Send out OSC Packets for IP Verification
 	
 	// Update Present AP
 	void updateAudioParameter(int index, short type)			

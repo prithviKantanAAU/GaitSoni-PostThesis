@@ -10,8 +10,7 @@ public:
 	~UI_SensorConfig() {};
 
 	String Locations[4] = { "Trunk", "Left Foot", "Right Foot", "<UNASSIGNED>" };
-	Label SrNo_Header;					// Column Header - Sr. No
-	Label SrNo[3];						// Column Values - Sr. No
+	Label IP_Header;					// Column Header - Sr. No
 	Label Status_Header;				// Column Header - Online status
 	Label Status[3];					// Column Values - Online status
 	Label Port_Header;					// Column Header - UDP Port
@@ -22,6 +21,7 @@ public:
 	ComboBox Location[3];				// Column Values - Sensor Bodily Location
 	Label BatteryLevel_Header;			// Column Header - Battery Level
 	Label BatteryLevel[3];				// Column Values - Battery Level
+	TextEditor WLAN_IP[3];				// WLAN 
 
 	void addElements()
 	{
@@ -30,7 +30,7 @@ public:
 
 	void configure()
 	{
-		SrNo_Header.setText("Serial Num", dontSendNotification);
+		IP_Header.setText("IP Address", dontSendNotification);
 		Status_Header.setText("Status", dontSendNotification);
 		Port_Header.setText("UDP Port", dontSendNotification);
 		Location_Header.setText("Body Location", dontSendNotification);
@@ -38,8 +38,6 @@ public:
 		BatteryLevel_Header.setText("Battery Level", dontSendNotification);
 		for (int i = 0; i < 3; i++)
 		{
-			SrNo[i].setText(String(i + 1), dontSendNotification);
-
 			Location[i].addItem(Locations[0], 1);
 			Location[i].addItem(Locations[1], 2);
 			Location[i].addItem(Locations[2], 3);
@@ -53,7 +51,7 @@ public:
 
 	void toggleVisible(bool on)
 	{
-		SrNo_Header.setVisible(on);
+		IP_Header.setVisible(on);
 		Status_Header.setVisible(on);
 		Location_Header.setVisible(on);
 		Port_Header.setVisible(on);
@@ -63,7 +61,7 @@ public:
 		{
 			Location[i].setVisible(on);
 			Port[i].setVisible(on);
-			SrNo[i].setVisible(on);
+			WLAN_IP[i].setVisible(on);
 			Status[i].setVisible(on);
 			BiasComp[i].setVisible(on);
 			BatteryLevel[i].setVisible(on);
@@ -72,7 +70,7 @@ public:
 
 	void setLayout()
 	{
-		SrNo_Header.setBounds(100, 400, 100, 40);
+		IP_Header.setBounds(100, 400, 100, 40);
 		Status_Header.setBounds(200, 400, 100, 40);
 		Port_Header.setBounds(300, 400, 100, 40);
 		Location_Header.setBounds(400, 400, 100, 40);
@@ -81,7 +79,7 @@ public:
 
 		for (int i = 0; i < 3; i++)
 		{
-			SrNo[i].setBounds(100, 400 + 50 * (i + 1), 100, 40);
+			WLAN_IP[i].setBounds(80, 400 + 50 * (i + 1), 120, 40);
 			Status[i].setBounds(200, 400 + 50 * (i + 1), 100, 40);
 			Port[i].setBounds(300, 400 + 50 * (i + 1), 100, 40);
 			Location[i].setBounds(400, 400 + 50 * (i + 1), 100, 40);

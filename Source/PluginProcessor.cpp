@@ -85,6 +85,9 @@ void GaitSonificationAudioProcessor::clockCallback()
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
 void GaitSonificationAudioProcessor::sensorCallback()
 {
+	// IF ASSIGNED BUT NOT CONNECTED, SEND OUT OSC PACKETS FOR IP VERIFICATION
+	ipVerify_AssignedSensors();
+
 	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
 
 	// UPDATE IMU BUFFERS FOR ALL ACTIVE SENSORS
@@ -166,7 +169,29 @@ void GaitSonificationAudioProcessor::initializeClocking()
 	sequencer.nextPulseTime += interPulseIntervalMs * 0.001;
 }
 
-//=========================================================================================================
+// IF ASSIGNED BUT NOT CONNECTED, SEND OUT OSC PACKETS
+void GaitSonificationAudioProcessor::ipVerify_AssignedSensors()
+{
+	int remotePort = 0;	 
+	String remoteIP = "";
+
+	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
+		if (gaitAnalysis.sensorInfo.bodyLocation[i] != 4)
+		{
+			if (!gaitAnalysis.sensorInfo.isOnline[i])
+			{
+				remotePort = gaitAnalysis.sensorInfo.UDP_Ports_REMOTE[i];
+				remoteIP = gaitAnalysis.sensorInfo.remoteIP[i];
+				if (gaitAnalysis.sensorInfo.connectionVerify_IP[i].connect(remoteIP, remotePort))
+				{
+					OSCMessage message("/CONNECT");
+					message.addString("Please Connect");
+					gaitAnalysis.sensorInfo.connectionVerify_IP[i].send(message);
+				}
+			}
+		}
+}
+
 const String GaitSonificationAudioProcessor::getName() const
 {
     return JucePlugin_Name;

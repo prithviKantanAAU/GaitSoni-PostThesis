@@ -62,6 +62,11 @@ void GaitSonificationAudioProcessorEditor::sensorConfig_initializeControls()
 				processor.gaitAnalysis.sensors_OSCReceivers[i].isBiasComp_ON = true;
 			}
 		};
+
+		ui_sensorCon.WLAN_IP[i].onTextChange = [this, i]
+		{
+			processor.gaitAnalysis.sensorInfo.remoteIP[i] = ui_sensorCon.WLAN_IP[i].getText();
+		};
 	}
 }
 
