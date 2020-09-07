@@ -192,6 +192,8 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.medianFilter_Length_Label);
 		addAndMakeVisible(ui_bmbf_gen.imuSmooth_Fc);
 		addAndMakeVisible(ui_bmbf_gen.imuSmooth_Fc_Label);
+		addAndMakeVisible(ui_bmbf_gen.rtv_Expand);
+		addAndMakeVisible(ui_bmbf_gen.zv_Expand);
 	}
 	
 	void addControls_MPCalibrate()

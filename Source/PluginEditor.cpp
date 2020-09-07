@@ -6,7 +6,7 @@ GaitSonificationAudioProcessorEditor::GaitSonificationAudioProcessorEditor (Gait
     : AudioProcessorEditor (&p), processor (p)
 {
 	// SET INTERFACE DIMENSIONS
-	setSize(1200, 900);
+	setSize(1200, 750);
 	// ADD TABBED INTERFACE
 	tabs = std::make_unique<TabbedComponent>(TabbedButtonBar::TabsAtTop);
 	addAndMakeVisible(*tabs);
@@ -523,6 +523,80 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		isRealTimeVisualize = ui_bmbf_gen.realTimeVisualize.getToggleState();
 		ui_rtv_1d.toggleVisible(isRealTimeVisualize);
 	};
+
+	//Visualizer Expanders
+
+	ui_bmbf_gen.rtv_Expand.onClick = [this]
+	{
+		ui_rtv_1d.dispMode = (ui_rtv_1d.dispMode + 1) % (ui_rtv_1d.numDispModes + 1);
+		switch (ui_rtv_1d.dispMode)
+		{
+		case 0:
+			ui_rtv_1d.dispMode++;
+		case 1:
+			ui_bmbf_gen.toggleVisible(true);
+			ui_bmbf_ex.toggleVisible(processor.exerciseMode_Present,true);
+			ui_mpCal.toggleVisible(true);
+			ui_zv_2d.toggleVisible(true);
+			ui_bmbf_gen.rtv_Expand.setButtonText("<>");
+			ui_bmbf_gen.rtv_Expand.setBounds(350, 590, 40, 40);
+			break;
+		case 2:
+			ui_bmbf_gen.toggleVisible(false);
+			ui_bmbf_ex.toggleVisible(processor.exerciseMode_Present, false);
+			ui_mpCal.toggleVisible(false);
+			ui_zv_2d.toggleVisible(false);
+			ui_bmbf_gen.rtv_Expand.setButtonText("><");
+			ui_bmbf_gen.rtv_Expand.setBounds(580, 700, 40, 40);
+			break;
+		}
+
+		ui_rtv_1d.rtv_minBound.setBounds
+		(
+			ui_rtv_1d.minbound[ui_rtv_1d.dispMode - 1][0],
+			ui_rtv_1d.minbound[ui_rtv_1d.dispMode - 1][1],
+			ui_rtv_1d.minbound[ui_rtv_1d.dispMode - 1][2],
+			ui_rtv_1d.minbound[ui_rtv_1d.dispMode - 1][3]
+		);
+
+		ui_rtv_1d.rtv_maxBound.setBounds
+		(
+			ui_rtv_1d.maxbound[ui_rtv_1d.dispMode - 1][0],
+			ui_rtv_1d.maxbound[ui_rtv_1d.dispMode - 1][1],
+			ui_rtv_1d.maxbound[ui_rtv_1d.dispMode - 1][2],
+			ui_rtv_1d.maxbound[ui_rtv_1d.dispMode - 1][3]
+		);
+
+		ui_bmbf_gen.rtv_Expand.setVisible(true);
+	};
+
+	ui_bmbf_gen.zv_Expand.onClick = [this]
+	{
+		ui_zv_2d.dispMode = (ui_zv_2d.dispMode + 1) % (ui_zv_2d.numDispModes + 1);
+		switch (ui_zv_2d.dispMode)
+		{
+		case 0:
+			ui_zv_2d.dispMode++;
+		case 1:
+			ui_bmbf_gen.toggleVisible(true);
+			ui_bmbf_ex.toggleVisible(processor.exerciseMode_Present, true);
+			ui_mpCal.toggleVisible(true);
+			ui_rtv_1d.toggleVisible(true);
+			ui_bmbf_gen.zv_Expand.setButtonText("<>");
+			ui_bmbf_gen.zv_Expand.setBounds(1155, 410, 40, 40);
+			break;
+		case 2:
+			ui_bmbf_gen.toggleVisible(false);
+			ui_bmbf_ex.toggleVisible(processor.exerciseMode_Present, false);
+			ui_mpCal.toggleVisible(false);
+			ui_rtv_1d.toggleVisible(false);
+			ui_bmbf_gen.zv_Expand.setButtonText("><");
+			ui_bmbf_gen.zv_Expand.setBounds(580, 700, 40, 40);
+			break;
+		}
+		
+		ui_bmbf_gen.zv_Expand.setVisible(true);
+	};
 }
 
 // CONFIGURE 1D VISUALIZER
@@ -884,6 +958,20 @@ void GaitSonificationAudioProcessorEditor::updateProjectionZoneVisualizer()
 // REAL TIME UPDATE 1D VISUALIZER
 void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 {
+	/*ui_rtv_1d.rtv_outerBound.setBounds(
+		ui_rtv_1d.rtv_startX[ui_rtv_1d.dispMode - 1] - 2,
+		ui_rtv_1d.rtv_startY[ui_rtv_1d.dispMode - 1] - 2.5 * ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] + 10,
+		ui_rtv_1d.rtv_width[ui_rtv_1d.dispMode - 1] + 25,
+		2.5 * ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] + 20
+	);*/
+
+	ui_rtv_1d.rtv_outerBound.setBounds(
+		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][0],
+		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][1],
+		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][2],
+		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][3]
+	);
+
 	float originalTarget_MIN = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN;
 	float originalTarget_MAX = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
@@ -903,13 +991,22 @@ void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 	float currentVal = processor.gaitAnalysis.gaitParams.isSliderMode ? paramMin + processor.gaitAnalysis.gaitParams.sliderVal * paramRange :
 						min(max(currentValue,paramMin),paramMax);
 	float targetStartPoint = 0;		float targetWidth = 0;	
-	float pixelMultiplier = 1 / paramRange * ui_rtv_1d.rtv_width;
+	float pixelMultiplier = 1 / paramRange * ui_rtv_1d.rtv_width[ui_rtv_1d.dispMode - 1];
 	float currentStartPoint = (currentVal-paramMin) * pixelMultiplier;
 
 	targetStartPoint = (chosenTarget_MIN - paramMin) * pixelMultiplier;
 	targetWidth = fmax(20, (chosenTarget_MAX - chosenTarget_MIN) * pixelMultiplier);
-	ui_rtv_1d.rtv_targetRange.setBounds(ui_rtv_1d.rtv_startX + targetStartPoint, ui_rtv_1d.rtv_startY - 90 - ui_rtv_1d.rtv_ht / 2, targetWidth, ui_rtv_1d.rtv_ht);
-	ui_rtv_1d.rtv_currentValue.setBounds(ui_rtv_1d.rtv_startX + currentStartPoint, ui_rtv_1d.rtv_startY - 90 + ui_rtv_1d.rtv_ht / 2, 20, ui_rtv_1d.rtv_ht);
+	ui_rtv_1d.rtv_targetRange.setBounds(
+		ui_rtv_1d.rtv_startX[ui_rtv_1d.dispMode - 1] + targetStartPoint,
+		ui_rtv_1d.rtv_startY[ui_rtv_1d.dispMode - 1] - 90 - ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] / 2,
+		targetWidth, 
+		ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1]);
+
+	ui_rtv_1d.rtv_currentValue.setBounds(
+		ui_rtv_1d.rtv_startX[ui_rtv_1d.dispMode - 1] + currentStartPoint,
+		ui_rtv_1d.rtv_startY[ui_rtv_1d.dispMode - 1] - 90 + ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] / 2,
+		20,
+		ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1]);
 	if (processor.mapVal < 0.001)
 	{
 		ui_rtv_1d.rtv_currentValue.setColour(ui_rtv_1d.rtv_currentValue.backgroundColourId, Colours::yellow);

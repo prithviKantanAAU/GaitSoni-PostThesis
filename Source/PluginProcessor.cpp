@@ -88,14 +88,13 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	// IF ASSIGNED BUT NOT CONNECTED, SEND OUT OSC PACKETS FOR IP VERIFICATION
 	ipVerify_AssignedSensors();
 
-	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
-
 	// UPDATE IMU BUFFERS FOR ALL ACTIVE SENSORS
 	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
 		if (gaitAnalysis.sensorInfo.isOnline[i])
 			gaitAnalysis.sensors_OSCReceivers[i].updateBuffers();
 
 	// IF DYNAMIC REACHING, ENABLE DYN TRAJECTORY, UPDATE CENTER COORDINATES
+	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
 	if (exerciseMode_Present == 3)
 	{
 		dynZoneCenter.barsElapsed = sequencer.barsElapsed;

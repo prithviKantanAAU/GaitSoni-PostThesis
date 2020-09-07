@@ -44,6 +44,7 @@ public:
 	Label medianFilter_Length_Label;
 	Slider imuSmooth_Fc;
 	Label imuSmooth_Fc_Label;
+	TextButton rtv_Expand, zv_Expand;
 
 	void configure()
 	{
@@ -151,6 +152,10 @@ public:
 		imuSmooth_Fc.setColour(soni_Order.backgroundColourId, Colours::yellow);
 		imuSmooth_Fc_Label.setText("IMU Smoothing Fc", dontSendNotification);
 		imuSmooth_Fc_Label.attachToComponent(&imuSmooth_Fc, false);
+
+		// VISUALIZER EXPANDERS
+		rtv_Expand.setButtonText("<>");
+		zv_Expand.setButtonText("<>");
 	}
 
 	void toggleVisible(bool on)
@@ -181,6 +186,8 @@ public:
 		soni_Vol.setVisible(on);
 		medianFilter_Length.setVisible(on);
 		imuSmooth_Fc.setVisible(on);
+		rtv_Expand.setVisible(on);
+		zv_Expand.setVisible(on);
 	}
 
 	void setLayout()
@@ -211,6 +218,10 @@ public:
 
 		// TOP RIGHT
 		isStandbyToggle.setBounds(1090, 40, 150, 40);
+
+		// MISC
+		rtv_Expand.setBounds(350, 590, 40, 40);
+		zv_Expand.setBounds(1155, 410, 40, 40);
 	}
 };
 

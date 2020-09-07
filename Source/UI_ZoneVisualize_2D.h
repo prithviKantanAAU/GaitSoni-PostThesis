@@ -17,6 +17,8 @@ public:
 	Label ZV_B;
 	Label ZV_L;
 	Label ZV_R;
+	short dispMode = 1;
+	short numDispModes = 2;
 	float ZV_totalLength = 200;
 	float ZV_zeroPos_H = 1040;
 	float ZV_zeroPos_V = 420;
@@ -39,6 +41,14 @@ public:
 
 	void toggleVisible(bool on)
 	{
+		ZV_TotalSpace.setVisible(on);
+		ZV_InnerRect.setVisible(on);
+		ZV_InnerRect_AP.setVisible(on);
+		ZV_CurrentPos.setVisible(on);
+		ZV_F.setVisible(on);
+		ZV_B.setVisible(on);
+		ZV_L.setVisible(on);
+		ZV_R.setVisible(on);
 	}
 
 	void setLayout()
