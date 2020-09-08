@@ -122,10 +122,13 @@ public:
 
 	// ROW 1 - ML AP (rest) AND ROW 2 - ML AP (extreme)
 	float staticBalance_BoundsCoordinates[2][2] = { 0.0 }; 
-
 	short staticBalance_calibrationMode = 0;				// 0 - CALIBRATE REST // 1 - CALIBRATE EXTREME
 	float staticBalance_calibrationLength = 0;				// CALIBRATION LENGTH IN SAMPLES
-	
+	float staticBalance_BoundsCoordinates_z1[2] = { 0.0 };
+	float staticBalance_CenterXY_ANTICIPATED[2] = { 0.0 };
+	short staticBalance_FB_TYPE = 1;							// 1 = ZONE // 2 = 2D TASK // 3 = ADE
+	short staticBalance_FB_DATA = 1;							// 1 = POSITION // 2 = VELOCITY
+
 	// CALIBRATE REST OR EXTREME - STATIC BALANCE
 	void staticBalance_calibrateCoordinates()
 	{
@@ -283,4 +286,8 @@ public:
 
 		return standDev;
 	};
+
+	void repIncrement_checkTargetCross()
+	{
+	}
 };

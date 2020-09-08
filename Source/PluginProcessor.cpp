@@ -119,6 +119,12 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	mapVal = isStandby ? 0 : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
 	sequencer.AP_Val = mapVal;
 
+	// MAP X AND Y AP TO FAUST / WHEREVER
+	if (exerciseMode_Present == 3)
+	{
+		/////////////////////// !!!!!!!!!!!! fill !!!!!!!!!!!!!!!!!!! //////////////////////////
+	}
+
 	// CHECK MUSIC PLAYBACK
 	if (sequencer.isPlaying)
 	{

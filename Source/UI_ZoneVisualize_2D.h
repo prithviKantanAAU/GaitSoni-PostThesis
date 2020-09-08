@@ -19,9 +19,45 @@ public:
 	Label ZV_R;
 	short dispMode = 1;
 	short numDispModes = 2;
-	float ZV_totalLength = 200;
-	float ZV_zeroPos_H = 1040;
-	float ZV_zeroPos_V = 420;
+	float ZV_totalLength[5] = { 200, 600 };
+	float ZV_zeroPos_H[5] = { 1040, 570};
+	float ZV_zeroPos_V[5] = { 420, 320 };
+	float ZV_ML_startX_MIN[5] = { 950, 300 };
+	float ZV_ML_endX_MAX[5] = { 1150, 900 };
+	float ZV_AP_startY_MIN[5] = { 330, 50 };
+	float ZV_AP_endY_MAX[5] = { 530, 650 };
+	float ZV_Current_W[5] = { 20, 60 };
+	float ZV_Current_H[5] = { 20, 60 };
+
+	int ZV_F_Lab_Bounds[2][4] = 
+	{
+		{1040, 330, 20, 20},
+		{590, 60, 20, 20}
+	};
+
+	int ZV_B_Lab_Bounds[2][4] =
+	{
+		{1040, 510, 20, 20},
+		{590, 620, 20, 20}
+	};
+
+	int ZV_L_Lab_Bounds[2][4] =
+	{
+		{950, 420, 20, 20},
+		{310, 340, 20, 20}
+	};
+
+	int ZV_R_Lab_Bounds[2][4] =
+	{
+		{1135, 420, 20, 20},
+		{870, 340, 20, 20}
+	};
+
+	int ZV_TotalSpace_Bounds[2][4] = 
+	{
+		{950, 330, 200, 200},
+		{300, 50, 600, 600}
+	};
 
 	void configure()
 	{

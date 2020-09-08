@@ -26,6 +26,8 @@ public:
 	float minVal = 0;
 	float maxVal = 0;
 	short calibrationType = 0;				// 0 = Maximum // 1 = STS // 2 = HS // 3 = Zones
+	float filterFc_OPT = 50;
+	int medianFilt_L_OPT = 1;
 	void setCalibrationType(short val) { calibrationType = val; };
 	
 	void updateValue_Current(float val)											// Periodic Call 1
@@ -45,6 +47,12 @@ public:
 	{
 		if (!isMax) target_MIN = val;
 		else		target_MAX = val;
+	}
+
+	void storeFilterInfo(float fc_LPF, int medFilt_L)
+	{
+		filterFc_OPT = fc_LPF;
+		medianFilt_L_OPT = medFilt_L;
 	}
 
 	GaitParam_Single() {};

@@ -37,6 +37,51 @@ public:
 	TextButton sitStand_FlipState;
 	Label sitStand_isStanding;
 
+	Label rep_NumDone;
+	Label rep_AvgTime_TOTAL;
+	Label rep_AvgTime_LAST5;
+	TextButton rep_RESTART;
+
+	ComboBox dynTarget_FB_TYPE;
+	ComboBox dynTarget_FB_DATA;
+	ComboBox dynTarget_FB_X;
+	ComboBox dynTarget_FB_Y;
+
+	String rep_str_numDone[10] =
+	{
+		"",
+		"",
+		"",
+		"Num. Reaches: ",
+		"Num. Sit-Stand: ",
+		"Num. Sit-Stand: ",
+		"Num Steps: ",
+		"Num Steps: "
+	};
+
+	String rep_str_AvgTime_TOTAL[10] =
+	{
+		"",
+		"",
+		"",
+		"Avg. Movement Time: ",
+		"Avg. Movement Time: ",
+		"Avg. Movement Time: ",
+		"Avg. Step Time: ",
+		"Avg. Step Time: "
+	};
+	String rep_str_AvgTime_LAST5[10] =
+	{
+		"",
+		"",
+		"",
+		"Last 5: ",
+		"Last 5: ",
+		"Last 5: ",
+		"Last 5: ",
+		"Last 5: "
+	};
+
 	void configure()
 	{
 		//Trunk Balance - Center X
@@ -126,6 +171,21 @@ public:
 		HS_AccThresh.setNumDecimalPlacesToDisplay(2);
 		HS_AccThresh_Label.setText("HS ACC Threshold", dontSendNotification);
 		HS_AccThresh_Label.attachToComponent(&HS_AccThresh, false);
+
+		// REPS - RESTART
+		rep_RESTART.setButtonText("Restart Exercise");
+		rep_RESTART.setColour(rep_RESTART.buttonColourId, Colours::blue);
+
+		// DYN TARGET FEEDBACK TYPE
+		dynTarget_FB_TYPE.addItem("Zone", 1);
+		dynTarget_FB_TYPE.addItem("2D Task Only", 2);
+		dynTarget_FB_TYPE.addItem("2D Distance Error", 3);
+		dynTarget_FB_TYPE.setSelectedId(1);
+
+		// DYN TARGET FEEDBACK DATA
+		dynTarget_FB_DATA.addItem("Position", 1);
+		dynTarget_FB_DATA.addItem("Velocity", 2);
+		dynTarget_FB_DATA.setSelectedId(1);
 	}
 
 	void toggleVisible(short exMode, bool soniTab)
@@ -135,6 +195,7 @@ public:
 		bool isDB = (exMode == 3);
 		bool isSTS = (exMode == 4 || exMode == 5);
 		bool isGait = (exMode == 6);
+		bool isRep = (exMode > 2);
 
 		// SB DB
 		staticBalance_Div_Roll.setVisible(soniTab && isSB_orDB);
@@ -148,6 +209,10 @@ public:
 		dynTrajectory_Mirror.setVisible(soniTab && isDB);
 		dynTrajectory_Period.setVisible(soniTab && isDB);
 		dynTrajectory_Radius.setVisible(soniTab && isDB);
+		dynTarget_FB_TYPE.setVisible(soniTab && isDB);;
+		dynTarget_FB_DATA.setVisible(soniTab && isDB);;
+		dynTarget_FB_X.setVisible(soniTab && isDB);;
+		dynTarget_FB_Y.setVisible(soniTab && isDB);;
 
 		// STS
 		sitStand_Thresh_Stand.setVisible(soniTab && isSTS);
@@ -159,6 +224,12 @@ public:
 		HS_TimingMode.setVisible(soniTab && isGait);
 		HS_Tolerance.setVisible(soniTab && isGait);
 		HS_AccThresh.setVisible(soniTab && isGait);
+
+		// Repetitions
+		rep_NumDone.setVisible(soniTab && isRep);
+		rep_AvgTime_LAST5.setVisible(soniTab && isRep);
+		rep_AvgTime_TOTAL.setVisible(soniTab && isRep);
+		rep_RESTART.setVisible(soniTab && isRep);
 	}
 
 	void setLayout()
@@ -181,6 +252,16 @@ public:
 		HS_TimingMode.setBounds(50, 110, 200, 40);
 		HS_Tolerance.setBounds(50, 190, 200, 40);
 		HS_AccThresh.setBounds(50, 270, 200, 40);
+
+		rep_NumDone.setBounds(930, 110, 200, 40);
+		rep_AvgTime_TOTAL.setBounds(930, 150, 200, 40);
+		rep_AvgTime_LAST5.setBounds(930, 190, 200, 40);
+		rep_RESTART.setBounds(710, 430, 200, 40);
+
+		dynTarget_FB_TYPE.setBounds(950, 580, 200, 30);
+		dynTarget_FB_DATA.setBounds(950, 620, 200, 30);
+		dynTarget_FB_X.setBounds(950, 660, 200, 30);
+		dynTarget_FB_Y.setBounds(950, 700, 200, 30);
 	}
 };
 

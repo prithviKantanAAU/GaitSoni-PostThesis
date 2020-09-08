@@ -12,6 +12,8 @@ public:
 	short num_AP[10] = { 0 };
 	short activeAudioParam = 0;
 	short activeCueParam = 0;
+	short activeAudioParam_DynTarget_X = 0;
+	short activeAudioParam_DynTarget_Y = 0;
 	short numSoni_Musical = 16;
 
 	audioParamInfo()

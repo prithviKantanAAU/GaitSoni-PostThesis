@@ -12,8 +12,10 @@ public:
 	short num_UseScenarios = 6;						// NUM EXERCISE MODES
 	short indices_MP[10][30] = { 0 };				// PER EXERCISE MODE - MP INDICES
 	short num_MP[10] = { 0 };						// PER EXERCISE MODE - MP COUNT
+	float apVal_DYN_TaskDependent[2] = { 0.0 };		// X and Y INFO
 	short numSensorLocations = 3;					// BODILY LOCATIONS
 	String exerciseModes[10] = { "Testing","Static Upright","Dynamic Trunk","Jerk Feedback","STS Angle Cue","Gait" };
+	short exerciseMode_Present = 1;
 	GaitParam_Single gaitParam_ObjectArray[30];
 	float AP_Val = 0;
 	float order_MapFunc = 1;
@@ -23,6 +25,21 @@ public:
 	float sliderVal = 0;
 	BiQuad apSmooth;
 	float apSmooth_Fc = 0;
+	float repTime_Sec[5000][10] = { 0.0 };
+	float reps_Completed[10] = { 0.0 };
+	float repTime_AVG_GLOBAL[10] = { 0.0 };
+	float repTime_AVG_LAST5[10] = { 0.0 };
+	void flush_repInfo()
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			reps_Completed[i] = 0;
+			repTime_AVG_GLOBAL[i] = 0;
+			repTime_AVG_LAST5[i] = 0;
+			for (int j = 0; j < 5000; j++)
+				repTime_Sec[j][i] = 0;
+		}
+	}
 
 	gaitParamInfo() 
 	{
@@ -33,6 +50,7 @@ public:
 		gaitParam_ObjectArray[0].setName_SensorReq("Inclination (+-) - ML",
 			sensorReqArray0,numSensorLocations);
 		gaitParam_ObjectArray[0].set_isIncluded_UseScenarios(useCaseArray0, num_UseScenarios);
+		gaitParam_ObjectArray[0].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[0].initialize(-45, 45, -15, 15);
 		numMovementParams++;
 
@@ -43,6 +61,7 @@ public:
 		gaitParam_ObjectArray[1].setName_SensorReq("Inclination (+-) - AP",
 			sensorReqArray1, numSensorLocations);
 		gaitParam_ObjectArray[1].set_isIncluded_UseScenarios(useCaseArray1, num_UseScenarios);
+		gaitParam_ObjectArray[1].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[1].initialize(-45, 45, -15, 15);
 		numMovementParams++;
 
@@ -53,6 +72,7 @@ public:
 		gaitParam_ObjectArray[2].setName_SensorReq("Trunk Projection Zone",
 			sensorReqArray2, numSensorLocations);
 		gaitParam_ObjectArray[2].set_isIncluded_UseScenarios(useCaseArray2, num_UseScenarios);
+		gaitParam_ObjectArray[2].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[2].initialize(1, 6, 1, 2);
 		gaitParam_ObjectArray[2].setCalibrationType(3);
 		numMovementParams++;
@@ -64,6 +84,7 @@ public:
 		gaitParam_ObjectArray[3].setName_SensorReq("RMS Acc ML",
 			sensorReqArray3, numSensorLocations);
 		gaitParam_ObjectArray[3].set_isIncluded_UseScenarios(useCaseArray3, num_UseScenarios);
+		gaitParam_ObjectArray[3].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[3].initialize(0, 20, 0, 5);
 		numMovementParams++;
 
@@ -74,6 +95,7 @@ public:
 		gaitParam_ObjectArray[4].setName_SensorReq("RMS Acc AP",
 			sensorReqArray4, numSensorLocations);
 		gaitParam_ObjectArray[4].set_isIncluded_UseScenarios(useCaseArray4, num_UseScenarios);
+		gaitParam_ObjectArray[4].storeFilterInfo(5, 5);
 		gaitParam_ObjectArray[4].initialize(0, 20, 0, 5);
 		numMovementParams++;
 
@@ -84,6 +106,7 @@ public:
 		gaitParam_ObjectArray[5].setName_SensorReq("Scalar Jerk",
 			sensorReqArray5, numSensorLocations);
 		gaitParam_ObjectArray[5].set_isIncluded_UseScenarios(useCaseArray5, num_UseScenarios);
+		gaitParam_ObjectArray[5].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[5].initialize(0, 100, 0, 15);
 		numMovementParams++;
 
@@ -94,6 +117,7 @@ public:
 		gaitParam_ObjectArray[6].setName_SensorReq("Jerk - X",
 			sensorReqArray6, numSensorLocations);
 		gaitParam_ObjectArray[6].set_isIncluded_UseScenarios(useCaseArray6, num_UseScenarios);
+		gaitParam_ObjectArray[6].storeFilterInfo(10, 2);
 		gaitParam_ObjectArray[6].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
@@ -104,6 +128,7 @@ public:
 		gaitParam_ObjectArray[7].setName_SensorReq("Jerk - Y",
 			sensorReqArray7, numSensorLocations);
 		gaitParam_ObjectArray[7].set_isIncluded_UseScenarios(useCaseArray7, num_UseScenarios);
+		gaitParam_ObjectArray[7].storeFilterInfo(10, 2);
 		gaitParam_ObjectArray[7].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
@@ -114,6 +139,7 @@ public:
 		gaitParam_ObjectArray[8].setName_SensorReq("Jerk - Z",
 			sensorReqArray8, numSensorLocations);
 		gaitParam_ObjectArray[8].set_isIncluded_UseScenarios(useCaseArray8, num_UseScenarios);
+		gaitParam_ObjectArray[8].storeFilterInfo(10, 2);
 		gaitParam_ObjectArray[8].initialize(0, 25, 0, 5);
 		numMovementParams++;
 
@@ -124,6 +150,7 @@ public:
 		gaitParam_ObjectArray[9].setName_SensorReq("Sway Vel - ML",
 			sensorReqArray9, numSensorLocations);
 		gaitParam_ObjectArray[9].set_isIncluded_UseScenarios(useCaseArray9, num_UseScenarios);
+		gaitParam_ObjectArray[9].storeFilterInfo(5, 2);
 		gaitParam_ObjectArray[9].initialize(0, 200, 0, 20);
 		numMovementParams++;
 
@@ -134,6 +161,7 @@ public:
 		gaitParam_ObjectArray[10].setName_SensorReq("Sway Vel - AP",
 			sensorReqArray10, numSensorLocations);
 		gaitParam_ObjectArray[10].set_isIncluded_UseScenarios(useCaseArray10, num_UseScenarios);
+		gaitParam_ObjectArray[10].storeFilterInfo(5, 2);
 		gaitParam_ObjectArray[10].initialize(0, 200, 0, 20);
 		numMovementParams++;
 
@@ -144,6 +172,7 @@ public:
 		gaitParam_ObjectArray[11].setName_SensorReq("HS Timing",
 			sensorReqArray11, numSensorLocations);
 		gaitParam_ObjectArray[11].set_isIncluded_UseScenarios(useCaseArray11, num_UseScenarios);
+		gaitParam_ObjectArray[11].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[11].initialize(0, 1, 0, 0);
 		gaitParam_ObjectArray[11].setCalibrationType(2);
 		numMovementParams++;
@@ -155,6 +184,7 @@ public:
 		gaitParam_ObjectArray[12].setName_SensorReq("HS Trigger",
 			sensorReqArray12, numSensorLocations);
 		gaitParam_ObjectArray[12].set_isIncluded_UseScenarios(useCaseArray12, num_UseScenarios);
+		gaitParam_ObjectArray[12].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[12].initialize(0, 1, 0, 0);
 		gaitParam_ObjectArray[12].setCalibrationType(2);
 		numMovementParams++;
@@ -166,6 +196,7 @@ public:
 		gaitParam_ObjectArray[13].setName_SensorReq("STS Cue",
 			sensorReqArray13, numSensorLocations);
 		gaitParam_ObjectArray[13].set_isIncluded_UseScenarios(useCaseArray13, num_UseScenarios);
+		gaitParam_ObjectArray[13].storeFilterInfo(50, 1);
 		gaitParam_ObjectArray[13].initialize(0, 1, 0, 0);
 		gaitParam_ObjectArray[13].setCalibrationType(1);
 		numMovementParams++;

@@ -148,6 +148,10 @@ private:
 		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Radius);
 		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Period);
 		addAndMakeVisible(ui_bmbf_ex.dynTrajectory_Mirror);
+		addAndMakeVisible(ui_bmbf_ex.dynTarget_FB_DATA);
+		addAndMakeVisible(ui_bmbf_ex.dynTarget_FB_TYPE);
+		addAndMakeVisible(ui_bmbf_ex.dynTarget_FB_X);
+		addAndMakeVisible(ui_bmbf_ex.dynTarget_FB_Y);
 
 		addAndMakeVisible(ui_bmbf_ex.sitStand_Thresh_Sit);
 		addAndMakeVisible(ui_bmbf_ex.sitStand_Thresh_Sit_Label);
@@ -161,6 +165,11 @@ private:
 		addAndMakeVisible(ui_bmbf_ex.HS_Tolerance_Label);
 		addAndMakeVisible(ui_bmbf_ex.HS_AccThresh);
 		addAndMakeVisible(ui_bmbf_ex.HS_AccThresh_Label);
+
+		addAndMakeVisible(ui_bmbf_ex.rep_NumDone);
+		addAndMakeVisible(ui_bmbf_ex.rep_AvgTime_TOTAL);
+		addAndMakeVisible(ui_bmbf_ex.rep_AvgTime_LAST5);
+		addAndMakeVisible(ui_bmbf_ex.rep_RESTART);
 	}
 	void addControls_BMBF_GEN()
 	{

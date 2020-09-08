@@ -291,6 +291,7 @@ public:
 	void setExerciseMode(short exerciseMode)							// Set Exercise Mode
 	{
 		exerciseMode_Present = exerciseMode;
+		gaitAnalysis.gaitParams.exerciseMode_Present = exerciseMode;
 	};
 	bool isCalibrating = false;											// Is MP Calibrating? -> GaitAnalysis?
 

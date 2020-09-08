@@ -72,6 +72,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		repIncrement_checkTargetCross();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -80,6 +81,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		repIncrement_checkTargetCross();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}

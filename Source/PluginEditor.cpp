@@ -597,6 +597,24 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 		
 		ui_bmbf_gen.zv_Expand.setVisible(true);
 	};
+
+	// RESTART EXERCISE, FLUSH REPETITIONS
+	ui_bmbf_ex.rep_RESTART.onClick = [this]
+	{
+		processor.gaitAnalysis.gaitParams.flush_repInfo();
+	};
+	
+	// INITIALIZE DYN TARGET X AND Y FEEDBACK STRATEGY LISTS
+	
+	ui_bmbf_ex.dynTarget_FB_DATA.addListener(this);
+	
+	ui_bmbf_ex.dynTarget_FB_TYPE.addListener(this);
+	
+	ui_bmbf_ex.dynTarget_FB_X.addListener(this);
+	// INITIALIZE LISTS
+
+	ui_bmbf_ex.dynTarget_FB_Y.addListener(this);
+	// INITIALIZE LISTS
 }
 
 // CONFIGURE 1D VISUALIZER
@@ -676,6 +694,18 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 
 	if (box == &ui_bmbf_ex.dynTrajectory_Shape)
 		processor.dynZoneCenter.currentShape = ui_bmbf_ex.dynTrajectory_Shape.getSelectedId() - 1;
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_TYPE)
+		processor.gaitAnalysis.staticBalance_FB_TYPE = ui_bmbf_ex.dynTarget_FB_TYPE.getSelectedId();
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_DATA)
+		processor.gaitAnalysis.staticBalance_FB_DATA = ui_bmbf_ex.dynTarget_FB_DATA.getSelectedId();
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_X)
+		processor.audioParams.activeAudioParam_DynTarget_X = ui_bmbf_ex.dynTarget_FB_X.getSelectedId() - 1;
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_Y)
+		processor.audioParams.activeAudioParam_DynTarget_Y = ui_bmbf_ex.dynTarget_FB_Y.getSelectedId() - 1;
 
 	if (box == &ui_bmbf_ex.HS_TimingMode)
 		processor.gaitAnalysis.isHalfTime = ui_bmbf_ex.HS_TimingMode.getSelectedId() == 1 ? false : true;
@@ -777,7 +807,15 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 	float gp_MAX = 0;
 	float target_MIN = 0;
 	float target_MAX = 0;
+	float fc_LPF = 0;
+	int medFilt_L = 0;
 	gaitParamInfo *gaitParamPointer = &processor.gaitAnalysis.gaitParams;
+	int reps_numDone = processor.gaitAnalysis.gaitParams.reps_Completed[processor.exerciseMode_Present];
+	float reps_avgTime = processor.gaitAnalysis.gaitParams.repTime_AVG_GLOBAL[processor.exerciseMode_Present];
+	float reps_avgTime_last5 = processor.gaitAnalysis.gaitParams.repTime_AVG_LAST5[processor.exerciseMode_Present];
+	String rep_str_numDone = ui_bmbf_ex.rep_str_numDone[processor.exerciseMode_Present];
+	String rep_str_avgTime = ui_bmbf_ex.rep_str_AvgTime_TOTAL[processor.exerciseMode_Present];
+	String rep_str_avgTime_last5 = ui_bmbf_ex.rep_str_AvgTime_LAST5[processor.exerciseMode_Present];
 	if (isCallback)
 	{
 		ui_bmbf_gen.gaitParam_targetValue.setText
@@ -788,6 +826,10 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 				[gaitParamPointer->activeGaitParam].target_MAX, 2),
 			dontSendNotification
 		);
+
+		ui_bmbf_ex.rep_NumDone.setText(rep_str_numDone + String(reps_numDone), dontSendNotification);
+		ui_bmbf_ex.rep_AvgTime_TOTAL.setText(rep_str_avgTime + String(reps_avgTime,2) + " sec.", dontSendNotification);
+		ui_bmbf_ex.rep_AvgTime_LAST5.setText(rep_str_avgTime_last5 + String(reps_avgTime_last5) + " sec.", dontSendNotification);
 	}
 	else
 	{
@@ -799,9 +841,15 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 			[gaitParamPointer->activeGaitParam].minVal;
 		gp_MAX = gaitParamPointer->gaitParam_ObjectArray
 			[gaitParamPointer->activeGaitParam].maxVal;
+		fc_LPF = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].filterFc_OPT;
+		medFilt_L = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].medianFilt_L_OPT;
 
 		ui_bmbf_gen.gaitParam_setTarget.setMinValue((target_MIN - gp_MIN) / (gp_MAX - gp_MIN));
 		ui_bmbf_gen.gaitParam_setTarget.setMaxValue((target_MAX - gp_MIN) / (gp_MAX - gp_MIN));
+		ui_bmbf_gen.imuSmooth_Fc.setValue(fc_LPF);
+		ui_bmbf_gen.medianFilter_Length.setValue(medFilt_L);
 	}
 }
 
@@ -833,8 +881,8 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	updateOSC_ConnectionDisplay();
 
 	// CHECK IF TRUNK PROJECTION ZONE, UPDATE UI
-	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].name == "Trunk Projection Zone")
+	/*if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].name == "Trunk Projection Zone")*/
 		updateProjectionZoneVisualizer();
 
 	// SONG PROGRESS BAR
@@ -925,9 +973,12 @@ void GaitSonificationAudioProcessorEditor::resized()
 // REAL TIME UPDATE 2D VISUALIZER
 void GaitSonificationAudioProcessorEditor::updateProjectionZoneVisualizer()
 {
+	// MP INDICES - MAKE DYNAMIC SOMEHOW?
 	int MPIndex_Projection = 2;
 	int MPIndex_ML = 0;
 	int MPIndex_AP = 1;
+
+	// REQUIRED INFO FROM GAITANALYSIS
 	int currentZone = processor.gaitAnalysis.gaitParams.
 		gaitParam_ObjectArray[MPIndex_Projection].currentValue;
 	float MPVal_ML = processor.gaitAnalysis.gaitParams.
@@ -936,35 +987,89 @@ void GaitSonificationAudioProcessorEditor::updateProjectionZoneVisualizer()
 		gaitParam_ObjectArray[MPIndex_AP].currentValue;
 	float ML_CenterOffset = processor.gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
 	float AP_CenterOffset = processor.gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
-	float pixelsPerDegree = ui_zv_2d.ZV_totalLength / 40;
-	Colour colourSet[6] = {Colours::green,Colours::yellowgreen,Colours::yellow,Colours::orange,Colours::red,Colours::red};
 	float roll_Thresh = processor.gaitAnalysis.staticBalance_Div_Roll;
-	float innerRect_startingX = fmax(950, ui_zv_2d.ZV_zeroPos_H + ML_CenterOffset*pixelsPerDegree + 10 - roll_Thresh * pixelsPerDegree);
-	float innerRect_width = fmin(2 * roll_Thresh * pixelsPerDegree, 1150 - innerRect_startingX);
-
 	float pitch_Thresh = processor.gaitAnalysis.staticBalance_Div_Pitch;
-	float innerRect_AP_startingY = max(330, ui_zv_2d.ZV_zeroPos_V + AP_CenterOffset * pixelsPerDegree + 10 - pitch_Thresh * pixelsPerDegree);
-	float innerRect_AP_height = min(2 * pitch_Thresh * pixelsPerDegree, 530 - innerRect_AP_startingY);
-	ui_zv_2d.ZV_InnerRect.setBounds(innerRect_startingX, 330, innerRect_width, ui_zv_2d.ZV_totalLength);
-	ui_zv_2d.ZV_InnerRect_AP.setBounds(950, innerRect_AP_startingY, ui_zv_2d.ZV_totalLength, innerRect_AP_height);
+	Colour colourSet[6] = { Colours::green,Colours::yellowgreen,Colours::yellow,Colours::orange,Colours::red,Colours::red };
+	int dispIdx = ui_zv_2d.dispMode - 1;
+
+	// MOVE BOX + LABELS
+	ui_zv_2d.ZV_TotalSpace.setBounds
+	(
+		ui_zv_2d.ZV_TotalSpace_Bounds[dispIdx][0],
+		ui_zv_2d.ZV_TotalSpace_Bounds[dispIdx][1],
+		ui_zv_2d.ZV_TotalSpace_Bounds[dispIdx][2],
+		ui_zv_2d.ZV_TotalSpace_Bounds[dispIdx][3]
+	);
+
+	ui_zv_2d.ZV_F.setBounds
+	(
+		ui_zv_2d.ZV_F_Lab_Bounds[dispIdx][0],
+		ui_zv_2d.ZV_F_Lab_Bounds[dispIdx][1],
+		ui_zv_2d.ZV_F_Lab_Bounds[dispIdx][2],
+		ui_zv_2d.ZV_F_Lab_Bounds[dispIdx][3]
+	);
 	
-	float currentPos_H = ui_zv_2d.ZV_zeroPos_H - max(-18, min(MPVal_ML, 18)) * pixelsPerDegree;
-	float currentPos_V = ui_zv_2d.ZV_zeroPos_V - max(-18, min(MPVal_AP, 18)) * pixelsPerDegree;
-	ui_zv_2d.ZV_CurrentPos.setBounds(currentPos_H, currentPos_V, 20, 20);
+	ui_zv_2d.ZV_B.setBounds
+	(
+		ui_zv_2d.ZV_B_Lab_Bounds[dispIdx][0],
+		ui_zv_2d.ZV_B_Lab_Bounds[dispIdx][1],
+		ui_zv_2d.ZV_B_Lab_Bounds[dispIdx][2],
+		ui_zv_2d.ZV_B_Lab_Bounds[dispIdx][3]
+	);
+	
+	ui_zv_2d.ZV_L.setBounds
+	(
+		ui_zv_2d.ZV_L_Lab_Bounds[dispIdx][0],
+		ui_zv_2d.ZV_L_Lab_Bounds[dispIdx][1],
+		ui_zv_2d.ZV_L_Lab_Bounds[dispIdx][2],
+		ui_zv_2d.ZV_L_Lab_Bounds[dispIdx][3]
+	);
+	
+	ui_zv_2d.ZV_R.setBounds
+	(
+		ui_zv_2d.ZV_R_Lab_Bounds[dispIdx][0],
+		ui_zv_2d.ZV_R_Lab_Bounds[dispIdx][1],
+		ui_zv_2d.ZV_R_Lab_Bounds[dispIdx][2],
+		ui_zv_2d.ZV_R_Lab_Bounds[dispIdx][3]
+	);
+
+	// CALCULATE PIXELS PER DEGREE
+	float pixelsPerDegree = ui_zv_2d.ZV_totalLength[dispIdx] / 40;
+	
+	// ML INNER RECTANGLE - CALCULATE STARTING BOUNDS + WIDTH
+	float innerRect_startingX = 
+		fmax(ui_zv_2d.ZV_ML_startX_MIN[dispIdx], ui_zv_2d.ZV_zeroPos_H[dispIdx]
+			+ ML_CenterOffset*pixelsPerDegree 
+			+ ui_zv_2d.ZV_Current_W[dispIdx]/2 - roll_Thresh * pixelsPerDegree);
+	float innerRect_width = fmin(2 * roll_Thresh 
+							* pixelsPerDegree, ui_zv_2d.ZV_ML_endX_MAX[dispIdx] - innerRect_startingX);
+	
+	// AP INNER RECTANGLE - CALCULATE STARTING BOUNDS + HEIGHT
+	float innerRect_AP_startingY = 
+		max(ui_zv_2d.ZV_AP_startY_MIN[dispIdx], ui_zv_2d.ZV_zeroPos_V[dispIdx]
+			+ AP_CenterOffset * pixelsPerDegree 
+			+ ui_zv_2d.ZV_Current_H[dispIdx]/2 - pitch_Thresh * pixelsPerDegree);
+	float innerRect_AP_height = min(2 * pitch_Thresh * pixelsPerDegree, 
+		ui_zv_2d.ZV_AP_endY_MAX[dispIdx] - innerRect_AP_startingY);
+	
+	// SET BOUNDS - INNER RECTANGLES ML + AP
+	ui_zv_2d.ZV_InnerRect.setBounds(innerRect_startingX, ui_zv_2d.ZV_AP_startY_MIN[dispIdx], innerRect_width, ui_zv_2d.ZV_totalLength[dispIdx]);
+	ui_zv_2d.ZV_InnerRect_AP.setBounds(ui_zv_2d.ZV_ML_startX_MIN[dispIdx], innerRect_AP_startingY, ui_zv_2d.ZV_totalLength[dispIdx], innerRect_AP_height);
+	
+	// CURRENT POSITION BOX - CALCULATE X AND Y POSITIONS
+	float currentPos_H = ui_zv_2d.ZV_zeroPos_H[dispIdx] - max(-18, min(MPVal_ML, 18)) * pixelsPerDegree;
+	float currentPos_V = ui_zv_2d.ZV_zeroPos_V[dispIdx] - max(-18, min(MPVal_AP, 18)) * pixelsPerDegree;
+
+	// CURRENT POSITION BOX - SET BOUNDS, ZONE TEXT AND COLOUR
+	ui_zv_2d.ZV_CurrentPos.setBounds(currentPos_H, currentPos_V, ui_zv_2d.ZV_Current_W[dispIdx], ui_zv_2d.ZV_Current_H[dispIdx]);
 	ui_zv_2d.ZV_CurrentPos.setText(String(currentZone), dontSendNotification);
+	ui_zv_2d.ZV_CurrentPos.setJustificationType(Justification::centred);
 	ui_zv_2d.ZV_CurrentPos.setColour(ui_zv_2d.ZV_CurrentPos.backgroundColourId, colourSet[currentZone - 1]);
 }
 
 // REAL TIME UPDATE 1D VISUALIZER
 void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 {
-	/*ui_rtv_1d.rtv_outerBound.setBounds(
-		ui_rtv_1d.rtv_startX[ui_rtv_1d.dispMode - 1] - 2,
-		ui_rtv_1d.rtv_startY[ui_rtv_1d.dispMode - 1] - 2.5 * ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] + 10,
-		ui_rtv_1d.rtv_width[ui_rtv_1d.dispMode - 1] + 25,
-		2.5 * ui_rtv_1d.rtv_ht[ui_rtv_1d.dispMode - 1] + 20
-	);*/
-
 	ui_rtv_1d.rtv_outerBound.setBounds(
 		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][0],
 		ui_rtv_1d.outerbound[ui_rtv_1d.dispMode - 1][1],
