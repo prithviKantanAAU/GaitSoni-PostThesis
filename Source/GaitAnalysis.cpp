@@ -302,7 +302,6 @@ void GaitAnalysis::getSitStandCueFeature()
 	{
 		sitStand_isStabilized = true;
 		sitStand_Thresh_Current = sitStand_isStanding ? sitStand_Thresh_Sit : sitStand_Thresh_Stand;
-		
 		if (!sitStand_isStanding) gaitParams.incrementNumReps(&repTime_Current);	// INC REPS
 	}
 	bool feedbackCondition = sitStand_feedbackMode ? sitStand_isStabilized : sitStand_isStanding;

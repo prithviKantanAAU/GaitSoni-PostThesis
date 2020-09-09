@@ -41,6 +41,9 @@ public:
 	BiQuad LPF_Gyr_3[3];
 
 	float filterFc = 20;
+	short oscSampleReceived_BUFFER[200] = { 0 };
+	int oscSampleReceived_WriteIdx = 0;
+	float oscSampleReceived_Percent = 0;
 
 	OSCReceiverUDP_Sensor()
 	{
@@ -149,6 +152,14 @@ public:
 		messageCount_Recvd_smpl_z0 = messageCount_Recvd;
 		isMessageRecvd_smpl_z0 = (messageCount_Recvd_smpl_z0 > messageCount_Recvd_smpl_z1) ? 1.0 : 0.0;
 		messageCount_Recvd_smpl_z1 = messageCount_Recvd_smpl_z0;
+
+		// Calculate Short Term (2 Sec) Average Packet Received Percent
+		oscSampleReceived_BUFFER[oscSampleReceived_WriteIdx] = (short)isMessageRecvd_smpl_z0;
+		oscSampleReceived_WriteIdx = (oscSampleReceived_WriteIdx + 1) % 200;
+		oscSampleReceived_Percent = 0;
+		for (int i = 0; i < 200; i++)
+			oscSampleReceived_Percent += oscSampleReceived_BUFFER[i];
+		oscSampleReceived_Percent /= 2.0;
 	}
 
 	void oscMessageReceived(const OSCMessage& message) override

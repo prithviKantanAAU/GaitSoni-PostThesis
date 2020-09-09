@@ -810,14 +810,23 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 	float fc_LPF = 0;
 	int medFilt_L = 0;
 	gaitParamInfo *gaitParamPointer = &processor.gaitAnalysis.gaitParams;
-	int reps_numDone = processor.gaitAnalysis.gaitParams.reps_Completed[processor.exerciseMode_Present];
-	float reps_avgTime = processor.gaitAnalysis.gaitParams.repTime_AVG_GLOBAL[processor.exerciseMode_Present];
-	float reps_avgTime_last5 = processor.gaitAnalysis.gaitParams.repTime_AVG_LAST5[processor.exerciseMode_Present];
+	int reps_numDone = processor.gaitAnalysis.gaitParams.reps_Completed[processor.exerciseMode_Present - 1];
+	float reps_avgTime = processor.gaitAnalysis.gaitParams.repTime_AVG_GLOBAL[processor.exerciseMode_Present - 1];
+	float reps_avgTime_last5 = processor.gaitAnalysis.gaitParams.repTime_AVG_LAST5[processor.exerciseMode_Present - 1];
 	String rep_str_numDone = ui_bmbf_ex.rep_str_numDone[processor.exerciseMode_Present];
 	String rep_str_avgTime = ui_bmbf_ex.rep_str_AvgTime_TOTAL[processor.exerciseMode_Present];
 	String rep_str_avgTime_last5 = ui_bmbf_ex.rep_str_AvgTime_LAST5[processor.exerciseMode_Present];
 	if (isCallback)
 	{
+		if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
+		{
+			String sts_angle = String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[1].currentValue, 2);
+			String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing - " + sts_angle + " deg"
+				: "Sitting - " + sts_angle + " deg";
+			ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
+		}
+
 		ui_bmbf_gen.gaitParam_targetValue.setText
 		(
 			"Target Range: " + String(gaitParamPointer->gaitParam_ObjectArray
@@ -897,15 +906,6 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	if (presentTab == 2)
 	{
 		updateControls_gaitParam(true);
-
-		if (processor.exerciseMode_Present == 4 || processor.exerciseMode_Present == 5)
-		{
-			String sts_angle = String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-				[1].currentValue, 2);
-			String isStandingText = processor.gaitAnalysis.sitStand_isStanding ? "Standing - " + sts_angle + " deg"
-				: "Sitting - " + sts_angle + " deg";
-			ui_bmbf_ex.sitStand_isStanding.setText(isStandingText, dontSendNotification);
-		}
 
 		// CHECK IF CALIBRATING, UPDATE UI
 		if (processor.isCalibrating)

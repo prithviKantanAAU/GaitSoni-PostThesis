@@ -92,6 +92,12 @@ private:
 				ui_sensorCon.BiasComp[i].setButtonText("Calibrated");
 				ui_sensorCon.BiasComp[i].setColour(ui_sensorCon.BiasComp[i].buttonColourId, Colours::green);
 			}
+			
+			ui_sensorCon.PacketPercent[i].setText
+			(
+				String(processor.gaitAnalysis.sensors_OSCReceivers[i].oscSampleReceived_Percent,2),
+				dontSendNotification
+			);
 		}
 	};
 	
@@ -289,6 +295,7 @@ private:
 		addAndMakeVisible(ui_sensorCon.Location_Header);
 		addAndMakeVisible(ui_sensorCon.BiasComp_Header);
 		addAndMakeVisible(ui_sensorCon.BatteryLevel_Header);
+		addAndMakeVisible(ui_sensorCon.PacketPercent_Header);
 		for (int i = 0; i < 3; i++)
 		{
 			addAndMakeVisible(ui_sensorCon.WLAN_IP[i]);
@@ -297,6 +304,7 @@ private:
 			addAndMakeVisible(ui_sensorCon.Location[i]);
 			addAndMakeVisible(ui_sensorCon.BiasComp[i]);
 			addAndMakeVisible(ui_sensorCon.BatteryLevel[i]);
+			addAndMakeVisible(ui_sensorCon.PacketPercent[i]);
 		}
 	}
 	void addControls_TabSpecific()

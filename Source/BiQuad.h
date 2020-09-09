@@ -159,16 +159,16 @@ public:
 			}
 		}
 
-		if (yn > 0 && m_f_Yz_1 < 0)
+		if (yn >= 0 && m_f_Yz_1 < 0)
 			isZeroCrossing_Pos = true;
 
-		if (yn < 0 && m_f_Yz_1 > 0)
+		if (yn <= 0 && m_f_Yz_1 > 0)
 			isZeroCrossing_Neg = true;
 
-		if (yn > thresh && m_f_Yz_1 < thresh)
+		if (yn >= thresh && m_f_Yz_1 < thresh)
 			isThreshCrossing_Pos = true;
 
-		if (yn < thresh && m_f_Yz_1 > thresh)
+		if (yn <= thresh && m_f_Yz_1 > thresh)
 			isThreshCrossing_Neg = true;
 				
 		m_f_Yz_2 = m_f_Yz_1;

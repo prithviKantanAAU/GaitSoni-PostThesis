@@ -21,7 +21,9 @@ public:
 	ComboBox Location[3];				// Column Values - Sensor Bodily Location
 	Label BatteryLevel_Header;			// Column Header - Battery Level
 	Label BatteryLevel[3];				// Column Values - Battery Level
-	TextEditor WLAN_IP[3];				// WLAN 
+	TextEditor WLAN_IP[3];				// WLAN
+	Label PacketPercent_Header;			// Column Header - Fraction of Packets Received
+	Label PacketPercent[3];				// Column Values - Fraction of Packets Received
 
 	void addElements()
 	{
@@ -35,7 +37,8 @@ public:
 		Port_Header.setText("UDP Port", dontSendNotification);
 		Location_Header.setText("Body Location", dontSendNotification);
 		BiasComp_Header.setText("Bias Compensation", dontSendNotification);
-		BatteryLevel_Header.setText("Battery Level", dontSendNotification);
+		BatteryLevel_Header.setText("Battery %", dontSendNotification);
+		PacketPercent_Header.setText("Recd. Packet %", dontSendNotification);
 		for (int i = 0; i < 3; i++)
 		{
 			Location[i].addItem(Locations[0], 1);
@@ -57,6 +60,7 @@ public:
 		Port_Header.setVisible(on);
 		BiasComp_Header.setVisible(on);
 		BatteryLevel_Header.setVisible(on);
+		PacketPercent_Header.setVisible(on);
 		for (int i = 0; i < 3; i++)
 		{
 			Location[i].setVisible(on);
@@ -65,6 +69,7 @@ public:
 			Status[i].setVisible(on);
 			BiasComp[i].setVisible(on);
 			BatteryLevel[i].setVisible(on);
+			PacketPercent[i].setVisible(on);
 		}
 	}
 
@@ -74,8 +79,9 @@ public:
 		Status_Header.setBounds(200, 400, 100, 40);
 		Port_Header.setBounds(300, 400, 100, 40);
 		Location_Header.setBounds(400, 400, 100, 40);
-		BiasComp_Header.setBounds(550, 400, 200, 40);
-		BatteryLevel_Header.setBounds(760, 400, 200, 40);
+		BiasComp_Header.setBounds(550, 400, 150, 40);
+		BatteryLevel_Header.setBounds(710, 400, 80, 40);
+		PacketPercent_Header.setBounds(800, 400, 150, 40);
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -83,8 +89,9 @@ public:
 			Status[i].setBounds(200, 400 + 50 * (i + 1), 100, 40);
 			Port[i].setBounds(300, 400 + 50 * (i + 1), 100, 40);
 			Location[i].setBounds(400, 400 + 50 * (i + 1), 100, 40);
-			BiasComp[i].setBounds(550, 400 + 50 * (i + 1), 200, 40);
-			BatteryLevel[i].setBounds(760, 400 + 50 * (i + 1), 200, 40);
+			BiasComp[i].setBounds(550, 400 + 50 * (i + 1), 120, 40);
+			BatteryLevel[i].setBounds(710, 400 + 50 * (i + 1), 80, 40);
+			PacketPercent[i].setBounds(800, 400 + 50 * (i + 1), 150, 40);
 		}
 	}
 };

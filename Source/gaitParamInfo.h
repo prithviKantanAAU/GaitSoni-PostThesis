@@ -26,7 +26,7 @@ public:
 	BiQuad apSmooth;
 	float apSmooth_Fc = 0;
 	float repTime_Sec[5000][10] = { 0.0 };
-	int reps_Completed[10] = { 0.0 };
+	int reps_Completed[10] = { 0 };
 	float repTime_AVG_GLOBAL[10] = { 0.0 };
 	float repTime_AVG_LAST5[10] = { 0.0 };
 	void flush_repInfo()
