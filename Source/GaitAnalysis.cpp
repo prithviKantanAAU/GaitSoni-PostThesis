@@ -62,6 +62,7 @@ void GaitAnalysis::compute(short currentGaitParam, bool isCalibrating)
 	int mp_Present_Idx = gaitParams.activeGaitParam;
 	String mp_Name_Present = gaitParams.gaitParam_ObjectArray[mp_Present_Idx].name;
 	calc_CurrentMP(mp_Name_Present, isCalibrating);
+	repTime_Current += 1.0 / (float)fs;
 }
 
 // CALCULATE SELECTED MP BASED ON SELECTED NAME
@@ -72,7 +73,6 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-		repIncrement_checkTargetCross();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -81,7 +81,6 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-		repIncrement_checkTargetCross();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -111,6 +110,9 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	if (mpName == "Scalar Jerk")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getSitStandCueFeature();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -118,6 +120,9 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	if (mpName == "Jerk - X")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getSitStandCueFeature();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -125,6 +130,9 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	if (mpName == "Jerk - Y")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getSitStandCueFeature();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -132,6 +140,9 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	if (mpName == "Jerk - Z")
 	{
 		getJerkParams(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf);
+		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getSitStandCueFeature();
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -291,6 +302,8 @@ void GaitAnalysis::getSitStandCueFeature()
 	{
 		sitStand_isStabilized = true;
 		sitStand_Thresh_Current = sitStand_isStanding ? sitStand_Thresh_Sit : sitStand_Thresh_Stand;
+		
+		if (!sitStand_isStanding) gaitParams.incrementNumReps(&repTime_Current);	// INC REPS
 	}
 	bool feedbackCondition = sitStand_feedbackMode ? sitStand_isStabilized : sitStand_isStanding;
 	boundValuesAndStore("STS Cue", feedbackCondition ? 0 : 1);
@@ -391,6 +404,7 @@ bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 					HS_isExpected_L = false;
 					HS_isExpected_R = true;
 					HS_timeDone = 0;
+					gaitParams.incrementNumReps(&repTime_Current);
 				}
 			}
 
@@ -402,6 +416,7 @@ bool GaitAnalysis::detectHS_acc(float *accBuf, bool isLeft)
 					HS_isExpected_L = true;
 					HS_isExpected_R = false;
 					HS_timeDone = 0;
+					gaitParams.incrementNumReps(&repTime_Current);
 				}
 			}
 		}

@@ -26,7 +26,7 @@ public:
 	BiQuad apSmooth;
 	float apSmooth_Fc = 0;
 	float repTime_Sec[5000][10] = { 0.0 };
-	float reps_Completed[10] = { 0.0 };
+	int reps_Completed[10] = { 0.0 };
 	float repTime_AVG_GLOBAL[10] = { 0.0 };
 	float repTime_AVG_LAST5[10] = { 0.0 };
 	void flush_repInfo()
@@ -312,5 +312,23 @@ public:
 	void updateGaitParameter(int index) {	activeGaitParam = index - 1;   };
 	
 	~gaitParamInfo() {};
+
+	void incrementNumReps(float *newRepTime)
+	{
+		short exMode = exerciseMode_Present - 1;
+		repTime_Sec[reps_Completed[exMode]][exMode] = *newRepTime;
+		reps_Completed[exMode]++;
+
+		repTime_AVG_GLOBAL[exMode] =
+			(repTime_AVG_GLOBAL[exMode] * (reps_Completed[exMode] - 1) + *newRepTime) / reps_Completed[exMode];
+
+		int idx_latestRep = reps_Completed[exMode];
+		int idx_latestRep_min5 = max(0, (reps_Completed[exMode] - 5));
+		float avg_last5 = 0;
+		for (int i = idx_latestRep_min5; i < idx_latestRep; i++)
+			avg_last5 += repTime_Sec[i][exMode];
+		repTime_AVG_LAST5[exMode] = avg_last5 / 5.0;
+		*newRepTime = 0;
+	}
 };
 
