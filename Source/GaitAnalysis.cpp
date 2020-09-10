@@ -232,6 +232,22 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 	float angle_yz = angle_yz_z1 + gyrReading_X_avg * 1 / fs;
 	boundValuesAndStore("Inclination (+-) - ML", isnan(angle_xz) ? 0 : angle_xz * 180 / M_PI);
 	boundValuesAndStore("Inclination (+-) - AP", isnan(angle_yz) ? 0 : angle_yz * 180 / M_PI);
+	
+	//INCREMENT REPETITIONS - ONLY FOR INCLINATION MP SELECTED
+	String mpName = gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].name;
+	float currVal = gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].currentValue;
+	float targetMin = gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].target_MIN;
+	float targetMax = gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].target_MAX;
+
+	if (mpName == "Inclination (+-) - ML" || mpName == "Inclination (+-) - AP")
+	{
+		if (currVal_Z1 < targetMax && currVal >= targetMax)
+			gaitParams.incrementNumReps(&repTime_Current);
+		if (currVal_Z1 > targetMin && currVal <= targetMin)
+			gaitParams.incrementNumReps(&repTime_Current);
+	}
+	currVal_Z1 = currVal;
+
 
 	//Calculate R_Gyro_Inter
 	R_gyro_Inter[0] = sin(angle_xz) / sqrt(1 + pow(cos(angle_xz), 2)*pow(tan(angle_yz), 2));
