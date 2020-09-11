@@ -299,7 +299,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 							[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1];
 						transformedKey = scaleTonicTrans.transform_T1S1_TO_T2S2(originalKey,
 							tonicOffset_ORIG, scaleID_ORIG, tonicOffset_TRANS, scaleID_TRANS,
-							trackIndex, cue_AP_Name,soni_AP_Name, musicPhase.emphFunc_Present,AP_Val);
+							trackIndex, cue_AP_Name,X_2D_AP_Name,Y_2D_AP_Name,soni_AP_Name,AP_Val,AP_Val_2D_X,AP_Val_2D_Y);
 
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
 						for (int l = 0; l < numTracks; l++)

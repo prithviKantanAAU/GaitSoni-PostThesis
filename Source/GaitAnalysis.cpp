@@ -267,41 +267,91 @@ void GaitAnalysis::getProjection_ML_AP()
 	float roll_deg = (gaitParams.gaitParam_ObjectArray[0].currentValue + staticBalance_BoundsCoordinates[0][0]);
 	float pitch_deg =(gaitParams.gaitParam_ObjectArray[1].currentValue + staticBalance_BoundsCoordinates[0][1]);
 	float area = pow(staticBalance_Div_Roll, 2) + pow(staticBalance_Div_Pitch, 2);
+	float maxVel_DegPerSec = 36;
+	
+	float fbVar_X = 0;
+	float fbVar_Y = 0;
 
-	if (roll_deg < - 1 * staticBalance_Div_Roll)
+	// FIND AND STORE ZONE
+	if (staticBalance_FB_TYPE == 1)
 	{
-		boundValuesAndStore("Trunk Projection Zone", 6);
-		return;
+		if (roll_deg < -1 * staticBalance_Div_Roll)
+		{
+			boundValuesAndStore("Trunk Projection Zone", 6);
+			return;
+		}
+
+		else if (roll_deg > 1 * staticBalance_Div_Roll)
+		{
+			boundValuesAndStore("Trunk Projection Zone", 5);
+			return;
+		}
+
+		else if (pow(roll_deg, 2) + pow(pitch_deg, 2) <= area)
+		{
+			boundValuesAndStore("Trunk Projection Zone", 1);
+			return;
+		}
+
+		else if (pow(((pitch_deg - 0.5) / 2.25), 2) + pow((roll_deg / 1.5), 2) <= area)
+		{
+			boundValuesAndStore("Trunk Projection Zone", 2);
+			return;
+		}
+
+		else if (pow(((pitch_deg - 0.5) / 3), 2) + pow((roll_deg / 2), 2) <= area)
+		{
+			boundValuesAndStore("Trunk Projection Zone", 3);
+			return;
+		}
+
+		else
+		{
+			boundValuesAndStore("Trunk Projection Zone", 4);
+			return;
+		}
 	}
 
-	else if (roll_deg > 1 * staticBalance_Div_Roll)
+	// STORE 2D AP - TASK INFO ONLY
+	if (staticBalance_FB_TYPE == 2)
 	{
-		boundValuesAndStore("Trunk Projection Zone", 5);
-		return;
+		// POSITION INFO
+		if (staticBalance_FB_DATA == 1)
+		{
+			fbVar_X = (staticBalance_BoundsCoordinates[0][0] - (-20)) / 40.0;
+			fbVar_Y = 1 - (staticBalance_BoundsCoordinates[0][1] - (-20)) / 40.0;
+			gaitParams.apVal_DYN_TaskDependent[0] = fbVar_X;
+			gaitParams.apVal_DYN_TaskDependent[1] = fbVar_Y;
+		}
+
+		// VELOCITY INFO
+		if (staticBalance_FB_DATA == 2)
+		{
+			// FIND DEGREE DISPLACEMENT IN LAST SAMPLING INTERVAL
+			fbVar_X = staticBalance_BoundsCoordinates[0][0] - staticBalance_BoundsCoordinates_z1[0];
+			fbVar_Y = staticBalance_BoundsCoordinates[0][1] - staticBalance_BoundsCoordinates_z1[1];
+
+			// NORMALIZE
+			maxVel_DegPerSec /= (float)fs;
+			fbVar_X = (fbVar_X - (-maxVel_DegPerSec)) / 2 * maxVel_DegPerSec;
+			fbVar_Y = 1 - (fbVar_Y - (-maxVel_DegPerSec)) / 2 * maxVel_DegPerSec;
+
+			// STORE AND SHUFFLE DELAYS
+			gaitParams.apVal_DYN_TaskDependent[0] = fbVar_X;
+			gaitParams.apVal_DYN_TaskDependent[1] = fbVar_Y;
+			staticBalance_BoundsCoordinates_z1[0] = staticBalance_BoundsCoordinates[0][0];
+			staticBalance_BoundsCoordinates_z1[1] = staticBalance_BoundsCoordinates[0][1];
+		}
 	}
 
-	else if (pow(roll_deg, 2) + pow(pitch_deg, 2) <= area)
+	// STORE 2D AP - ANTICIPATED DISTANCE ERROR
+	if (staticBalance_FB_TYPE == 3)
 	{
-		boundValuesAndStore("Trunk Projection Zone", 1);
-		return;
-	}
+		fbVar_X = fabs(fmin((staticBalance_CenterXY_ANTICIPATED[0] - roll_deg),40) / 40.0);
+		fbVar_Y = fabs(fmin((staticBalance_CenterXY_ANTICIPATED[1] - pitch_deg),40) / 40.0);
 
-	else if (pow(((pitch_deg - 0.5) / 2.25), 2) + pow((roll_deg / 1.5), 2) <= area)
-	{
-		boundValuesAndStore("Trunk Projection Zone", 2);
-		return;
-	}
-
-	else if (pow(((pitch_deg - 0.5) / 3), 2) + pow((roll_deg / 2), 2) <= area)
-	{
-		boundValuesAndStore("Trunk Projection Zone", 3);
-		return;
-	}
-
-	else
-	{
-		boundValuesAndStore("Trunk Projection Zone", 4);
-		return;
+		gaitParams.apVal_DYN_TaskDependent[0] = fbVar_X;
+		gaitParams.apVal_DYN_TaskDependent[1] = fbVar_Y;
 	}
 }
 

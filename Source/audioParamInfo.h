@@ -31,13 +31,13 @@ public:
 		audioParam_ObjectArray[1].initializeSoniParams(1, 0, 1, 0, 0, 100);
 
 		// 3					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray4[10] = { true, false, true, false, true, false, false };
+		bool useCaseArray4[10] = { true, false, true, false, true, false, true };
 		audioParam_ObjectArray[2].set_nameTypeAddress("Brightness",	8, 1);
 		audioParam_ObjectArray[2].set_isIncluded_UseScenarios(useCaseArray4, num_UseScenarios);
 		audioParam_ObjectArray[2].initializeSoniParams(0.4, 0, 1, 0, 0, 100);
 
 		// 4					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray5[10] = { true, false, false, true, false, false, true };
+		bool useCaseArray5[10] = { true, false, false, true, false, false, false };
 		audioParam_ObjectArray[3].set_nameTypeAddress("Tonic Pitch", 9, 1);
 		audioParam_ObjectArray[3].set_isIncluded_UseScenarios(useCaseArray5, num_UseScenarios);
 		audioParam_ObjectArray[3].initializeSoniParams(0.8, 0, 1, 0, 0, 100);
@@ -49,7 +49,7 @@ public:
 		audioParam_ObjectArray[4].initializeSoniParams(0.4, 0, 1, 0, 0, 100);
 
 		// 6					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray7[10] = { true, false, true, true, false, true, true };
+		bool useCaseArray7[10] = { true, false, true, true, false, true, false };
 		audioParam_ObjectArray[5].set_nameTypeAddress("Filtered Noise", 11, 1);
 		audioParam_ObjectArray[5].set_isIncluded_UseScenarios(useCaseArray7, num_UseScenarios);
 		audioParam_ObjectArray[5].initializeSoniParams(0.7, 0, 1, 0, 0, 100);
@@ -79,7 +79,7 @@ public:
 		audioParam_ObjectArray[9].initializeSoniParams(1, 0, 1, 0, 0, 100);
 
 		// 11					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray13[10] = { true, true, false, false, true, false, false };
+		bool useCaseArray13[10] = { true, true, false, false, true, false, true };
 		audioParam_ObjectArray[10].set_nameTypeAddress("Wah Cue", 5, 1);
 		audioParam_ObjectArray[10].set_isIncluded_UseScenarios(useCaseArray13, num_UseScenarios);
 		audioParam_ObjectArray[10].initializeSoniParams(0.5, 0, 1, 0, 0, 100);

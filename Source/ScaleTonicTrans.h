@@ -24,7 +24,8 @@ public:
 
 	int transform_T1S1_TO_T2S2(int noteNum, short tonic_Offset1,short scaleID1,
 		short tonic_Offset2, short scaleID2, short trackIndex, String APName_Cue,
-		String APName_Soni, float emphFunc, float mapVal)
+		String X_2D_AP_Name, String Y_2D_AP_Name,String APName_Soni, float mapVal, float apVal_2D_X,
+		float apVal_2D_Y)
 	{
 		short octaveNum = noteNum / 12;
 		short noteNum_NORM = noteNum - octaveNum * 12 - tonic_Offset1;
@@ -58,18 +59,26 @@ public:
 			}
 		}
 
-		// MEL DEGREE CUE
-		if ((APName_Cue == "Mel Degree") && trackIndex == 5)
-		{
-			octaveNum += (short)emphFunc;
-			degreeFound = fmax(1, (int)degreeFound * emphFunc * 8);
-			degreeFound %= 8;
-		}
-
 		// MEL DEGREE SONIFY
 		if ((APName_Soni == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + mapVal * 16);
+			octaveNum += (short)(degreeFound / 8);
+			degreeFound %= 8;
+		}
+
+		// MEL DEGREE SONIFY
+		if ((X_2D_AP_Name == "Mel Degree") && trackIndex == 5)
+		{
+			degreeFound = (int)(degreeFound + apVal_2D_X * 16);
+			octaveNum += (short)(degreeFound / 8);
+			degreeFound %= 8;
+		}
+
+		// MEL DEGREE SONIFY
+		if ((Y_2D_AP_Name == "Mel Degree") && trackIndex == 5)
+		{
+			degreeFound = (int)(degreeFound + apVal_2D_Y * 16);
 			octaveNum += (short)(degreeFound / 8);
 			degreeFound %= 8;
 		}

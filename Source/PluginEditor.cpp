@@ -607,14 +607,36 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	// INITIALIZE DYN TARGET X AND Y FEEDBACK STRATEGY LISTS
 	
 	ui_bmbf_ex.dynTarget_FB_DATA.addListener(this);
-	
 	ui_bmbf_ex.dynTarget_FB_TYPE.addListener(this);
 	
+	// Dyn X AP
 	ui_bmbf_ex.dynTarget_FB_X.addListener(this);
-	// INITIALIZE LISTS
+	for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
+	{
+		if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[6])
+		{
+			ui_bmbf_ex.dynTarget_FB_X.
+				addItem(processor.audioParams.audioParam_ObjectArray[i].name, i + 1);
+		}
+	}
 
+	// Dyn Y AP
 	ui_bmbf_ex.dynTarget_FB_Y.addListener(this);
-	// INITIALIZE LISTS
+	for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
+	{
+		if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[6])
+		{
+			ui_bmbf_ex.dynTarget_FB_Y.
+				addItem(processor.audioParams.audioParam_ObjectArray[i].name, i + 1);
+		}
+	}
+
+	// DYN TARGET XY UNASSIGNED
+	ui_bmbf_ex.dynTarget_FB_X.addItem("NONE", 100);
+	ui_bmbf_ex.dynTarget_FB_Y.addItem("NONE", 100);
+	ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
+	ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
+	
 }
 
 // CONFIGURE 1D VISUALIZER
@@ -723,10 +745,10 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	}
 
 	
-	if (box == &ringVisualize.emph_Strategy)
+	/*if (box == &ringVisualize.emph_Strategy)
 	{
 		processor.updateAudioParameter(box->getSelectedId(), 2);
-	}
+	}*/
 
 	if (box == &ui_musiCon_gen.music_Mode)
 	{
@@ -775,6 +797,29 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	if (box == &ui_musiCon_inbuilt.inbuilt_Tonic)
 	{
 		processor.sequencer.tonicOffset_TRANS = box->getSelectedId() - 1;
+	}
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_TYPE)
+	{
+		processor.gaitAnalysis.staticBalance_FB_TYPE = box->getSelectedId();
+		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_Primary.c_str(), 0);
+		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_2D_X.c_str(), 0);
+		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_2D_Y.c_str(), 0);
+	}
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_DATA)
+	{
+		processor.gaitAnalysis.staticBalance_FB_DATA = box->getSelectedId();
+	}
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_X)
+	{
+		processor.updateAudioParameter(box->getSelectedId(), 3);
+	}
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_Y)
+	{
+		processor.updateAudioParameter(box->getSelectedId(), 4);
 	}
 }
 

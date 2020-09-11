@@ -124,9 +124,6 @@ public:
 		dynTrajectory_Period.addItem("8 Bars", 8);
 		dynTrajectory_Period.setSelectedId(1);
 
-		// DYN TRAJECTORY SHAPE
-		// INITIALIZED OUTSIDE
-
 		// DYN TRAJECTORY MIRROR
 		dynTrajectory_Mirror.setButtonText("Mirror L/R");
 		dynTrajectory_Mirror.setColour(dynTrajectory_Mirror.buttonColourId, Colours::blue);
@@ -209,10 +206,11 @@ public:
 		dynTrajectory_Mirror.setVisible(soniTab && isDB);
 		dynTrajectory_Period.setVisible(soniTab && isDB);
 		dynTrajectory_Radius.setVisible(soniTab && isDB);
-		dynTarget_FB_TYPE.setVisible(soniTab && isDB);;
-		dynTarget_FB_DATA.setVisible(soniTab && isDB);;
-		dynTarget_FB_X.setVisible(soniTab && isDB);;
-		dynTarget_FB_Y.setVisible(soniTab && isDB);;
+		
+		dynTarget_FB_TYPE.setVisible(soniTab && isSB_orDB);
+		dynTarget_FB_DATA.setVisible(soniTab && isSB_orDB);
+		dynTarget_FB_X.setVisible(soniTab && isSB_orDB);
+		dynTarget_FB_Y.setVisible(soniTab && isSB_orDB);
 
 		// STS
 		sitStand_Thresh_Stand.setVisible(soniTab && isSTS);

@@ -223,6 +223,7 @@ public:
 			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
 			
 		}
+		
 		if (type == 2)											// Music Cue Param
 		{
 			sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), resetValue);
@@ -232,6 +233,44 @@ public:
 			sequencer.cue_AP_Name = audioParams.audioParam_ObjectArray
 				[audioParams.activeCueParam].name;
 		}
+
+		if (type == 3)											// 2D FB X
+		{
+			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
+			sequencer.dspFaust.setParamValue(soniAddress_2D_X.c_str(), resetValue);
+			audioParams.activeAudioParam_DynTarget_X = index - 1;
+			if (index > audioParams.numSoni_Musical)
+			{
+				soniAddress_2D_X = "";
+				sequencer.X_2D_AP_Name = soniAddress_2D_X;
+			}
+			else
+			{
+				soniAddress_2D_X = sequencer.faustStrings.getSonificationStringAddress
+				(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].faustIndex).toStdString();
+				sequencer.X_2D_AP_Name = audioParams.audioParam_ObjectArray
+					[audioParams.activeAudioParam_DynTarget_X].name;
+			}
+		}
+
+		if (type == 4)											// 2D FB X
+		{
+			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
+			sequencer.dspFaust.setParamValue(soniAddress_2D_Y.c_str(), resetValue);
+			audioParams.activeAudioParam_DynTarget_Y = index - 1;
+			if (index > audioParams.numSoni_Musical)
+			{
+				soniAddress_2D_Y = "";
+				sequencer.Y_2D_AP_Name = soniAddress_2D_Y;
+			}
+			else
+			{
+				soniAddress_2D_Y = sequencer.faustStrings.getSonificationStringAddress
+				(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].faustIndex).toStdString();
+				sequencer.Y_2D_AP_Name = audioParams.audioParam_ObjectArray
+					[audioParams.activeAudioParam_DynTarget_Y].name;
+			}
+		}
 	};
 	void applySequencerSonifications();							// Apply Sequencer-based Sonifications
 
@@ -240,6 +279,8 @@ public:
 	audioParamInfo audioParams;									// Audio Param Info
 	std::string soniAddress_Primary = "";						// MP Sonification AP - FAUST Address
 	std::string soniAddress_Cue = "";							// Cue AP - FAUST Address
+	std::string soniAddress_2D_X = "";							// 2D X AP - FAUST Address
+	std::string soniAddress_2D_Y = "";							// 2D Y AP - FAUST Address
 
 	// Music Clocking
 

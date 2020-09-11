@@ -105,6 +105,8 @@ public:
 
 	// SEQUENCER SONIFICATION
 	float AP_Val = 0;
+	float AP_Val_2D_X = 0;
+	float AP_Val_2D_Y = 0;
 	String soni_AP_Name = "";
 
 	//MIDI
@@ -178,6 +180,8 @@ public:
 	short tonicOffset_ORIG = 0;
 	short tonicOffset_TRANS = 0;
 	String cue_AP_Name = "";
+	String X_2D_AP_Name = "";
+	String Y_2D_AP_Name = "";
 
 	// OCTAVE LIMIT MIDI NOTE WITHIN TWO BOUNDS
 	int midiNoteLimit(short prelimValue, short lowerlim_MIDI, short upperlim_MIDI)

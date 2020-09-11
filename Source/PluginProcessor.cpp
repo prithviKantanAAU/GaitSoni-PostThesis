@@ -95,6 +95,9 @@ void GaitSonificationAudioProcessor::sensorCallback()
 
 	// IF DYNAMIC REACHING, ENABLE DYN TRAJECTORY, UPDATE CENTER COORDINATES
 	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
+	float dynReach_CenterCoordinates_ANTICIPATED[2] = { 0.0, 0.0 };
+	
+	// DYNAMIC REACHING TRAJECTORY UPDATE
 	if (exerciseMode_Present == 3)
 	{
 		dynZoneCenter.barsElapsed = sequencer.barsElapsed;
@@ -106,6 +109,18 @@ void GaitSonificationAudioProcessor::sensorCallback()
 
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
+
+		sequencer.AP_Val_2D_X = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
+		sequencer.AP_Val_2D_Y = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
+
+		// Feedback Type: Anticipated Distance Error (2D)
+		if (gaitAnalysis.staticBalance_FB_TYPE == 3)
+		{
+			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + M_PI / 10,
+				dynReach_CenterCoordinates_ANTICIPATED);
+			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates_ANTICIPATED[0];
+			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates_ANTICIPATED[1];
+		}
 	}
 
 	// COMPUTE CHOSEN MOVEMENT PARAM
@@ -120,13 +135,18 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	sequencer.AP_Val = mapVal;
 
 	// MAP X AND Y AP TO FAUST / WHEREVER
-	if (exerciseMode_Present == 3)
+	if (gaitAnalysis.gaitParams.gaitParam_ObjectArray[gaitAnalysis.gaitParams.activeGaitParam].name ==
+		"Trunk Projection Zone" && gaitAnalysis.staticBalance_FB_TYPE != 1)
 	{
-		/////////////////////// !!!!!!!!!!!! fill !!!!!!!!!!!!!!!!!!! //////////////////////////
+		sequencer.dspFaust.setParamValue
+		(soniAddress_2D_X.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0]);
+
+		sequencer.dspFaust.setParamValue
+		(soniAddress_2D_Y.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1]);
 	}
 
 	// CHECK MUSIC PLAYBACK
-	if (sequencer.isPlaying)
+	if (sequencer.isPlaying && gaitAnalysis.staticBalance_FB_TYPE == 1)
 	{
 		// CHECK AP TYPE
 		switch (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type)

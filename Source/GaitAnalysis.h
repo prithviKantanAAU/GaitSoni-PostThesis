@@ -96,20 +96,6 @@ public:
 		float minVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].minVal;
 		float maxVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].maxVal;
 		gaitParams.gaitParam_ObjectArray[gaitParamIndex].currentValue = jlimit(minVal, maxVal, value);
-		
-		//// CHECK REPETITION INCREMENT ON CASE BY CASE BASIS
-		//float currVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].currentValue;
-		//float targetMin = gaitParams.gaitParam_ObjectArray[gaitParamIndex].target_MIN;
-		//float targetMax = gaitParams.gaitParam_ObjectArray[gaitParamIndex].target_MAX;
-
-		//if (gaitParamName == "Inclination (+-) - ML" || gaitParamName == "Inclination (+-) - AP")
-		//{
-		//	if (currVal_Z1 < targetMax && currVal >= targetMax)
-		//		gaitParams.incrementNumReps(&repTime_Current);
-		//	if (currVal_Z1 > targetMin && currVal <= targetMin)
-		//		gaitParams.incrementNumReps(&repTime_Current);
-		//}
-		//currVal_Z1 = currVal;
 	};
 
 	float repTime_Current = 0;
