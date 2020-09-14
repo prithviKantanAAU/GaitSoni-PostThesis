@@ -128,14 +128,14 @@ V_CS = velocityInfo(hslider("T7_V_1",9,0,9,0.1));												// 7
 V_CR = velocityInfo(hslider("T8_V_1",9,0,9,0.1));												// 8
 
 //Sonification Sliders and Preprocessing
-soniSlider(idx) = sonificationTab(vgroup("AP Values",hslider("Soni %idx",0,0,1,0.001)));
+soniSlider(idx,defaultVal) = sonificationTab(vgroup("AP Values",hslider("Soni %idx",defaultVal,0,1,0.001)));
 //Discrete
-Soni_Z_SB1 = 			soniSlider(1) : zonePreProcess;									// Ambulance
-Soni_Z_SB2 = 			soniSlider(2) : zonePreProcess;									// Instrumentation
-Soni_X_STS1_Bell = 		soniSlider(3) : ba.impulsify;									// Bell Trigger
-Soni_X_STS2_MusicStop = soniSlider(4) : >(0.1);											// Music Stop
-Soni_X_STS3_Wah =		soniSlider(5) : si.smoo;										// Wah Wah
-Soni_X_H1_TRG = 		soniSlider(6);													// HS Trigger
+Soni_Z_SB1 = 			soniSlider(1,0) : zonePreProcess;									// Ambulance
+Soni_Z_SB2 = 			soniSlider(2,0) : zonePreProcess;									// Instrumentation
+Soni_X_STS1_Bell = 		soniSlider(3,0) : ba.impulsify;									// Bell Trigger
+Soni_X_STS2_MusicStop = soniSlider(4,0) : >(0.1);											// Music Stop
+Soni_X_STS3_Wah =		soniSlider(5,0) : si.smoo;										// Wah Wah
+Soni_X_H1_TRG = 		soniSlider(6,0);													// HS Trigger
 
 // HS Slider Cooking
 HS_S_TRG = (abs(Soni_X_H1_TRG - 0.8) < 0.03) : ba.impulsify;
@@ -143,11 +143,12 @@ HS_K_TRG = (abs(Soni_X_H1_TRG - 0.7) < 0.03) : ba.impulsify;
 S_isHEEL = Soni_X_H1_TRG > 0.49;
 
 //Continuous
-Soni_X_P3_ChordFreqDist = 				soniSlider(7);									// Chord Freq Distortion
-Soni_X_R3_OverallBrightness = 			soniSlider(8);									// Overall Music Brightness
-Soni_X_J1_MelBaseFreq = 				soniSlider(9);									// Melody Tonic Frequency
-Soni_X_J2_Pitched = 					soniSlider(10);									// Pitched Disturbance
-Soni_X_J3_Whoosh = 						soniSlider(11);									// Noise Disturbance
+Soni_X_P3_ChordFreqDist = 				soniSlider(7,0);									// Chord Freq Distortion
+Soni_X_R3_OverallBrightness = 			soniSlider(8,0);									// Overall Music Brightness
+Soni_X_J1_MelBaseFreq = 				soniSlider(9,0);									// Melody Tonic Frequency
+Soni_X_J2_Pitched = 					soniSlider(10,0);									// Pitched Disturbance
+Soni_X_J3_Whoosh = 						soniSlider(11,0);									// Noise Disturbance
+Soni_X_D1_Spatialize = 					soniSlider(12,0.5);									// Spatialization
 
 SONI_GAIN_DB = masterGainGroup(vslider("Soni Buss Gain",-8,-10,2,0.01));
 masterGain = masterGainGroup(vslider("Master Gain",-6,-96,12,0.01) : ba.db2linear);
@@ -471,6 +472,13 @@ Soni_STS3_Wah(LFO,minFreq,maxFreq) = _,_ : singleChannelWah,singleChannelWah wit
   currentGain = 22 * (Soni_X_STS3_Wah);
 };
 
+// SPATIALIZE
+Soni_D1_Spatialize_PAN = _,_ : _*(M_L),_*(M_R) with
+{
+  M_L = sqrt(1 - Soni_X_D1_Spatialize) * 1.414;
+  M_R = sqrt(Soni_X_D1_Spatialize);
+};
+
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // Generation // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // 
 
 // TRIGGERS
@@ -595,4 +603,4 @@ masterChannel = masterComp : stereoEffect(parametricEQ(masterEQGroup)) : stereoE
   						   : stereoLinGain(masterGain) : stereoEffect(masterLimiter(0)) : stereoEffect(hard_clip(1));
 musicBus = melBus,percBus,reverbBus :> stereoLinGain(musicDuck);
 
-process = musicBus,soniBus :> masterChannel;
+process = musicBus,soniBus :> masterChannel : Soni_D1_Spatialize_PAN;
