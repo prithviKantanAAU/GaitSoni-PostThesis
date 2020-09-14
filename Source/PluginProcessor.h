@@ -95,9 +95,11 @@ public:
 				[gaitAnalysis.gaitParams.activeGaitParam].name) + " - REC - " + imuRecord.getCurrentTime();
 		// FULL LOG
 		String sensorFileName = imuRecord.filePath_SensorRec + "\\Full Log.csv";
+		String repFileName = imuRecord.filePath_SensorRec + "\\Repetition Log.csv";
 		String sensorFileNameRaw = "";
 		CreateDirectory(imuRecord.filePath_SensorRec.toStdString().c_str(), NULL);
 		imuRecord.sensorRecording = fopen(sensorFileName.toStdString().c_str(), "w");
+		imuRecord.repetitionData = fopen(repFileName.toStdString().c_str(), "w");
 		short bodyPartIndex = 0;
 
 		// RAW LOGS FOR ALL SENSORS
@@ -119,6 +121,14 @@ public:
 	// Stop sensor logging
 	void stopRecording_Sensor()
 	{
+		// REP LOGS FOR EXERCISE
+		for (int i = 0; i < gaitAnalysis.gaitParams.reps_Completed[exerciseMode_Present - 1]; i++)
+		{
+			imuRecord.currentRow_Reps_FLOAT[0] = i + 1;
+			imuRecord.currentRow_Reps_FLOAT[1] = gaitAnalysis.gaitParams.repTime_Sec[i][exerciseMode_Present - 1];
+			imuRecord.writeToLog_Line_Reps();
+		}
+
 		//DISABLE FLAG, CLOSE FILES
 		imuRecord.isRecording_Sensor = false;
 		//MAIN LOG
@@ -131,6 +141,9 @@ public:
 				fclose(imuRecord.rawSensorData[i]);
 			}
 		}
+
+		// REP LOG
+		fclose(imuRecord.repetitionData);
 	}
 	
 	// Write Present Line of Sensor Log
@@ -213,7 +226,7 @@ public:
 	// Update Present AP
 	void updateAudioParameter(int index, short type)			
 	{ 
-		float resetValue = 0;
+		float resetValue = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal;
 		if (type == 1)											// MP Sonification Param
 		{
 			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);

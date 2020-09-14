@@ -27,9 +27,10 @@ public:
 	float toleranceBW = 0;
 	int quantLevels = 0;
 	float smoothingFc = 100;
+	float resetVal = 0;
 
 	void initializeSoniParams(float mapOrder, float mini, float maxi,
-		float tolBW, float qLevels, float smoothFc)								// Mandatory Call 3
+		float tolBW, float qLevels, float smoothFc, float resetValue)				// Mandatory Call 3
 	{
 		mappingOrder = mapOrder;
 		minVal = mini;
@@ -37,6 +38,7 @@ public:
 		toleranceBW = tolBW;
 		quantLevels = qLevels;
 		smoothingFc = smoothFc;
+		resetVal = resetValue;
 	}
 	
 	AudioParam_Single() 

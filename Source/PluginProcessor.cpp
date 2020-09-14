@@ -110,17 +110,20 @@ void GaitSonificationAudioProcessor::sensorCallback()
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
 
-		sequencer.AP_Val_2D_X = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
-		sequencer.AP_Val_2D_Y = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
-
 		// Feedback Type: Anticipated Distance Error (2D)
 		if (gaitAnalysis.staticBalance_FB_TYPE == 3)
 		{
-			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + M_PI / 10,
+			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + M_PI / 100,
 				dynReach_CenterCoordinates_ANTICIPATED);
-			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates_ANTICIPATED[0];
-			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates_ANTICIPATED[1];
+			/*gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates_ANTICIPATED[0];
+			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates_ANTICIPATED[1];*/
+
+			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates[0];
+			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates[1];
 		}
+
+		sequencer.AP_Val_2D_X = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
+		sequencer.AP_Val_2D_Y = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
 	}
 
 	// COMPUTE CHOSEN MOVEMENT PARAM

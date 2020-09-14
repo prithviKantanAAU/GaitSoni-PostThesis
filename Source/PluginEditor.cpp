@@ -683,6 +683,8 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		}
 
 		// Toggle Exercise Specific Controls
+		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
+		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
 		ui_mpCal.changeButtonText(ui_bmbf_gen.exerciseMode.getSelectedId());
 		ui_bmbf_ex.toggleVisible(ui_bmbf_gen.exerciseMode.getSelectedId(), isSonificationTab);
 		
@@ -803,8 +805,8 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	{
 		processor.gaitAnalysis.staticBalance_FB_TYPE = box->getSelectedId();
 		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_Primary.c_str(), 0);
-		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_2D_X.c_str(), 0);
-		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_2D_Y.c_str(), 0);
+		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
+		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
 	}
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_DATA)

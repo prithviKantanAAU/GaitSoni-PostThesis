@@ -264,10 +264,18 @@ void GaitAnalysis::getOrientation_Fused(float *accBuf, float *gyrBuf)
 // CALCULATE ORIENTATION PROJECTION ZONE
 void GaitAnalysis::getProjection_ML_AP()
 {
-	float roll_deg = (gaitParams.gaitParam_ObjectArray[0].currentValue + staticBalance_BoundsCoordinates[0][0]);
-	float pitch_deg =(gaitParams.gaitParam_ObjectArray[1].currentValue + staticBalance_BoundsCoordinates[0][1]);
+	float roll_deg = (gaitParams.gaitParam_ObjectArray[0].currentValue);
+	float pitch_deg =(gaitParams.gaitParam_ObjectArray[1].currentValue);
+
+	float roll_deg_NORM = roll_deg + staticBalance_BoundsCoordinates[0][0];
+	float pitch_deg_NORM = pitch_deg + staticBalance_BoundsCoordinates[0][1];
+
 	float area = pow(staticBalance_Div_Roll, 2) + pow(staticBalance_Div_Pitch, 2);
 	float maxVel_DegPerSec = 36;
+	float sig_x1 = 0;
+	float sig_x2 = 0;
+	float sig_y1 = 0;
+	float sig_y2 = 0;
 	
 	float fbVar_X = 0;
 	float fbVar_Y = 0;
@@ -275,31 +283,31 @@ void GaitAnalysis::getProjection_ML_AP()
 	// FIND AND STORE ZONE
 	if (staticBalance_FB_TYPE == 1)
 	{
-		if (roll_deg < -1 * staticBalance_Div_Roll)
+		if (roll_deg_NORM < -1 * staticBalance_Div_Roll)
 		{
 			boundValuesAndStore("Trunk Projection Zone", 6);
 			return;
 		}
 
-		else if (roll_deg > 1 * staticBalance_Div_Roll)
+		else if (roll_deg_NORM > 1 * staticBalance_Div_Roll)
 		{
 			boundValuesAndStore("Trunk Projection Zone", 5);
 			return;
 		}
 
-		else if (pow(roll_deg, 2) + pow(pitch_deg, 2) <= area)
+		else if (pow(roll_deg_NORM, 2) + pow(pitch_deg_NORM, 2) <= area)
 		{
 			boundValuesAndStore("Trunk Projection Zone", 1);
 			return;
 		}
 
-		else if (pow(((pitch_deg - 0.5) / 2.25), 2) + pow((roll_deg / 1.5), 2) <= area)
+		else if (pow(((pitch_deg_NORM - 0.5) / 2.25), 2) + pow((roll_deg_NORM / 1.5), 2) <= area)
 		{
 			boundValuesAndStore("Trunk Projection Zone", 2);
 			return;
 		}
 
-		else if (pow(((pitch_deg - 0.5) / 3), 2) + pow((roll_deg / 2), 2) <= area)
+		else if (pow(((pitch_deg_NORM - 0.5) / 3), 2) + pow((roll_deg_NORM / 2), 2) <= area)
 		{
 			boundValuesAndStore("Trunk Projection Zone", 3);
 			return;
@@ -347,8 +355,20 @@ void GaitAnalysis::getProjection_ML_AP()
 	// STORE 2D AP - ANTICIPATED DISTANCE ERROR
 	if (staticBalance_FB_TYPE == 3)
 	{
-		fbVar_X = fabs(fmin((staticBalance_CenterXY_ANTICIPATED[0] - roll_deg),40) / 40.0);
-		fbVar_Y = fabs(fmin((staticBalance_CenterXY_ANTICIPATED[1] - pitch_deg),40) / 40.0);
+		roll_deg *= -1;
+		pitch_deg *= -1;
+		sig_x1 = staticBalance_CenterXY_ANTICIPATED[0] - staticBalance_Div_Roll;
+		sig_x2 = staticBalance_CenterXY_ANTICIPATED[0] + staticBalance_Div_Roll;
+
+		sig_y1 = staticBalance_CenterXY_ANTICIPATED[1] - staticBalance_Div_Pitch;
+		sig_y2 = staticBalance_CenterXY_ANTICIPATED[1] + staticBalance_Div_Pitch;
+
+
+		fbVar_X = 1 - 0.5* (exp(roll_deg - sig_x1) / (exp(roll_deg - sig_x1) + 1) +
+						exp(roll_deg - sig_x2) / (exp(roll_deg - sig_x2) + 1));
+
+		fbVar_Y = 1 - 0.5* (exp(pitch_deg - sig_y1) / (exp(pitch_deg - sig_y1) + 1) +
+						exp(pitch_deg - sig_y2) / (exp(pitch_deg - sig_y2) + 1));
 
 		gaitParams.apVal_DYN_TaskDependent[0] = fbVar_X;
 		gaitParams.apVal_DYN_TaskDependent[1] = fbVar_Y;
