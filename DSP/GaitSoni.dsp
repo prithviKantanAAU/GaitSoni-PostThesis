@@ -355,6 +355,15 @@ pianoSim_singleNote(freq,trigger) = monoOut
   ampEnv = pow(en.ar(0.001,4,trigger),6)  : si.smooth(ba.tau2pole(0.0001));										// AMPLITUDE ENV
 };
 
+voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(voiceType,vowel,0,freq,0.04) * env with
+{
+	env = en.ar(0.04,2  / tempo * 78.6,trigger);
+	env_vowel = en.ar(0.04,0.6 / tempo * 78.6,trigger);
+	voiceType = 1 * (freq < 390) + 4 * (freq >= 390);
+	vowel_H = 1.5 * (vel > 3) + 0.75 * (vel > 6) + vel / 10.0 * (0.5 + 0.5 * os.osc(tempo/300.0));  
+  	vowel = vowel_H * env_vowel;
+};
+
 fullChordSynth(freqList,synthFunc,env) = stereoChordOut with
 { 
   freqSelector(n) = freqList : ba.selectn(4,n-1);																			// INDIVIDUAL FREQS
@@ -551,8 +560,9 @@ riffTrack = riffSynth : applyVelocity(V_R,TRG_R,9) : monoChannel(5) : getPanFunc
 //Melody Main
 
 F0_M = KEYNUM_M : Soni_J1_FreqWarpFactor;
+V_M_SUS = V_M : ba.sAndH(TRG_M);
 M_FreqFactor = (F0_M - 300)/700 : si.smooth(ba.tau2pole(0.001));
-M_V1(freq) = os.CZresTrap(0.5*(1+os.osc(freq)),(25 * en.are(0.001,2,TRG_M) + M_FreqFactor)) * en.are(0.001,2,TRG_M);		// MELODY SF - VARIANT 1
+M_V1(freq) = voiceSynth_FormantBP(freq,V_M_SUS,TRG_M);																		// MELODY SF - VARIANT 1
 M_V2(freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
 											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,TRG_M,V_M);				// MELODY SF - VARIANT 2
 M_V3(freq) = fmSynth_Versatile(freq,TRUMPET_MRATIO,TRUMPET_I_FIXED,TRUMPET_I_ENV,
