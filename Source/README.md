@@ -225,14 +225,15 @@ In case you would like to use the the built-in accelerometer or gyroscope of you
 * **170**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_1`
 * **171**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_10`
 * **172**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_11`
-* **173**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_2`
-* **174**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_3`
-* **175**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_4`
-* **176**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_5`
-* **177**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_6`
-* **178**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_7`
-* **179**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_8`
-* **180**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_9`
+* **173**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_12`
+* **174**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_2`
+* **175**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_3`
+* **176**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_4`
+* **177**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_5`
+* **178**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_6`
+* **179**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_7`
+* **180**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_8`
+* **181**: `/GaitSoni/Mapping_Tabs/Sonification_Types/AP_Values/Soni_9`
 
 
 ## API Reference
