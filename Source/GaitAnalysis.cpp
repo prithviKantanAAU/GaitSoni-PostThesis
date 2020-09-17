@@ -367,8 +367,12 @@ void GaitAnalysis::getProjection_ML_AP()
 		fbVar_X = 1 - 0.5* (exp(roll_deg - sig_x1) / (exp(roll_deg - sig_x1) + 1) +
 						exp(roll_deg - sig_x2) / (exp(roll_deg - sig_x2) + 1));
 
+		fbVar_X = abs(fbVar_X - 0.5) < 0.15 ? 0.5 : fbVar_X;
+
 		fbVar_Y = 1 - 0.5* (exp(pitch_deg - sig_y1) / (exp(pitch_deg - sig_y1) + 1) +
 						exp(pitch_deg - sig_y2) / (exp(pitch_deg - sig_y2) + 1));
+
+		fbVar_Y = abs(fbVar_Y - 0.5) < 0.15 ? 0.5 : fbVar_Y;
 
 		gaitParams.apVal_DYN_TaskDependent[0] = fbVar_X;
 		gaitParams.apVal_DYN_TaskDependent[1] = fbVar_Y;

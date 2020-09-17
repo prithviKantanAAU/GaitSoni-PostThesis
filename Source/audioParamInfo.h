@@ -37,10 +37,10 @@ public:
 		audioParam_ObjectArray[2].initializeSoniParams(0.4, 0, 1, 0, 0, 100, 0);
 
 		// 4					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray5[10] = { true, false, false, true, false, false, false };
+		bool useCaseArray5[10] = { true, false, false, true, false, false, true };
 		audioParam_ObjectArray[3].set_nameTypeAddress("Tonic Pitch", 9, 1);
 		audioParam_ObjectArray[3].set_isIncluded_UseScenarios(useCaseArray5, num_UseScenarios);
-		audioParam_ObjectArray[3].initializeSoniParams(0.8, 0, 1, 0, 0, 100, 0);
+		audioParam_ObjectArray[3].initializeSoniParams(0.8, 0, 1, 0, 0, 100, 0.5);
 
 		// 5					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
 		bool useCaseArray6[10] = { true, false, false, true, false, true, false };
