@@ -46,7 +46,7 @@ SONI_SB_Z2_ONOFF_RD(i) = SONI_SB_Z2_ONOFF,i : rdtable;
 Soni_R1_maxLevel = 0;	Soni_R1_minLevel = -80;																// INSTRUMENTATION
 Soni_R3_Fc_Max = 20000; Soni_R3_Fc_Min = 200;																// BRIGHTNESS
 
-Soni_J1_MaxWarpFactor = 5;											// TONIC PITCH 
+Soni_J1_MaxWarpFactor = 10;											// TONIC PITCH 
 Soni_J2_minFreq = 250;		Soni_J2_maxFreq = 5000;					// PITCHED WAVE
 Soni_J3_minFreq = 1000;		Soni_J3_maxFreq = 20000;				// WHOOSH NOISE
 Soni_J3_HPF_FC = 150;		Soni_J3_LPF_Q = 5;						// "
@@ -145,7 +145,7 @@ S_isHEEL = Soni_X_H1_TRG > 0.49;
 //Continuous
 Soni_X_P3_ChordFreqDist = 				soniSlider(7,0);									// Chord Freq Distortion
 Soni_X_R3_OverallBrightness = 			soniSlider(8,0);									// Overall Music Brightness
-Soni_X_J1_MelBaseFreq = 				soniSlider(9,0);									// Melody Tonic Frequency
+Soni_X_J1_MelBaseFreq = 				soniSlider(9,0.5);									// Melody Tonic Frequency
 Soni_X_J2_Pitched = 					soniSlider(10,0);									// Pitched Disturbance
 Soni_X_J3_Whoosh = 						soniSlider(11,0);									// Noise Disturbance
 Soni_X_D1_Spatialize = 					soniSlider(12,0.5);									// Spatialization
@@ -355,13 +355,11 @@ pianoSim_singleNote(freq,trigger) = monoOut
   ampEnv = pow(en.ar(0.001,4,trigger),6)  : si.smooth(ba.tau2pole(0.0001));										// AMPLITUDE ENV
 };
 
-voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(voiceType,vowel,0,freq,0.04) * env with
+voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(1,vowel_H,0,freq/2.0,0.04) * env with
 {
-	env = en.ar(0.04,2  / tempo * 78.6,trigger);
-	env_vowel = en.ar(0.04,0.6 / tempo * 78.6,trigger);
-	voiceType = 1 * (freq < 390) + 4 * (freq >= 390);
-	vowel_H = 1.5 * (vel > 3) + 0.75 * (vel > 6) + vel / 10.0 * (0.5 + 0.5 * os.osc(tempo/300.0));  
-  	vowel = vowel_H * env_vowel;
+  	vowel_idx = _~+(trigger) : %(4) : _ + 0.4 * (0.5 + 0.5*os.osc(0.3));
+	env = en.ar(0.04, 3  / tempo * 78.6, trigger);
+  	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.04));
 };
 
 fullChordSynth(freqList,synthFunc,env) = stereoChordOut with
@@ -434,7 +432,7 @@ Soni_SB2_Instrumentation(trackIdx) = stereoLinGain(outGain)
 };
 
 // TONIC PITCH MODULATION
-Soni_J1_FreqWarpFactor = _*(Soni_J1_MaxWarpFactor * Soni_X_J1_MelBaseFreq + 1);
+Soni_J1_FreqWarpFactor = _* pow(Soni_J1_MaxWarpFactor,(2 * (Soni_X_J1_MelBaseFreq - 0.5)));
 
 // MASTER FILTER - LPF
 Soni_R3_Filter = fi.resonlp(cutoff,qCooked,1) with 																		// R3 - BRIGHTNESS
@@ -453,7 +451,7 @@ Soni_J2_Pitched = os.sawtooth(frequency) * gain <: _,_ with																// J2
 // SCRAMBLE DELAY - DISTURBANCE ACCOMPANYING
 Soni_J_Del = de.delay(ma.SR,delSamples),de.delay(ma.SR,delSamples) : filt,filt with
 {
-  jerkAP = (Soni_X_J1_MelBaseFreq + Soni_X_J2_Pitched + Soni_X_J3_Whoosh) : si.smooth(ba.tau2pole(30.0/tempo));
+  jerkAP = (Soni_X_J2_Pitched + Soni_X_J3_Whoosh) : si.smooth(ba.tau2pole(30.0/tempo));
   delSamples = jerkAP * ma.SR * 0.5*(1 + os.osc(tempo/30));
   filt = fi.peak_eq_cq(10 * jerkAP,fc_filt,3);
   fc_filt = 2000 + 2000 * jerkAP;
