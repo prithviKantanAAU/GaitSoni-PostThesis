@@ -77,9 +77,6 @@ void GaitSonificationAudioProcessor::clockCallback()
 
 	// UPDATE MUSIC PHASE
 	sequencer.musicPhase.updatePhase();
-
-	// ADD CUEING MAPPING --------------------- UNCOMMENT WHEN MUSIC PLAYBACK DEBUGGED
-	//sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), sequencer.musicPhase.emphFunc_Present); // Map Primary Sonification
 }
 
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
@@ -100,41 +97,44 @@ void GaitSonificationAudioProcessor::sensorCallback()
 	// DYNAMIC REACHING TRAJECTORY UPDATE
 	if (exerciseMode_Present == 3)
 	{
+		// FETCH PRESENT INFO
 		dynZoneCenter.barsElapsed = sequencer.barsElapsed;
 		dynReach_CenterCoordinates[0] = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
 		dynReach_CenterCoordinates[1] = gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
 
+		// GET NEW 2D TARGET CENTER COORDINATES AND ASSIGN 
 		dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad,
 											dynReach_CenterCoordinates);
-
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
 		gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
 
 		// Feedback Type: Anticipated Distance Error (2D)
 		if (gaitAnalysis.staticBalance_FB_TYPE == 3)
 		{
-			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + M_PI / 100,
+			// GET ANTICIPATED CENTER COORDINATES AND ASSIGN
+			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + dynZoneCenter.anticipationPhase,
 				dynReach_CenterCoordinates_ANTICIPATED);
-			/*gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates_ANTICIPATED[0];
-			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates_ANTICIPATED[1];*/
-
 			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates[0];
 			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates[1];
 		}
 
-		sequencer.AP_Val_2D_X = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
-		sequencer.AP_Val_2D_Y = gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
+		// ASSIGN AP VAL AFTER CALCULATION
+		sequencer.AP_Val_2D_X = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].resetVal
+		: gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
+		sequencer.AP_Val_2D_Y = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].resetVal
+		: gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
 	}
 
 	// COMPUTE CHOSEN MOVEMENT PARAM
 	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);
 
-	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS  -------------------------------remove?
+	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS
 	if (pulsesElapsed % 3000 == 0)
 		gaitAnalysis.trunk_CalibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
 
 	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
-	mapVal = isStandby ? 0 : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
+	mapVal = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal
+						 : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
 	sequencer.AP_Val = mapVal;
 
 	// MAP X AND Y AP TO FAUST / WHEREVER

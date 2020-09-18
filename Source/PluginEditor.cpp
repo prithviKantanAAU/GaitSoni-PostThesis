@@ -937,8 +937,8 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	updateOSC_ConnectionDisplay();
 
 	// CHECK IF TRUNK PROJECTION ZONE, UPDATE UI
-	/*if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].name == "Trunk Projection Zone")*/
+	if (processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].name == "Trunk Projection Zone")
 		updateProjectionZoneVisualizer();
 
 	// SONG PROGRESS BAR
@@ -946,7 +946,6 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	{
 		ui_musiCon_gen.song_Progress_Val = processor.sequencer.songProgress;
 		if (processor.sequencer.isPlaying)		updateTimeLabels();
-		//handleProgressBarColour();
 	}
 
 	// IF SONIFICATION TAB, UPDATE UI IN REALTIME
@@ -959,8 +958,7 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 			updateCalibrationLabels();
 
 		// CHECK IF VISUALIZING, UPDATE UI
-		if (isRealTimeVisualize)
-			updateRealTimeVisualizer();
+		updateRealTimeVisualizer();
 	}
 }
 

@@ -314,6 +314,7 @@ public:
 		sequencer.dspFaust.setParamValue(sequencer.faustStrings.Tempo.c_str(),value);
 		gaitAnalysis.beatInterval = 60/value;
 		sequencer.musicPhase.setPhaseInc(tempo, 1000);
+		dynZoneCenter.calcAnticipationPhase(value);
 	};
 	
 	double interPulseIntervalMs = 0.0;							// Tempo Dependent - Expected Pulse Time INC

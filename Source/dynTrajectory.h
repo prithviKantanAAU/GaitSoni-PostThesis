@@ -28,6 +28,14 @@ public:
 	float radius_Deg = 15;
 	float period_Bars = 1;
 	int barsElapsed = 0;
+	float anticipationPhase = 0;
+	float anticipationTime_Sec = 0.15;
+
+	void calcAnticipationPhase(float tempo)
+	{
+		float barTime = 60.0 / tempo * 4;
+		anticipationPhase = anticipationTime_Sec / barTime * (2 * M_PI);
+	}
 
 	int numSegments[10] =
 	{
