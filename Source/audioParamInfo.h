@@ -67,7 +67,7 @@ public:
 		audioParam_ObjectArray[7].initializeSoniParams(1, 0, 1, 0, 0, 100, 0);
 
 		// 9					  TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray11[10] = { true, false, false, false, true, false, false };
+		bool useCaseArray11[10] = { true, true, false, false, true, false, false };
 		audioParam_ObjectArray[8].set_nameTypeAddress("Bell Cue", 3, 1);
 		audioParam_ObjectArray[8].set_isIncluded_UseScenarios(useCaseArray11, num_UseScenarios);
 		audioParam_ObjectArray[8].initializeSoniParams(1, 0, 1, 0, 0, 100, 0);

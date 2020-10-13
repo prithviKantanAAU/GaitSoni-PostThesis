@@ -31,6 +31,16 @@ public:
 	// System Snapshot //
 	systemSnapshot sysSnapshot;
 
+	// Populate Drum Grooves
+	void populateGrooves()
+	{
+		File forAppDirectory;
+		String appPath = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
+		appPath = appPath.upToLastOccurrenceOf("\\", true, false);
+		appPath += "MIDI Drum Library\\Base\\";
+		sequencer.currentMusic.populateDrumBeatLib(appPath);
+	}
+
 	void storeSystemSnapshot()
 	{
 		// INITIALIZE PATHS, STORE INFO

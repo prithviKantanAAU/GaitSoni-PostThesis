@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../JuceLibraryCode/JuceHeader.h"
 #include "MidiTrack.h"
 #include "MidiTrack_Drum.h"
 
@@ -8,16 +8,15 @@ class MusicInfoRead
 public:
 	MusicInfoRead() 
 	{
-		populateDrumBeatLib();
 	};
 	~MusicInfoRead() {};
 	String songName = "";
 	
 	// Drum Rhythms
 	Random randNum;
-	String drumLibPath_Base = "D:\\GaitSonification\\MIDI Drum Library\\Base\\";		//MAKE RELATIVE
-	String drumLibPath_Cue = "D:\\GaitSonification\\MIDI Drum Library\\Cues\\32nd.mid";	//MAKE RELATIVE
-	String MelLibPath = "D:\\GaitSonification\\MIDI Inbuilt Library\\";					//MAKE RELATIVE
+	//String drumLibPath_Base = "D:\\GaitSonification\\MIDI Drum Library\\Base\\";		//MAKE RELATIVE
+	//String drumLibPath_Cue = "D:\\GaitSonification\\MIDI Drum Library\\Cues\\32nd.mid";	//MAKE RELATIVE
+	//String MelLibPath = "D:\\GaitSonification\\MIDI Inbuilt Library\\";					//MAKE RELATIVE
 	String MelLibFiles[5] = { "1.mid", "2.mid", "3.mid", "4.mid", "5.mid" };
 	String nameCode_BaseBeat = "B_";
 	MidiTrack_Drum baseBeats[20];
@@ -45,10 +44,10 @@ public:
 	
 	short drum_beatTypes[50] = { 0 };
 
-	void populateDrumBeatLib()
+	void populateDrumBeatLib(String path)
 	{
-		auto dir_Base = File(drumLibPath_Base);
-		auto file_cue_32nd = File(drumLibPath_Cue);
+		auto dir_Base = File(path);
+		//auto file_cue_32nd = File(drumLibPath_Cue);
 		drum_numBase = dir_Base.getNumberOfChildFiles(2, "*.mid");
 		auto drumFiles_Base = dir_Base.findChildFiles(2, false, "*.mid");
 		drumFiles_Base.sort();
@@ -76,14 +75,14 @@ public:
 
 			loadMIDIFile_Drum(&baseBeats[i], currentFile);
 			baseBeats[i].populateTrackwiseEvents(numVoices, pitchesToMonitor);
-			loadMIDIFile_Drum_Metadata(i);											// NEW
+			loadMIDIFile_Drum_Metadata(i, path);											// NEW
 		}
 	};
 
 	// LOAD VARIANT AND GAIN OFFSET METADATA
-	void loadMIDIFile_Drum_Metadata(int beatNum)
+	void loadMIDIFile_Drum_Metadata(int beatNum, String path)
 	{
-		auto metadataFile = File(drumLibPath_Base + baseBeats[beatNum].name + ".csv");
+		auto metadataFile = File(path + baseBeats[beatNum].name + ".csv");
 		
 		if (!metadataFile.existsAsFile())
 			return;  // file doesn't exist

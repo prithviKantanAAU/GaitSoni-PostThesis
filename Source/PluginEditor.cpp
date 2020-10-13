@@ -776,10 +776,14 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	if (box == &ui_musiCon_inbuilt.inbuilt_ChooseMIDI)
 	{
 		String path = "";
+		File forAppDirectory;
 		if (processor.musicMode == 3 && box->getSelectedId() != 1)
 		{
-			path = processor.sequencer.currentMusic.MelLibPath
-				+ processor.sequencer.currentMusic.MelLibFiles[box->getSelectedId() - 2];
+			
+			path = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
+			path = path.upToLastOccurrenceOf("\\", true, false);
+			path += "MIDI Inbuilt Library\\";
+			path += processor.sequencer.currentMusic.MelLibFiles[box->getSelectedId() - 2];
 			processor.sequencer.setTimingMode(path);
 			processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 			setRhythmSpecificVariants();

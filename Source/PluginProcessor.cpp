@@ -14,6 +14,7 @@ GaitSonificationAudioProcessor::GaitSonificationAudioProcessor()
                        )
 #endif
 {
+	populateGrooves();
 	setTempo(120);
 	gaitAnalysis.setupReceivers();
 	updateAudioParameter(1, 1);
@@ -314,15 +315,6 @@ bool GaitSonificationAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 
 void GaitSonificationAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-    }
 }
 
 bool GaitSonificationAudioProcessor::hasEditor() const
