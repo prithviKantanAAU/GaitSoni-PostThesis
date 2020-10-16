@@ -48,7 +48,7 @@ void Sequencer::initializeTracksForPlayback()
 	for (int i = 0; i < 8; i++)
 	{
 		setTrackMutes(i, muteValues[i]);
-		switchInstVariant(i, currentMusic.baseBeats[index_baseBeat].variantConfig[i]);
+		switchInstVariant(i, currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[i]);
 
 	}
 	applyMasterGain(mixerSettings.masterGain);
@@ -61,17 +61,17 @@ void Sequencer::applyCurrentVariantGain(int trackIndex)
 {
 	std::string address = "";
 	float gain = 0;
-	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
+	short variantNum = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex] - 1;
 	address = faustStrings.getTrackGainString(trackIndex);
 	gain = mixerSettings.trackGains[trackIndex][variantNum]
-		+ currentMusic.baseBeats[index_baseBeat].variantConfig_GAINS[trackIndex];
+		+ currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig_GAINS[trackIndex];
 	dspFaust.setParamValue(address.c_str(), gain);
 }
 
 // APPLY AND MAP CURRENT VARIANT GAIN - SINGLE TRACK (on Variant Change)
 void Sequencer::setTrackGains(int trackIndex, float value)
 {
-	currentMusic.baseBeats[index_baseBeat].variantConfig_GAINS[trackIndex] = value;
+	currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig_GAINS[trackIndex] = value;
 	applyCurrentVariantGain(trackIndex);
 }
 
@@ -86,7 +86,7 @@ void Sequencer::setTrackMutes(int trackIndex, int value)
 // APPLY AND MAP VARIANT EQ - SINGLE TRACK (on Variant Change)
 void Sequencer::applyCurrentVariantEQ(int trackIndex)
 {
-	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
+	short variantNum = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex] - 1;
 	float value = 0;
 	bool toMap = true;
 	for (int i = 0; i < 4; i++)
@@ -106,7 +106,7 @@ void Sequencer::applyCurrentVariantComp(int trackIndex)
 	std::string address = "";
 	float value = 0;
 	int currentRhythm = index_baseBeat;
-	short variantNum = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] - 1;
+	short variantNum = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex] - 1;
 	for (int j = 0; j < 4; j++)		//Param ID
 	{
 		address = faustStrings.FetchComp_String(trackIndex, j);
@@ -120,7 +120,7 @@ void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 {
 	// UPDATE MIXER SETTINGS WITH NEW SETTING
 	int currentRhythm = index_baseBeat;
-	currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex] = newVariant;
+	currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex] = newVariant;
 	//MAP VARIANT TO FAUST
 	// CHANNEL SETTINGS
 	applyCurrentVariantGain(trackIndex);
@@ -128,7 +128,7 @@ void Sequencer::switchInstVariant(int trackIndex, int newVariant)
 	applyCurrentVariantEQ(trackIndex);
 	// VARIANT NUMBER
 	std::string address = faustStrings.baseName + faustStrings.trackVariant_Base + std::to_string(trackIndex + 1);
-	dspFaust.setParamValue(address.c_str(), currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex]);
+	dspFaust.setParamValue(address.c_str(), currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex]);
 }
 
 // LOAD MIDI SONG FILE
@@ -189,7 +189,7 @@ void Sequencer::stopMusic()
 		nextPulseTime = 0;
 		songProgress = 0;
 		musicPhase.resetPhase();
-		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
+		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
 	}
 }
 
@@ -197,7 +197,7 @@ void Sequencer::stopMusic()
 void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 {
 	// GET MIXER INFO
-	int trackVariant = currentMusic.baseBeats[index_baseBeat].variantConfig[trackIndex - 1];
+	int trackVariant = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[trackIndex - 1];
 	short targetTrackIdx = 0;
 
 	// DECREMENT TRACK INDEX AND INITIALIZE EVENT COUNT
@@ -231,7 +231,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 
 	// INITIALIZE MISC
 	float velUncooked = 0;
-	percObj = &currentMusic.baseBeats[index_baseBeat];
+	percObj = &currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current];
 	int eventIdx_LOOP_Trackwise = 0;
 
 	// PITCHED TRACKS - TAKE CARE OF PITCH SETTING, NOTE ON AND NOTE OFF WHERE NEEDED

@@ -38,7 +38,7 @@ public:
 		String appPath = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
 		appPath = appPath.upToLastOccurrenceOf("\\", true, false);
 		appPath += "MIDI Drum Library\\Base\\";
-		sequencer.currentMusic.populateDrumBeatLib(appPath);
+		sequencer.currentMusic.populateStyles(appPath);
 	}
 
 	void storeSystemSnapshot()
@@ -63,15 +63,13 @@ public:
 								[gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
 		sysSnapshot.polarity = gaitAnalysis.gaitParams.isPolarityNormal ? 1 : -1;
 		sysSnapshot.tempo = tempo;
-		sysSnapshot.rhythm = sequencer.currentMusic.baseBeats[sequencer.index_baseBeat].name;
+		sysSnapshot.rhythm = sequencer.currentMusic.styles[sequencer.currentMusic.style_current].name;
 		
 		for (int i = 0; i < 8; i++)
 		{
 			sysSnapshot.trackMutes[i] = sequencer.muteValues[i];
-			sysSnapshot.variants[i] = sequencer.currentMusic.baseBeats
-									  [sequencer.index_baseBeat].variantConfig[i];
-			sysSnapshot.trackGains[i] = sequencer.currentMusic.baseBeats
-									  [sequencer.index_baseBeat].variantConfig_GAINS[i];
+			sysSnapshot.variants[i] = sequencer.currentMusic.styles[sequencer.currentMusic.style_current].variantConfig[i];
+			sysSnapshot.trackGains[i] = sequencer.currentMusic.styles[sequencer.currentMusic.style_current].variantConfig_GAINS[i];
 		}
 
 		sysSnapshot.SB_C_X = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
@@ -175,8 +173,8 @@ public:
 		imuRecord.currentRow_FullLog_FLOAT[6] = 
 			gaitAnalysis.gaitParams.gaitParam_ObjectArray
 			[gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
-		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.baseBeats
-			[sequencer.index_baseBeat].name;
+		imuRecord.currentRow_FullLog_STRING[2] = sequencer.currentMusic.styles
+			[sequencer.currentMusic.style_current].name;
 
 		// EXERCISE DEPENDENT COLUMNS
 		switch (exerciseMode_Present)

@@ -72,9 +72,9 @@ public:
 			is3by4Mode = false;
 		}
 		// SET SELECTED RHYTHM TO FIRST CHOICE WITH APPROPRIATE TIMING MODE
-		for (int i = 0; i < currentMusic.drum_numBase; i++)
+		for (int i = 0; i < currentMusic.styles[currentMusic.style_current].grooves_total; i++)
 		{
-			if (currentMusic.drum_beatTypes[i] == timingMode)
+			if (currentMusic.styles[currentMusic.style_current].groove_types[i] == timingMode)
 			{
 				index_baseBeat = i;
 				break;
@@ -170,7 +170,7 @@ public:
 	// UPDATE CHOSEN RHYTHM WITH NEXT
 	void nextRhythm(short musicMode) 
 	{
-		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
+		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
 		index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
 	};
 
@@ -200,17 +200,17 @@ public:
 		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
 		
 		// RESET NEXT EVENT INDICES TO ZERO
-		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
+		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
 		int eventIdx_Present_Trackwise = 0;
 
 		for (int h = 0; h < numTracks; h++)
 		{	// i REPRESENTS IDX OF TRACKWISE EVENTS
-			for (int i = 0; i < currentMusic.baseBeats[index_baseBeat].eventCount_ByTrack[h]; i++)
+			for (int i = 0; i < currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventCount_ByTrack[h]; i++)
 			{
-				eventIdx_Present_Trackwise = currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_ALL[i][h];
-				if (midiTicksElapsed_MOD < currentMusic.baseBeats[index_baseBeat].infoMatrix[eventIdx_Present_Trackwise][3])
+				eventIdx_Present_Trackwise = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventIdx_ByTrack_ALL[i][h];
+				if (midiTicksElapsed_MOD < currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].infoMatrix[eventIdx_Present_Trackwise][3])
 				{
-					currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_NEXT[h] = i;
+					currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventIdx_ByTrack_NEXT[h] = i;
 					break;
 				}
 			}
@@ -252,7 +252,7 @@ public:
 
 		for (int i = 0; i < numTracks; i++)
 		{
-			trackVariant = currentMusic.baseBeats[index_baseBeat].variantConfig[i] - 1;
+			trackVariant = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[i] - 1;
 			if (i != trackIndex && trackIdx_to_midiTrack_map[i] == targetTrackId)
 			{
 				for (int j = 0; j < currentMusic.numVoices[trackIndex]; j++)

@@ -2,123 +2,17 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MidiTrack.h"
 #include "MidiTrack_Drum.h"
+#include "MidiTrack_Style.h"
 
 class MusicInfoRead
 {
 public:
-	MusicInfoRead() 
-	{
-	};
+	MusicInfoRead() {};
 	~MusicInfoRead() {};
+
+	// MIDI Song Files
+
 	String songName = "";
-	
-	// Drum Rhythms
-	Random randNum;
-	//String drumLibPath_Base = "D:\\GaitSonification\\MIDI Drum Library\\Base\\";		//MAKE RELATIVE
-	//String drumLibPath_Cue = "D:\\GaitSonification\\MIDI Drum Library\\Cues\\32nd.mid";	//MAKE RELATIVE
-	//String MelLibPath = "D:\\GaitSonification\\MIDI Inbuilt Library\\";					//MAKE RELATIVE
-	String MelLibFiles[5] = { "1.mid", "2.mid", "3.mid", "4.mid", "5.mid" };
-	String nameCode_BaseBeat = "B_";
-	MidiTrack_Drum baseBeats[20];
-	MidiTrack_Drum snareFlurry;
-	short drum_numBase = 0;
-	short num_Inbuilt = 5;
-	short num_beats_Straight = 0;
-	short num_beats_Triplet = 0;
-	short num_beats_3by4 = 0;
-
-	int pitchesToMonitor[4][8] =
-	{
-		{36, 38, 42, 72, 60, 0, 84, 49},
-		{0,  0,  0,  73, 0,  0, 85, 0 },
-		{0,  0,  0,  74, 0,  0, 86, 0 },
-		{0,  0,  0,  75, 0,  0, 87, 0 }
-	};
-	int numVoices[8] = { 1, 1, 1, 4, 1, 1, 4, 1 };
-
-	// INBUILT FILES - MELODY EMPHASIS
-	short inbuilt_TonicOffset1 = 0;
-	short inbuilt_Scale1 = 0;
-	short inbuilt_TonicOffset2 = 0;
-	short inbuilt_Scale2 = 0;
-	
-	short drum_beatTypes[50] = { 0 };
-
-	void populateDrumBeatLib(String path)
-	{
-		auto dir_Base = File(path);
-		//auto file_cue_32nd = File(drumLibPath_Cue);
-		drum_numBase = dir_Base.getNumberOfChildFiles(2, "*.mid");
-		auto drumFiles_Base = dir_Base.findChildFiles(2, false, "*.mid");
-		drumFiles_Base.sort();
-		File currentFile;
-		
-		for (int i = 0; i < drum_numBase; i++)						// Load Base Beats From Directory
-		{
-			currentFile = drumFiles_Base.getUnchecked(i);
-			baseBeats[i].name = currentFile.getFileNameWithoutExtension().fromLastOccurrenceOf("_", false, false);
-			if (currentFile.getFileName().contains("Triplet"))
-			{
-				num_beats_Triplet++;
-				drum_beatTypes[i] = 1;
-			}
-			else if (currentFile.getFileName().contains("3by4"))
-			{
-				num_beats_3by4++;
-				drum_beatTypes[i] = 2;
-			}
-			else
-			{
-				num_beats_Straight++;
-				drum_beatTypes[i] = 0;
-			}
-
-			loadMIDIFile_Drum(&baseBeats[i], currentFile);
-			baseBeats[i].populateTrackwiseEvents(numVoices, pitchesToMonitor);
-			loadMIDIFile_Drum_Metadata(i, path);											// NEW
-		}
-	};
-
-	// LOAD VARIANT AND GAIN OFFSET METADATA
-	void loadMIDIFile_Drum_Metadata(int beatNum, String path)
-	{
-		auto metadataFile = File(path + baseBeats[beatNum].name + ".csv");
-		
-		if (!metadataFile.existsAsFile())
-			return;  // file doesn't exist
-
-		juce::FileInputStream inputStream(metadataFile); // [2]
-
-		if (!inputStream.openedOk())
-			return;  // failed to open
-
-		for (int i = 0; i < 2; i++)
-		{
-			auto line = inputStream.readNextLine();
-			auto line_Rem = line;
-			short *varConfig = baseBeats[beatNum].variantConfig;
-			float *varConfig_GAINS = baseBeats[beatNum].variantConfig_GAINS;
-			
-			for (int j = 0; j < 8; j++)
-			{
-				line = line_Rem.upToFirstOccurrenceOf(",", false, true);
-				line_Rem = line_Rem.fromFirstOccurrenceOf(",", false, true);
-
-				switch (i)
-				{
-				case 0:
-					varConfig[j] = line.getIntValue();
-					break;
-				case 1:
-					varConfig_GAINS[j] = line.getFloatValue();
-					break;
-				}
-			}
-		}
-
-		int a = 0;
-	}
-	
 	MidiFile midiObj;
 	File midiFile;
 	MidiTrack midiTracks[4];
@@ -128,75 +22,6 @@ public:
 	int currentTrack = 0;
 	const MidiMessageSequence* midiInfo;
 	MidiMessageSequence::MidiEventHolder* midiEventHolder;
-
-	void loadMIDIFile_Drum(MidiTrack_Drum* beatContainer, File currentFile)
-	{
-		midiFile = currentFile;
-		FileInputStream midiFile_inputStream(midiFile);
-		if (midiFile_inputStream.openedOk())
-		{
-			midiObj.readFrom(midiFile_inputStream);
-		}
-		numTracksMidi = midiObj.getNumTracks();
-		midi_ticksPerBeat = midiObj.getTimeFormat();
-		MidiMessage currentMidiMessage;
-		int noteVal = 0; int noteVel = 0; int timeStamp = 0; int noteType = 1;
-		int currentTrack_numMidiEvents = 0;
-
-		beatContainer->flush_infoMatrix();
-		midiInfo = midiObj.getTrack(1);
-		finalTimeStamp = midiObj.getLastTimestamp();
-		beatContainer->numEvents = midiInfo->getNumEvents();
-		currentTrack_numMidiEvents = midiInfo->getNumEvents();
-		for (int j = 0; j < currentTrack_numMidiEvents; j++)	//Each Event
-		{
-			midiEventHolder = midiInfo->getEventPointer(j);
-			currentMidiMessage = midiEventHolder->message;
-			if (currentMidiMessage.isNoteOn())
-			{
-				beatContainer->infoMatrix[j][0] = 1;
-				beatContainer->isEventNoteOn[j] = true;
-				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
-				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
-				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
-			}
-			if (currentMidiMessage.isNoteOff())
-			{
-				beatContainer->infoMatrix[j][0] = 2;
-				beatContainer->isEventNoteOn[j] = false;
-				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
-				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
-				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
-			}
-		}
-	}
-
-	short getNextBeat(int previousBeat, short timingMode)		// GET next beat for present timing mode
-	{
-		bool nextHigher = false;
-		short nextIndex = 0;
-		for (int i = 0; i < drum_numBase; i++)
-		{
-			if (i > previousBeat && drum_beatTypes[i] == timingMode)
-			{
-				nextHigher = true;
-				nextIndex = i;
-				break;
-			}
-		}
-		if (nextHigher == false)
-		{
-			for (int i = 0; i <= previousBeat; i++)
-			{
-				if (drum_beatTypes[i] == timingMode)
-				{
-					nextIndex = i;
-					break;
-				}
-			}
-		}
-		return nextIndex;
-	};			
 
 	void loadMidiFile(String path)						// Load MIDI Song File into JUCE Program Memory
 	{
@@ -239,11 +64,189 @@ public:
 					midiTracks[i - 1].infoMatrix[j][2] = currentMidiMessage.getVelocity();
 					midiTracks[i - 1].infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
 				}
-
 			}
-			
 		}
 	};
 	
+	// Inbuilt MIDI Song Files
+
+	String MelLibFiles[5] = { "1.mid", "2.mid", "3.mid", "4.mid", "5.mid" };
+	short num_Inbuilt = 5;
+
+	// MELODY EMPHASIS
+	short inbuilt_TonicOffset1 = 0;
+	short inbuilt_Scale1 = 0;
+	short inbuilt_TonicOffset2 = 0;
+	short inbuilt_Scale2 = 0;
+	
+	// Drum Rhythms
+	
+	MidiTrack_Style styles[15];
+	short numStyles = 0;
+	short style_current = 0;
+
+	// RHYTHM FILES - NOTE ROWS AND NUMBER OF VOICES
+
+	int pitchesToMonitor[4][8] = 	{
+		{36, 38, 42, 72, 60, 0, 84, 49},
+		{0,  0,  0,  73, 0,  0, 85, 0 },
+		{0,  0,  0,  74, 0,  0, 86, 0 },
+		{0,  0,  0,  75, 0,  0, 87, 0 }
+	};
+	int numVoices[8] = { 1, 1, 1, 4, 1, 1, 4, 1 };
+	
+	void populateStyles(String path)
+	{
+		auto dir_Base = File(path);
+		numStyles = dir_Base.getNumberOfChildFiles(2, "*.mid");
+		auto styleFiles_Base = dir_Base.findChildFiles(2, false, "*.mid");
+		styleFiles_Base.sort();
+		File currentFile;
+
+		for (int i = 0; i < numStyles; i++)						// Load Styles from Defined Directory
+		{
+			currentFile = styleFiles_Base.getUnchecked(i);
+			styles[i].name = currentFile.getFileNameWithoutExtension();
+			load_Style_Single(&styles[i], currentFile, path);
+		}
+	}
+
+	void load_Style_Single(MidiTrack_Style* styleContainer, File currentFile, String path)
+	{
+		midiFile = currentFile;
+		FileInputStream midiFile_inputStream(midiFile);
+		if (midiFile_inputStream.openedOk())
+		{
+			midiObj.readFrom(midiFile_inputStream);
+		}
+		numTracksMidi = midiObj.getNumTracks();
+		midi_ticksPerBeat = midiObj.getTimeFormat();
+		MidiMessage currentMidiMessage;
+
+		for (int i = 1; i < numTracksMidi; i++)
+		{
+			midiInfo = midiObj.getTrack(i);
+			finalTimeStamp = midiObj.getLastTimestamp();
+			load_Groove_Single(&styleContainer->grooves[i - 1], currentFile, path);
+			loadMIDIFile_Style_Metadata(path, i);
+		}
+		
+	}
+
+	void load_Groove_Single(MidiTrack_Drum* beatContainer, File currentFile, String path)
+	{
+		MidiMessage currentMidiMessage;
+		int noteVal = 0; int noteVel = 0; int timeStamp = 0; int noteType = 1;
+		int currentTrack_numMidiEvents = 0;
+		beatContainer->flush_infoMatrix();
+		beatContainer->numEvents = midiInfo->getNumEvents();
+		currentTrack_numMidiEvents = midiInfo->getNumEvents();
+
+		for (int j = 0; j < currentTrack_numMidiEvents; j++)	//Each Event
+		{
+			midiEventHolder = midiInfo->getEventPointer(j);
+			currentMidiMessage = midiEventHolder->message;
+			if (currentMidiMessage.isNoteOn())
+			{
+				beatContainer->infoMatrix[j][0] = 1;
+				beatContainer->isEventNoteOn[j] = true;
+				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
+				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
+				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
+			}
+			if (currentMidiMessage.isNoteOff())
+			{
+				beatContainer->infoMatrix[j][0] = 2;
+				beatContainer->isEventNoteOn[j] = false;
+				beatContainer->infoMatrix[j][1] = currentMidiMessage.getNoteNumber();
+				beatContainer->infoMatrix[j][2] = currentMidiMessage.getVelocity();
+				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
+			}
+		}
+		beatContainer->populateTrackwiseEvents(numVoices, pitchesToMonitor);
+	}
+
+	// LOAD VARIANT AND GAIN OFFSET METADATA								// MODIFY !!!!!!!!!!!!!!!!!!!
+	void loadMIDIFile_Style_Metadata(String path, int styleNum)
+	{
+		auto metadataFile = File(path + styles[styleNum].name + ".csv");
+		short numLines_Meta = 3;
+		short numGrooves_Style = 1;
+		short numEntries_perLine[100] = { 8, 8, numGrooves_Style };
+		
+		if (!metadataFile.existsAsFile())
+			return;  // file doesn't exist
+
+		juce::FileInputStream inputStream(metadataFile); // [2]
+
+		if (!inputStream.openedOk())
+			return;  // failed to open
+
+		for (int i = 0; i < numLines_Meta; i++)
+		{
+			auto line = inputStream.readNextLine();
+			auto line_Rem = line;
+			short *varConfig = styles[styleNum].variantConfig;
+			float *varConfig_GAINS = styles[styleNum].variantConfig_GAINS;
+			
+			for (int j = 0; j < numEntries_perLine[i]; j++)
+			{
+				line = line_Rem.upToFirstOccurrenceOf(",", false, true);
+				line_Rem = line_Rem.fromFirstOccurrenceOf(",", false, true);
+
+				switch (i)
+				{
+				case 0:
+					varConfig[j] = line.getIntValue();
+					break;
+				case 1:
+					varConfig_GAINS[j] = line.getFloatValue();
+					break;
+				case 2:
+					styles[styleNum].groove_types[j] = line.getIntValue();
+					switch (line.getIntValue())
+					{
+					case 0:
+						styles[styleNum].num_beats_Straight++;
+						break;
+					case 1:
+						styles[styleNum].num_beats_Triplet++;
+						break;
+					case 2:
+						styles[styleNum].num_beats_3by4++;
+						break;
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	short getNextBeat(int previousBeat, short timingMode)		// GET next beat for present timing mode
+	{
+		bool nextHigher = false;
+		short nextIndex = 0;
+		for (int i = 0; i < styles[style_current].grooves_total; i++)
+		{
+			if (i > previousBeat && styles[style_current].groove_types[i] == timingMode)
+			{
+				nextHigher = true;
+				nextIndex = i;
+				break;
+			}
+		}
+		if (nextHigher == false)
+		{
+			for (int i = 0; i <= previousBeat; i++)
+			{
+				if (styles[style_current].groove_types[i] == timingMode)
+				{
+					nextIndex = i;
+					break;
+				}
+			}
+		}
+		return nextIndex;
+	};			
 };
 

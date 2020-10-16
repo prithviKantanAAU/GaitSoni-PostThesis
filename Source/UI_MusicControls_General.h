@@ -18,11 +18,9 @@ public:
 	TextButton song_Stop;						//Stop playback, reset transport
 	Slider tempo_Slider;						//Tempo slider (old name: tempo)
 	Label tempo_Slider_Lab;						//Tempo slider label (old name: tempoLabel)
-	TextButton rhythm_SetNext;					//Change to next rhythm (old name: randomizeRhythm)
 	Label song_Filename;						//Loaded song filename (old name: currentFile)
-	Label rhythm_Prev;							//Previous Rhythm Name (old name: lastBeat)
-	Label rhythm_Now;							//Active Rhythm Name (old name: activeBeat)
-	Label rhythm_Next;							//Next Rhythm Name (old name: nextBeat)
+	ComboBox style;								//Select musical style (sonic)
+	ComboBox groove;							//Select groove within style
 	ComboBox music_Mode;						//Music Mode (External MIDI / Inbuilt)
 	ComboBox inst_Variant[8];					//Change individual instrument Variant (old name: inst_Variant)
 	Label inst_Variant_Lab[8];					//Variant Label (old name: inst_Variant_Label)
@@ -77,9 +75,6 @@ public:
 		song_LoadFile.setButtonText("Load \nMIDI");
 		song_LoadFile.setColour(song_LoadFile.buttonColourId,Colours::red);
 		song_Filename.setColour(song_Filename.backgroundColourId, Colours::green);
-		
-		// Set Next Rhythm
-		rhythm_SetNext.setButtonText("Next Rhythm");
 		
 		// Tempo Slider
 		tempo_Slider.setRange(60, 150);
@@ -179,16 +174,14 @@ public:
 		song_Stop.setVisible(on);
 		tempo_Slider.setVisible(on); 
 		song_Filename.setVisible(on);
-		rhythm_SetNext.setVisible(on); 
 		song_Progress.setVisible(on);
 		song_TimeLeft.setVisible(on);	
 		music_Mode.setVisible(on);
 		song_LoadFile.setVisible(on); 
 		tempo_Tap.setVisible(on);
 		song_master_Gain.setVisible(on);	
-		rhythm_Now.setVisible(on);
-		rhythm_Prev.setVisible(on);	
-		rhythm_Next.setVisible(on);
+		style.setVisible(on);
+		groove.setVisible(on);	
 		song_master_EQ_B1_F.setVisible(on);	
 		song_master_EQ_B2_F.setVisible(on);
 		song_master_EQ_B1_G.setVisible(on);	
@@ -214,12 +207,10 @@ public:
 		music_Mode.setBounds(50, 305, 200, 40);
 		song_TimeLeft.setBounds(1000, 280, 200, 30);
 		song_BarBeat_Counter.setBounds(800, 280, 200, 30);
-		rhythm_SetNext.setBounds(50, 90, 100, 30);
+		style.setBounds(50, 90, 100, 30);
 		song_Filename.setBounds(900, 30, 300, 25);
 		song_LoadFile.setBounds(1020, 70, 170, 150);
-		rhythm_Prev.setBounds(50, 130, 100, 25);
-		rhythm_Now.setBounds(30, 160, 140, 25);
-		rhythm_Next.setBounds(50, 190, 100, 25);
+		groove.setBounds(50, 130, 100, 25);
 		song_master_Gain.setBounds(680, 50, 50, 180);
 		song_master_EQ_B1_F.setBounds(780, 50, 30, 180);
 		song_master_EQ_B1_G.setBounds(840, 50, 30, 180);

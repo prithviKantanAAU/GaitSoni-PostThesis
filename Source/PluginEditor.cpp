@@ -127,18 +127,6 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		refreshBeatLabels();					// Based on song specifications
 	};
 
-	// Set next rhythm
-	ui_musiCon_gen.rhythm_SetNext.onClick = [this]
-	{
-		processor.sequencer.nextRhythm(processor.musicMode);
-		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
-		setRhythmSpecificVariants();
-		processor.sequencer.initializeTracksForPlayback();
-		setGainSliders();
-		refreshBeatLabels();
-		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
-	};
-
 	// Set tempo slider
 	ui_musiCon_gen.tempo_Slider.onValueChange = [this]
 	{
@@ -190,7 +178,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][1], 2);
 		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][2], 3);
 		ui_musiCon_gen.inst_Variant[i].addListener(this);
-		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.baseBeats[processor.sequencer.index_baseBeat].variantConfig[i]);
+		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.styles[processor.sequencer.currentMusic.style_current].variantConfig[i]);
 		ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
 		ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 
