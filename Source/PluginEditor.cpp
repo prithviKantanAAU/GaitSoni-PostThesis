@@ -211,6 +211,9 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 			handleDisplay_secondaryMusic();
 		};
 	}
+
+	ui_musiCon_gen.style.addListener(this);
+	ui_musiCon_gen.groove.addListener(this);
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB
@@ -642,6 +645,29 @@ void GaitSonificationAudioProcessorEditor::configureRealTimeVisualizer()
 // COMBO BOX CHANGE HANDLING - ALL ACROSS UI
 void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 {
+	if (box == &ui_musiCon_gen.style)
+	{
+		processor.sequencer.currentMusic.style_current = box->getSelectedId() - 1;
+		ui_musiCon_gen.groove.clear();
+		populateStyleLists(false);
+		setRhythmSpecificVariants();
+		processor.sequencer.initializeTracksForPlayback();
+		setGainSliders();
+		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
+	}
+
+	if (box == &ui_musiCon_gen.groove)
+	{
+		processor.sequencer.currentMusic.styles
+			[processor.sequencer.currentMusic.style_current].groove_current = 
+			box->getSelectedId() - 1 - 10 * processor.sequencer.currentMusic.style_current;
+		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
+		setRhythmSpecificVariants();
+		processor.sequencer.initializeTracksForPlayback();
+		setGainSliders();
+		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
+	}
+
 	for (int i = 0; i < 8; i++)
 	{
 		if (box == &ui_musiCon_gen.inst_Variant[i])
@@ -938,6 +964,9 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 	{
 		ui_musiCon_gen.song_Progress_Val = processor.sequencer.songProgress;
 		if (processor.sequencer.isPlaying)		updateTimeLabels();
+
+		if (processor.sequencer.currentMusic.isStylesPopulated && ui_musiCon_gen.style.getNumItems() == 0)
+			populateStyleLists(true);
 	}
 
 	// IF SONIFICATION TAB, UPDATE UI IN REALTIME

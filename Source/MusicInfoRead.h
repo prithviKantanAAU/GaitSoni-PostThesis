@@ -95,6 +95,7 @@ public:
 	};
 	int numVoices[8] = { 1, 1, 1, 4, 1, 1, 4, 1 };
 	
+	bool isStylesPopulated = false;
 	void populateStyles(String path)
 	{
 		auto dir_Base = File(path);
@@ -109,6 +110,8 @@ public:
 			styles[i].name = currentFile.getFileNameWithoutExtension();
 			load_Style_Single(&styles[i], currentFile, path);
 		}
+
+		isStylesPopulated = true;
 	}
 
 	void load_Style_Single(MidiTrack_Style* styleContainer, File currentFile, String path)
@@ -120,6 +123,7 @@ public:
 			midiObj.readFrom(midiFile_inputStream);
 		}
 		numTracksMidi = midiObj.getNumTracks();
+		styleContainer->grooves_total = numTracksMidi - 1;
 		midi_ticksPerBeat = midiObj.getTimeFormat();
 		MidiMessage currentMidiMessage;
 
@@ -128,7 +132,7 @@ public:
 			midiInfo = midiObj.getTrack(i);
 			finalTimeStamp = midiObj.getLastTimestamp();
 			load_Groove_Single(&styleContainer->grooves[i - 1], currentFile, path);
-			loadMIDIFile_Style_Metadata(path, i);
+			loadMIDIFile_Style_Metadata(path, i - 1);
 		}
 		
 	}
@@ -171,7 +175,7 @@ public:
 	{
 		auto metadataFile = File(path + styles[styleNum].name + ".csv");
 		short numLines_Meta = 3;
-		short numGrooves_Style = 1;
+		short numGrooves_Style = styles[styleNum].grooves_total;
 		short numEntries_perLine[100] = { 8, 8, numGrooves_Style };
 		
 		if (!metadataFile.existsAsFile())
@@ -203,50 +207,11 @@ public:
 					varConfig_GAINS[j] = line.getFloatValue();
 					break;
 				case 2:
-					styles[styleNum].groove_types[j] = line.getIntValue();
-					switch (line.getIntValue())
-					{
-					case 0:
-						styles[styleNum].num_beats_Straight++;
-						break;
-					case 1:
-						styles[styleNum].num_beats_Triplet++;
-						break;
-					case 2:
-						styles[styleNum].num_beats_3by4++;
-						break;
-					}
+					styles[styleNum].grooves[j].name = line;
 					break;
 				}
 			}
 		}
 	}
-
-	short getNextBeat(int previousBeat, short timingMode)		// GET next beat for present timing mode
-	{
-		bool nextHigher = false;
-		short nextIndex = 0;
-		for (int i = 0; i < styles[style_current].grooves_total; i++)
-		{
-			if (i > previousBeat && styles[style_current].groove_types[i] == timingMode)
-			{
-				nextHigher = true;
-				nextIndex = i;
-				break;
-			}
-		}
-		if (nextHigher == false)
-		{
-			for (int i = 0; i <= previousBeat; i++)
-			{
-				if (styles[style_current].groove_types[i] == timingMode)
-				{
-					nextIndex = i;
-					break;
-				}
-			}
-		}
-		return nextIndex;
-	};			
 };
 

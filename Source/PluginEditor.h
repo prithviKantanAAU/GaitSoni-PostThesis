@@ -392,6 +392,29 @@ private:
 			break;
 		}
 	}
+
+	void populateStyleLists(bool isBoth)
+	{
+		int numStyles = processor.sequencer.currentMusic.numStyles;
+		int currentStyle = processor.sequencer.currentMusic.style_current;
+		int numGrooves = processor.sequencer.currentMusic.styles[currentStyle].grooves_total;
+		String name_Present = "";
+		if (isBoth)
+		{
+			for (int i = 0; i < numStyles; i++)
+			{
+				name_Present = processor.sequencer.currentMusic.styles[i].name;
+				ui_musiCon_gen.style.addItem(name_Present, i + 1);
+				ui_musiCon_gen.style.setSelectedId(1);
+			}
+		}
+		for (int j = 0; j < numGrooves; j++)
+		{
+			name_Present = processor.sequencer.currentMusic.styles[currentStyle].grooves[j].name;
+			ui_musiCon_gen.groove.addItem(name_Present, 10 * currentStyle + j + 1);
+			ui_musiCon_gen.groove.setSelectedId(1);
+		}
+	};
 	
 	//Set instrument variants for selected rhythm
 	void setRhythmSpecificVariants()	

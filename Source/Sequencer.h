@@ -171,7 +171,8 @@ public:
 	void nextRhythm(short musicMode) 
 	{
 		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
-		index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
+		currentMusic.styles[currentMusic.style_current].groove_current =
+			(currentMusic.styles[currentMusic.style_current].groove_current + 1) % currentMusic.styles[currentMusic.style_current].grooves_total;
 	};
 
 	// SCALE AND TONIC TRANSFORMATIONS
