@@ -277,20 +277,20 @@ stereoMasterSection(trackIndex) = stereoOut
 
 //4 - Synthesis
 samplePlayer(fileFunc,trigger) = fileFunc(ba.countup(96000,trigger));
-K_FILES = soundfile("K_SMPL[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V3.wav'}]",1) : !,!,_;
-S_V1_FILES = soundfile("S_SMPL_V1[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_3.wav'}]",1) : !,!,_;
-S_V2_FILES = soundfile("S_SMPL_V2[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_3.wav'}]",1) : !,!,_;
-S_V3_FILES = soundfile("S_SMPL_V3[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_3.wav'}]",1) : !,!,_;
-CR_FILES = soundfile("CR_SMPL[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V1.wav'; 	     'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V3.wav'}]",1) : !,!,_;
-HH_V1_FILES = soundfile("HH_SMPL_V1[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_3.wav'}]",1) : !,!,_;
-HH_V2_FILES = soundfile("HH_SMPL_V2[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_3.wav'}]",1) : !,!,_;
+K_FILES = soundfile("K_SMPL[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V3.wav'}]",1) : !,!,_;
+S_V1_FILES = soundfile("S_SMPL_V1[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_3.wav'}]",1) : !,!,_;
+S_V2_FILES = soundfile("S_SMPL_V2[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_3.wav'}]",1) : !,!,_;
+S_V3_FILES = soundfile("S_SMPL_V3[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_3.wav'}]",1) : !,!,_;
+CR_FILES = soundfile("CR_SMPL[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V1.wav'; 	     'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V3.wav'}]",1) : !,!,_;
+HH_V1_FILES = soundfile("HH_SMPL_V1[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_3.wav'}]",1) : !,!,_;
+HH_V2_FILES = soundfile("HH_SMPL_V2[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_3.wav'}]",1) : !,!,_;
 
 K_SMPL_V1(i) =   0,i : K_FILES;			K_SMPL_V2(i) =   1,i : K_FILES;			K_SMPL_V3(i) =   2,i : K_FILES;
 S_SMPL_V1_1(i) = 0,i : S_V1_FILES;		S_SMPL_V1_2(i) = 1,i : S_V1_FILES;		S_SMPL_V1_3(i) = 2,i : S_V1_FILES;
@@ -375,7 +375,7 @@ fullChordSynth(freqList,synthFunc,env) = stereoChordOut with
 
 chordSingle_Synth(freq,panFunc,synthFunc) = noteOut with
 {
-  noteOut = synthFunc(freq) : getPanFunction(panFunc);
+  noteOut = synthFunc(freq),synthFunc(freq + 0.5);
 };
 
 ks(freq,damping) = +~((de.fdelay4(1024,del)*damping) : dampingFilter)
@@ -483,7 +483,7 @@ Soni_STS3_Wah(LFO,minFreq,maxFreq) = _,_ : singleChannelWah,singleChannelWah wit
 Soni_D1_Spatialize_PAN = _,_ : _*(M_L),_*(M_R) with
 {
   M_L = sqrt(1 - Soni_X_D1_Spatialize) * 1.414;
-  M_R = sqrt(Soni_X_D1_Spatialize);
+  M_R = sqrt(Soni_X_D1_Spatialize)  * 1.414;
 };
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // Generation // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // 
