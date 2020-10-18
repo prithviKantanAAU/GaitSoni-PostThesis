@@ -253,7 +253,7 @@ public:
 
 		for (int i = 0; i < numTracks; i++)
 		{
-			trackVariant = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].variantConfig[i] - 1;
+			trackVariant = currentMusic.styles[currentMusic.style_current].variantConfig[i] - 1;
 			if (i != trackIndex && trackIdx_to_midiTrack_map[i] == targetTrackId)
 			{
 				for (int j = 0; j < currentMusic.numVoices[trackIndex]; j++)

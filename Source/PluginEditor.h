@@ -412,7 +412,7 @@ private:
 		{
 			name_Present = processor.sequencer.currentMusic.styles[currentStyle].grooves[j].name;
 			ui_musiCon_gen.groove.addItem(name_Present, 10 * currentStyle + j + 1);
-			ui_musiCon_gen.groove.setSelectedId(1);
+			ui_musiCon_gen.groove.setSelectedId(10 * currentStyle + 1);
 		}
 	};
 	

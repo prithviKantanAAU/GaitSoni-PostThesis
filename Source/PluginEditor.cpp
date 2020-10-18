@@ -662,9 +662,7 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			[processor.sequencer.currentMusic.style_current].groove_current = 
 			box->getSelectedId() - 1 - 10 * processor.sequencer.currentMusic.style_current;
 		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
-		setRhythmSpecificVariants();
 		processor.sequencer.initializeTracksForPlayback();
-		setGainSliders();
 		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
 	}
 
