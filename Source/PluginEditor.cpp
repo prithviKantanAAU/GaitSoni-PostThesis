@@ -214,6 +214,14 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 
 	ui_musiCon_gen.style.addListener(this);
 	ui_musiCon_gen.groove.addListener(this);
+
+	ui_musiCon_gen.fluidity.onValueChange = [this]
+	{
+		processor.sequencer.dspFaust.setParamValue(
+			processor.sequencer.faustStrings.Fluidity.c_str(),
+			ui_musiCon_gen.fluidity.getValue()
+		);
+	};
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB

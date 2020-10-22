@@ -222,12 +222,11 @@ public:
 	float cookMIDIVel(float midiVel, short trackIndex, String APName)
 	{
 		float output = 0;
-		if (midiVel < 64)
-			output = fmin(0 + 3 * midiVel / 64.0, 2.999);
-		else if (midiVel < 96)
-			output = fmin(3 + 3 * (midiVel - 64) / 32.0, 5.999);
+
+		if (midiVel < 32)
+			output = pow(midiVel / 32.0, 2);
 		else
-			output = fmin(6 + 3 * (midiVel - 96) / 32.0, 9);
+			output = 1 + 9.0 / 95.0 * (midiVel - 32);
 
 		return output;
 	};

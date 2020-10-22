@@ -54,6 +54,8 @@ public:
 	TextButton tempo_Tap;						//Tap Tempo Manually (old name tapTempo)
 	TextButton showControls_Channel;			//Press To Show Channel Controls
 	TextButton showControls_RingVisualize;		//Press To Show Ring Visualize Controls
+	Slider fluidity;							//Fluidity Slider
+	Label fluidity_Lab;							//Fluidity Slider Label
 
 	void configure()
 	{
@@ -166,6 +168,16 @@ public:
 		showControls_RingVisualize.setButtonText("Music Visualize");
 		showControls_Channel.setColour(showControls_Channel.buttonColourId, Colours::red);
 
+		//Fluidity
+		fluidity.setRange(0.2, 5);
+		fluidity.setNumDecimalPlacesToDisplay(1);
+		fluidity.setValue(1);
+		fluidity.setSkewFactor(0.4);
+		fluidity_Lab.attachToComponent(&fluidity, false);
+		fluidity.setTextBoxStyle(juce::Slider::NoTextBox, false,10,10);
+		fluidity.setColour(fluidity.trackColourId, Colours::yellow);
+		fluidity.setColour(fluidity.backgroundColourId, Colours::blue);
+		fluidity_Lab.setText("Melody Flow", dontSendNotification);
 	}
 
 	void toggleVisible(bool on)
@@ -195,6 +207,7 @@ public:
 		}
 		showControls_Channel.setVisible(on);
 		showControls_RingVisualize.setVisible(on);
+		fluidity.setVisible(on);
 	}
 
 	void setLayout()
@@ -211,6 +224,7 @@ public:
 		song_Filename.setBounds(900, 30, 300, 25);
 		song_LoadFile.setBounds(1020, 70, 170, 150);
 		groove.setBounds(50, 130, 100, 25);
+		fluidity.setBounds(50, 185, 100, 25);
 		song_master_Gain.setBounds(680, 50, 50, 180);
 		song_master_EQ_B1_F.setBounds(780, 50, 30, 180);
 		song_master_EQ_B1_G.setBounds(840, 50, 30, 180);

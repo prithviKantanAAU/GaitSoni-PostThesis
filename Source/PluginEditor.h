@@ -231,6 +231,8 @@ private:
 		addAndMakeVisible(ui_musiCon_gen.tempo_Slider);
 		addAndMakeVisible(ui_musiCon_gen.style);
 		addAndMakeVisible(ui_musiCon_gen.groove);
+		addAndMakeVisible(ui_musiCon_gen.fluidity);
+		addAndMakeVisible(ui_musiCon_gen.fluidity_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_Gain);
 		addAndMakeVisible(ui_musiCon_gen.song_master_Gain_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_EQ_B1_F);

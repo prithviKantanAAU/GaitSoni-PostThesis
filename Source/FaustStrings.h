@@ -16,7 +16,8 @@ public:
 
 	std::string baseName = "/GaitSoni/";
 
-	std::string Tempo = "Mapping_Tabs/Music_Info/Tempo";
+	std::string Tempo = baseName + "Mapping_Tabs/Music_Info/Tempo";
+	std::string Fluidity = baseName + "Mapping_Tabs/Music_Info/Fluidity";
 
 	// Master Volume and Track Mute
 	std::string MasterVol = "Mapping_Tabs/Mixer_And_Master/Master_Gain/Master_Gain";
