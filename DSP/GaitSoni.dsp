@@ -86,8 +86,9 @@ eqTrackGroup(i,x) = eqTab(hgroup("Track %i",x));
 // COMP TAB
 compTrackGroup(i,x) = compTab(hgroup("Track %i",x));
 
-// Tempo
+// Tempo and Fluidity
 tempo = musicInfoTab(vslider("Tempo",120,50,150,0.1)) : limit(60,150);
+fluidity = musicInfoTab(vslider("Fluidity",1,0.05,10,0.01)) : limit(0.2,5);
 
 //Variants
 VAR_1 = variantGroup(nentry("Variant_1",1,1,3,1));
@@ -173,11 +174,10 @@ velToTrigger(vel) = trigger with
 
 // CONVERT 0-10 VELOCITY VALUE TO MONO GAIN MULTIPLIER
 applyVelocity(velocity,trigger,maxVel) = _ : *(gainMult)	 with
-{ 
-  gainMult = sampledVel * sampledVel * 0.01;
-  sampledVel = velCooked : ba.sAndH(velSampleInstant);
-  velCooked = velocity * 9.0 / maxVel;
-  velSampleInstant = trigger;
+{
+  sampledVel = velocity : ba.sAndH(trigger);
+  dBGain = (sampledVel - 10) * 26.0 / 9.0;
+  gainMult = ba.db2linear(dBGain);
 };
 
 // CONVERT 0 - 1 SONI SLIDER VALUE TO 1 - 6 ZONE VALUE
@@ -193,7 +193,7 @@ SONI_SB_THRESH_VALS = waveform {-0.1, 0.33, 0.66, 0.8, 0.9, 0.95, 1.1};
 SONI_SB_THRESH_VALS_RD(i) = SONI_SB_THRESH_VALS,i : rdtable;
 
 // TEMPO-BASED INSTRUMENT RELEASE FACTOR
-tempo_RelFactor = 1 + 1.5 * (120-tempo) / 40 * (tempo < 120);
+tempo_RelFactor = fluidity + 1.5 * (120-tempo) / 40 * (tempo < 120);
 
 // MASTER LIMITER
 masterLimiter(ipGaindB) = _ : compLimiter(ipGaindB,10,0,0.001,0.05,0.050);
@@ -312,7 +312,11 @@ fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger,vel
   release_basic = ba.tempo(ba.tempo(tempo))/ma.SR * (1 + velFactor * 2);
   env_basic = en.ar(a,release_basic,trigger);
   triggerCooked = (env_basic > 0.5) + (env_basic > env_basic');
-  chosenEnv = en.adsr(a,d,s,r,triggerCooked),	en.adsre(a,d,s,r,triggerCooked), en.ar(a,r,trigger), en.are(a,r,trigger), en.arfe(a,r,0.3,trigger) : ba.selectn(5,envType); 
+  chosenEnv = en.adsr(a,d,s,r*tempo_RelFactor,triggerCooked),
+  			  en.adsre(a,d,s,r*tempo_RelFactor,triggerCooked),
+  			  en.ar(a,r*tempo_RelFactor,trigger), 
+  			  en.are(a,r*tempo_RelFactor,trigger),
+  			  en.arfe(a,r*tempo_RelFactor,0.3,trigger) : ba.selectn(5,envType); 
   ampEnv = chosenEnv : si.smooth(ba.tau2pole(a));
   velFactor = 1 : applyVelocity(vel,trigger,9);
 };
@@ -323,7 +327,7 @@ with
   output = melSynth,melSynth;																					// OUTPUT SUMMING
   melSynth = synthFunc(fundamentalCooked) * env : applyVelocity(velocity,trigger,9);							// MEL COMPONENT
   fundamentalCooked = 2 * fundamental * soniVibratoLFO * velVibrato : limit(20,5000);
-  env = en.ar(0.001,synthRelease,trigger);																		// MEL ENVELOPE
+  env = en.ar(0.001,synthRelease * tempo_RelFactor,trigger);													// MEL ENVELOPE
   velVibrato = 1 + (0.02 * ((200 - tempo)/140) : applyVelocity(velocity,trigger,9)) * os.osc(tempo/15) : si.smooth(ba.tau2pole(0.001));
   soniVibratoLFO = 1 + Soni_X_P3_ChordFreqDist * os.osc(tempo/15) * 0.5 : si.smoo;								// CF DIST SONI - VIBRATO LFO
 };
@@ -335,7 +339,7 @@ fmSynth(fundamental,numMod,freqFactor,release,depth,trigger) = (fmSynth + dirtyB
   freqList = par(i,numMod,fundamental * pow(freqFactor,i));														// (1)CARRIER + MOD FREQ LIST
   depthList = par(i,numMod-1,depthCooked);																		// MOD DEPTH LIST
   depthCooked = depth * env * 9;																				// COOKED DEPTH
-  env = sqrt(en.ar(0.001,release, trigger)) : si.smooth(ba.tau2pole(0.001));									// AMP ENVELOPE
+  env = sqrt(en.ar(0.001,release * tempo_RelFactor, trigger)) : si.smooth(ba.tau2pole(0.001));					// AMP ENVELOPE
 };
 
 pulseWave(freq,widthPercent) = output with
@@ -351,14 +355,14 @@ pianoSim_singleNote(freq,trigger) = monoOut
   monoOut = pulseWave(freq,PIANO_WAVEWIDTH1),pulseWave(freq,
 			PIANO_WAVEWIDTH2),pulseWave(freq,PIANO_WAVEWIDTH3):> fi.lowpass(2,cutoff) * ampEnv;					// WAVESUMMING
   cutoff = (freqEnv + 0.01) * 4000 * freq / 600 * (1 - min(freq,1000)/2000) : limit(20,20000);					// FC
-  freqEnv = en.arfe(0.001,1.6,0.4,trigger) : si.smooth(ba.tau2pole(0.0001));									// FREQUENCY ENV
-  ampEnv = pow(en.ar(0.001,4,trigger),6)  : si.smooth(ba.tau2pole(0.0001));										// AMPLITUDE ENV
+  freqEnv = en.arfe(0.001,1.6,0.4 * tempo_RelFactor,trigger) : si.smooth(ba.tau2pole(0.0001));					// FREQUENCY ENV
+  ampEnv = pow(en.ar(0.001,4 * tempo_RelFactor,trigger),6)  : si.smooth(ba.tau2pole(0.0001));						// AMPLITUDE ENV
 };
 
 voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(1,vowel_H,0,freq/2.0,0.04) * env with
 {
   	vowel_idx = _~+(trigger) : %(4) : _ + 0.4 * (0.5 + 0.5*os.osc(0.3));
-	env = en.ar(0.04, 3  / tempo * 78.6, trigger);
+	env = en.ar(0.04, 3  / tempo * 78.6 * tempo_RelFactor, trigger);
   	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.04));
 };
 
@@ -538,7 +542,7 @@ chordTrg(noteIdx) =  TRG_LIST_C	  : ba.selectn(4,noteIdx);																	// TR
 chord_SF_V1(trigger,freq) = pianoSim_singleNote(freq,trigger);																// CHORD - SF VARIANT 1
 chord_SF_V2(trigger,freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
 											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger,7);				// CHORD - SF VARIANT 2
-chord_SF_V3(trigger,freq) = os.CZresTrap(0.5*(1+os.osc(freq)),4.54) * en.are(0.001,2,trigger);
+chord_SF_V3(trigger,freq) = os.CZresTrap(0.5*(1+os.osc(freq)),4.54) * en.are(0.001,2 * tempo_RelFactor,trigger);
 chord_notePanFunc(idx) = ba.take(idx+1,PANPOS_NOTES);
 chordSynthFunc(trigger,freq) = chord_SF_V1(trigger,freq), chord_SF_V2(trigger,freq), chord_SF_V3(trigger,freq) : ba.selectn(3,VAR_4 - 1);
 chordSum = par(i,4,chordSingle_Synth(chordFreq(i), chord_notePanFunc(i), chordSynthFunc(chordTrg(i))) : stereoEffect(applyVelocity(chordVel(i),chordTrg(i),9))) :> _,_;
