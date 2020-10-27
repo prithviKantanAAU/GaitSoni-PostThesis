@@ -24,7 +24,7 @@ public:
 				melodyDraw[i][j].setColour(melodyDraw[i][j].buttonColourId, Colours::black);
 				if (j % 4 == 0)
 					melodyDraw[i][j].setColour(melodyDraw[i][j].buttonColourId, Colours::yellow);
-				if (i == 7)
+				if (i == 0)
 					melodyDraw[i][j].setColour(melodyDraw[i][j].buttonColourId, Colours::white);
 			}
 		}
@@ -65,7 +65,7 @@ public:
 		{
 			for (int j = 0; j < 16; j++)
 			{
-				melodyDraw[i][j].setBounds(50 + 35*j,290 + 25*i, 15, 15);
+				melodyDraw[i][j].setBounds(50 + 35*j,490 - 25*i, 15, 15);
 			}
 		}
 	}

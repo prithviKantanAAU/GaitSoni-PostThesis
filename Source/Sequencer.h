@@ -317,8 +317,24 @@ public:
 	}
 
 	// UPDATE INBUILT MELODY IN CURRENTMUSIC
-	void updateInbuiltMelody(int row, int col)
+	void updateInbuiltMelody(int row, int col) // 0 -7 // 0 - 15
 	{
 		currentMusic.presentDegrees[col] = row + 1;
+		int midiKeyToWrite = scaleTonicTrans.getMidiKeyFromDegree
+		(currentMusic.presentDegrees[col], scaleID_TRANS, tonicOffset_TRANS);
+		int sixteenthTicks = 240;
+		int noteLength = 60;
+
+		for (int i = 0; i < currentMusic.midiTracks[0].numEvents; i++)
+		{
+			if (((currentMusic.midiTracks[0].infoMatrix[i][3] / 240) % 16) == col)
+			{
+				if (currentMusic.midiTracks[0].infoMatrix[i][0] == 1)
+				{
+					currentMusic.midiTracks[0].infoMatrix[i][1] = midiKeyToWrite;
+					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
+				}
+			}
+		}
 	}
 };

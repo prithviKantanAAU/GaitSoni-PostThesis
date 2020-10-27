@@ -34,6 +34,8 @@ public:
 		{-2,0,3,5,7,10,12,15,17,19}		//Pentatonic
 	};
 
+	short inbuilt_BaseKey = 0;
+
 	int transform_T1S1_TO_T2S2(int noteNum, short tonic_Offset1,short scaleID1,
 		short tonic_Offset2, short scaleID2, short trackIndex, String APName_Cue,
 		String X_2D_AP_Name, String Y_2D_AP_Name,String APName_Soni, float mapVal, float apVal_2D_X,
@@ -103,6 +105,8 @@ public:
 	{
 		int outKey = 0;
 		
+		outKey = inbuilt_BaseKey + scales[scaleID][degree] + tonicOffset;
+
 		return outKey;
 	}
 

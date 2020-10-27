@@ -811,7 +811,6 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		File forAppDirectory;
 		if (processor.musicMode == 3 && box->getSelectedId() != 1)
 		{
-			
 			path = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
 			path = path.upToLastOccurrenceOf("\\", true, false);
 			path += "MIDI Inbuilt Library\\";
@@ -822,6 +821,9 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			processor.sequencer.initializeTracksForPlayback();
 			setGainSliders();		
 			processor.sequencer.setFilename(path);
+			// INITIALIZE BASE KEY FOR MELODY DRAW
+			processor.sequencer.scaleTonicTrans.inbuilt_BaseKey =			
+			processor.sequencer.currentMusic.midiTracks[0].infoMatrix[1][1];
 			updateMusicControlValues();
 			refreshBeatLabels();
 		}
