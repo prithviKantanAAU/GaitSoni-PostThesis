@@ -282,12 +282,21 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					switch (musicMode)
 					{
 					case 1:
-						// LIMIT PITCHES AND STORE IN PITCH MATRIX
+						// SET TARGET TRACK INDEX
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
+
+						// ANALYZE NOTE DEGREE OF NEW PITCH AND STORE
+						scaleDegree_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
+						scaleTonicTrans.analyzeNoteDegree(currentMusic.currentKey, currentMusic.currentScale,
+						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1]);
+						
+						// APPLY PITCH TRANSFORMATIONS IF ANY
+
+						// LIMIT AND STORE FINAL PITCHES
 						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
-							currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
-							mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex],
-							mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex]
+						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1],
+						mixerSettings.var_noteMins[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex],
+						mixerSettings.var_noteMaxs[trackVariant - 1][nextVoiceIndex[trackIndex]][trackIndex]
 						);
 						copyPitches_ToDependentTracks(trackIndex);
 						break;

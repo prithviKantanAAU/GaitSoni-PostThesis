@@ -6,7 +6,7 @@ public:
 	ScaleTonicTrans() {};
 	~ScaleTonicTrans() {};
 
-	short numScales = 6;
+	short numScales = 7;
 	short numTonics = 12;
 	String scales_Names[10] =
 	{
@@ -15,12 +15,24 @@ public:
 		"Phrygian",
 		"Dorian",
 		"Mixolydian",
-		"Lydian"
+		"Lydian",
+		"Pentatonic"
 	};
 	String tonics_Names[12] =
 	{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 	short tonics_Offsets[12] =
 	{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+
+	short scales[10][10] =
+	{
+		{-1,0,2,4,5,7,9,11,12,14},		//Major
+		{-2,0,2,3,5,7,8,10,12,14},		//Minor
+		{-2,0,1,3,5,7,8,10,12,13},		//Phrygian
+		{-2,0,2,3,5,7,9,10,12,14},		//Dorian
+		{-2,0,2,4,5,7,9,10,12,14},		//Mixolydian
+		{-1,0,2,4,6,7,9,11,12,14},		//Lydian
+		{-2,0,3,5,7,10,12,15,17,19}		//Pentatonic
+	};
 
 	int transform_T1S1_TO_T2S2(int noteNum, short tonic_Offset1,short scaleID1,
 		short tonic_Offset2, short scaleID2, short trackIndex, String APName_Cue,
@@ -67,7 +79,7 @@ public:
 			degreeFound %= 8;
 		}
 
-		// MEL DEGREE SONIFY
+		// MEL DEGREE SONIFY - X
 		if ((X_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_X * 16);
@@ -75,7 +87,7 @@ public:
 			degreeFound %= 8;
 		}
 
-		// MEL DEGREE SONIFY
+		// MEL DEGREE SONIFY - Y
 		if ((Y_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_Y * 16);
@@ -87,15 +99,21 @@ public:
 		return outKey;
 	}
 
-	short scales[10][10] =
+	int getMidiKeyFromDegree(int degree, int scaleID, int tonicOffset)
 	{
-		{-1,0,2,4,5,7,9,11,12,14},		//Major
-		{-2,0,2,3,5,7,8,10,12,14},		//Minor
-		{-2,0,1,3,5,7,8,10,12,13},		//Phrygian
-		{-2,0,2,3,5,7,9,10,12,14},		//Dorian
-		{-2,0,2,4,5,7,9,10,12,14},		//Mixolydian
-		{-1,0,2,4,6,7,9,11,12,14}		//Lydian
-	};
+		int outKey = 0;
+		
+		return outKey;
+	}
+
+	int analyzeNoteDegree(String key, String scale, int keyVal)
+	{
+		int degree = 1;
+
+
+
+		return degree;
+	}
 
 };
 

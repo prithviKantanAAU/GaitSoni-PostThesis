@@ -89,7 +89,6 @@ public:
 		// Song Master Gain
 		song_master_Gain.setRange(-96, 0);
 		song_master_Gain.setSkewFactor(3);
-		song_master_Gain.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 		song_master_Gain.setColour(song_master_Gain.trackColourId, Colours::red);
 		song_master_Gain.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, false, 10, 10);
 		song_master_Gain.setNumDecimalPlacesToDisplay(1);
@@ -104,16 +103,17 @@ public:
 		for (int i = 0; i < 8; i++)					
 		{
 			// Set Instrument Variant Head Labels
-			inst_Variant_Lab[i].setText(inst_Names[i], dontSendNotification);
-			inst_Variant_Lab[i].attachToComponent(&inst_Variant[i], true);
-
+			//inst_Variant_Lab[i].setText(inst_Names[i], dontSendNotification);
+			//inst_Variant_Lab[i].attachToComponent(&inst_Variant[i], true);
+			
 			// Set Initial Track Mute Setting
 			song_track_Mute[i].setToggleState(false, dontSendNotification);
 			song_track_Mute_Lab[i].setText(std::to_string(i + 1), dontSendNotification);
 			song_track_Mute_Lab[i].attachToComponent(&song_track_Mute[i], true);
 
 			// Set Track Gain Offset
-			song_track_GainOffset[i].setRange(-10, 10);
+			song_track_GainOffset[i].setRange(-50, 30);
+			song_track_GainOffset[i].setSkewFactor(2.5);
 			song_track_GainOffset[i].setValue(0);
 			song_track_GainOffset[i].setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 			song_track_GainOffset[i].setColour(song_track_GainOffset[i].trackColourId, Colours::yellow);
@@ -130,7 +130,8 @@ public:
 		song_master_EQ_B1_F.setValue(200);
 		song_master_EQ_B1_F.setSkewFactor(0.3, false);
 		song_master_EQ_B1_F_Lab.setText("M1F", dontSendNotification);
-		song_master_EQ_B1_F_Lab.attachToComponent(&song_master_EQ_B1_F, true);
+		song_master_EQ_B1_F_Lab.attachToComponent(&song_master_EQ_B1_F, false);
+		song_master_EQ_B1_F_Lab.setJustificationType(juce::Justification::centred);
 
 		//Master EQ F2
 		song_master_EQ_B2_F.setRange(20, 20000);
@@ -140,7 +141,8 @@ public:
 		song_master_EQ_B2_F.setValue(2000);
 		song_master_EQ_B2_F.setSkewFactor(0.3, false);
 		song_master_EQ_B2_F_Lab.setText("M2F", dontSendNotification);
-		song_master_EQ_B2_F_Lab.attachToComponent(&song_master_EQ_B2_F, true);
+		song_master_EQ_B2_F_Lab.attachToComponent(&song_master_EQ_B2_F, false);
+		song_master_EQ_B2_F_Lab.setJustificationType(juce::Justification::centred);
 
 		//Master EQ G1
 		song_master_EQ_B1_G.setRange(-24, 24);
@@ -149,7 +151,7 @@ public:
 		song_master_EQ_B1_G.setColour(song_master_EQ_B1_G.trackColourId, Colours::blue);
 		song_master_EQ_B1_G.setValue(0);
 		song_master_EQ_B1_G_Lab.setText("M1G", dontSendNotification);
-		song_master_EQ_B1_G_Lab.attachToComponent(&song_master_EQ_B1_G, true);
+		song_master_EQ_B1_G_Lab.attachToComponent(&song_master_EQ_B1_G, false);
 
 		//Master EQ G2 - Move all but Lambda to subclass
 		song_master_EQ_B2_G.setRange(-24, 24);
@@ -158,7 +160,7 @@ public:
 		song_master_EQ_B2_G.setColour(song_master_EQ_B2_G.trackColourId, Colours::blue);
 		song_master_EQ_B2_G.setValue(0);
 		song_master_EQ_B2_G_Lab.setText("M2G", dontSendNotification);
-		song_master_EQ_B2_G_Lab.attachToComponent(&song_master_EQ_B2_G, true);
+		song_master_EQ_B2_G_Lab.attachToComponent(&song_master_EQ_B2_G, false);
 
 		//Show Channel Settings
 		showControls_Channel.setButtonText("Channel Controls");
@@ -216,31 +218,33 @@ public:
 		song_Stop.setBounds(150, 50, 100, 30);
 		tempo_Tap.setBounds(250, 50, 100, 30);
 		tempo_Slider.setBounds(410, 50, 200, 30);
-		song_Progress.setBounds(50, 250, 1100, 30);
-		music_Mode.setBounds(50, 305, 200, 40);
+		song_Progress.setBounds(50, 35, 550, 10);
+		music_Mode.setBounds(50, 235, 100, 25);
 		song_TimeLeft.setBounds(1000, 280, 200, 30);
 		song_BarBeat_Counter.setBounds(800, 280, 200, 30);
 		style.setBounds(50, 90, 100, 30);
 		song_Filename.setBounds(900, 30, 300, 25);
-		song_LoadFile.setBounds(1020, 70, 170, 150);
+		song_LoadFile.setBounds(770, 70, 110, 150);
 		groove.setBounds(50, 130, 100, 25);
 		fluidity.setBounds(50, 185, 100, 25);
-		song_master_Gain.setBounds(680, 50, 50, 180);
-		song_master_EQ_B1_F.setBounds(780, 50, 30, 180);
-		song_master_EQ_B1_G.setBounds(840, 50, 30, 180);
-		song_master_EQ_B2_F.setBounds(900, 50, 30, 180);
-		song_master_EQ_B2_G.setBounds(960, 50, 30, 180);
+		song_master_Gain.setBounds(655, 30, 230, 25);
+		song_master_EQ_B1_F.setBounds(615, 80, 30, 150);
+		song_master_EQ_B1_G.setBounds(650, 80, 30, 150);
+		song_master_EQ_B2_F.setBounds(685, 80, 30, 150);
+		song_master_EQ_B2_G.setBounds(720, 80, 30, 150);
 
 		for (int i = 0; i < 8; i++)
 		{
 			int horizPos = 210 + 50 * i;
 			song_track_Mute[i].setBounds(horizPos, 90, 50, 30);
 			song_track_GainOffset[i].setBounds(horizPos - 3, 150, 35, 80);
-			inst_Variant[i].setBounds(50, 355 + 50 * i, 200, 40);
+			//inst_Variant[i].setBounds(50, 355 + 50 * i, 200, 40);
+			inst_Variant[i].setBounds(horizPos - 25 + 10, 235, 50, 25);
+
 		}
 
-		showControls_RingVisualize.setBounds(550, 290, 200, 25);
-		showControls_Channel.setBounds(750, 290, 200, 25);
+		//showControls_RingVisualize.setBounds(550, 290, 200, 25);
+		//showControls_Channel.setBounds(750, 290, 200, 25);
 	}
 };
 

@@ -23,6 +23,41 @@ public:
 	const MidiMessageSequence* midiInfo;
 	MidiMessageSequence::MidiEventHolder* midiEventHolder;
 
+	void loadSongMetadata(String path)
+	{
+		auto metadataFile = File(path);
+		short numLines_Meta = 1;
+		short numEntries_perLine[100] = { 2 };
+
+		if (!metadataFile.existsAsFile())
+			return;  // file doesn't exist
+
+		juce::FileInputStream inputStream(metadataFile); // [2]
+
+		if (!inputStream.openedOk())
+			return;  // failed to open
+
+		for (int i = 0; i < numLines_Meta; i++)
+		{
+			auto line = inputStream.readNextLine();
+			auto line_Rem = line;
+
+			for (int j = 0; j < numEntries_perLine[i]; j++)
+			{
+				line = line_Rem.upToFirstOccurrenceOf(",", false, true);
+				line_Rem = line_Rem.fromFirstOccurrenceOf(",", false, true);
+
+				switch (i)
+				{
+				case 0:
+					if (j == 0) currentKey = line;
+					if (j == 1) currentScale = line;
+					break;
+				}
+			}
+		}
+	}
+
 	void loadMidiFile(String path)						// Load MIDI Song File into JUCE Program Memory
 	{
 		midiFile = File(path);
@@ -66,6 +101,11 @@ public:
 				}
 			}
 		}
+
+		String fileName = path.fromLastOccurrenceOf("\\", false, false)
+						  .upToFirstOccurrenceOf(".", false, false);
+		String path2 = path.upToLastOccurrenceOf("\\", true, true) + fileName + ".csv";
+		loadSongMetadata(path2);
 	};
 	
 	// Inbuilt MIDI Song Files
@@ -73,12 +113,11 @@ public:
 	String MelLibFiles[5] = { "1.mid", "2.mid", "3.mid", "4.mid", "5.mid" };
 	short num_Inbuilt = 5;
 
-	// MELODY EMPHASIS
-	short inbuilt_TonicOffset1 = 0;
-	short inbuilt_Scale1 = 0;
-	short inbuilt_TonicOffset2 = 0;
-	short inbuilt_Scale2 = 0;
-	
+	// MELODY MODIFY
+	short presentDegrees[16] = { 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1 };
+	String currentScale = "";
+	String currentKey = "";
+
 	// Drum Rhythms
 	
 	MidiTrack_Style styles[15];

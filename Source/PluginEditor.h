@@ -262,6 +262,13 @@ private:
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 16; j++)
+			{
+				addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw[i][j]);
+			}
+		}
 	}
 	void addControls_Music_INDIVIDUAL()
 	{

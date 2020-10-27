@@ -125,6 +125,13 @@ public:
 		false												// CRASH
 	};
 	int pitches[4][8] = { 0 };
+	int scaleDegree_Voices[4][8] =
+	{
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1}
+	};
 	bool isVel_FromSongFile[8] =
 	{
 		false,
@@ -307,5 +314,11 @@ public:
 			break;
 		}
 		return songProgress >= 1 ? true : false;
+	}
+
+	// UPDATE INBUILT MELODY IN CURRENTMUSIC
+	void updateInbuiltMelody(int row, int col)
+	{
+		currentMusic.presentDegrees[col] = row + 1;
 	}
 };

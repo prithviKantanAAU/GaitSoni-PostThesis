@@ -174,13 +174,13 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 	for (int i = 0; i < 8; i++)
 	{
 		// Instrument Variant Names - Populate
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][0], 1);
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][1], 2);
-		ui_musiCon_gen.inst_Variant[i].addItem(processor.sequencer.mixerSettings.varNames[i][2], 3);
+		ui_musiCon_gen.inst_Variant[i].addItem("1", 1);
+		ui_musiCon_gen.inst_Variant[i].addItem("2", 2);
+		ui_musiCon_gen.inst_Variant[i].addItem("3", 3);
 		ui_musiCon_gen.inst_Variant[i].addListener(this);
 		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.styles[processor.sequencer.currentMusic.style_current].variantConfig[i]);
-		ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
-		ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
+		//ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
+		//ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 
 		// Instrument Mute
 		ui_musiCon_gen.song_track_Mute[i].onStateChange = [this, i]
@@ -222,6 +222,18 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 			ui_musiCon_gen.fluidity.getValue()
 		);
 	};
+
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 16; j++)
+		{
+			ui_musiCon_inbuilt.melodyDraw[i][j].onClick = [this,i,j]
+			{
+				ui_musiCon_inbuilt.melodyDraw_HandleButtonPress(i, j);
+				processor.sequencer.updateInbuiltMelody(i, j);
+			};
+		}
+	}
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB
