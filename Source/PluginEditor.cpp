@@ -230,7 +230,15 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 			ui_musiCon_inbuilt.melodyDraw[i][j].onClick = [this,i,j]
 			{
 				ui_musiCon_inbuilt.melodyDraw_HandleButtonPress(i, j);
-				processor.sequencer.updateInbuiltMelody(i, j);
+				processor.sequencer.updateInbuiltMelody(i, j, ui_musiCon_inbuilt.melodyDraw_Vels[j]);
+			};
+
+			ui_musiCon_inbuilt.melodyDraw_Vel[j].onValueChange = [this,i,j]
+			{
+				ui_musiCon_inbuilt.melodyDraw_Vels[j] = (int)ui_musiCon_inbuilt.melodyDraw_Vel[j].getValue();
+				processor.sequencer.updateInbuiltMelody(
+				ui_musiCon_inbuilt.melodyDraw_selectedBox[j], j, ui_musiCon_inbuilt.melodyDraw_Vels[j]);
+				ui_musiCon_inbuilt.melodyDraw_updateSelectedBoxColour(j);
 			};
 		}
 	}
@@ -801,42 +809,37 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		case 3:
 			ui_musiCon_gen.song_LoadFile.setVisible(false);
 			ui_musiCon_inbuilt.toggleVisible(true);
-			break;
-		}
-	}
-
-	if (box == &ui_musiCon_inbuilt.inbuilt_ChooseMIDI)
-	{
-		String path = "";
-		File forAppDirectory;
-		if (processor.musicMode == 3 && box->getSelectedId() != 1)
-		{
-			path = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
+			File forAppDirectory;
+			String path = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
 			path = path.upToLastOccurrenceOf("\\", true, false);
 			path += "MIDI Inbuilt Library\\";
-			path += processor.sequencer.currentMusic.MelLibFiles[box->getSelectedId() - 2];
+			path += processor.sequencer.currentMusic.MelLibFiles[0];
 			processor.sequencer.setTimingMode(path);
 			processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 			setRhythmSpecificVariants();
 			processor.sequencer.initializeTracksForPlayback();
-			setGainSliders();		
+			setGainSliders();
 			processor.sequencer.setFilename(path);
 			// INITIALIZE BASE KEY FOR MELODY DRAW
-			processor.sequencer.scaleTonicTrans.inbuilt_BaseKey =			
-			processor.sequencer.currentMusic.midiTracks[0].infoMatrix[1][1];
+			processor.sequencer.scaleTonicTrans.inbuilt_BaseKey =
+				processor.sequencer.currentMusic.midiTracks[0].infoMatrix[1][1];
+			melodyDraw_ResetOnScaleTonicChange();
 			updateMusicControlValues();
 			refreshBeatLabels();
+			break;
 		}
 	}
 
 	if (box == &ui_musiCon_inbuilt.inbuilt_Scale)
 	{
 		processor.sequencer.scaleID_TRANS = box->getSelectedId() - 1;
+		melodyDraw_ResetOnScaleTonicChange();
 	}
 
 	if (box == &ui_musiCon_inbuilt.inbuilt_Tonic)
 	{
 		processor.sequencer.tonicOffset_TRANS = box->getSelectedId() - 1;
+		melodyDraw_ResetOnScaleTonicChange();
 	}
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_TYPE)
@@ -987,6 +990,9 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 
 		if (processor.sequencer.currentMusic.isStylesPopulated && ui_musiCon_gen.style.getNumItems() == 0)
 			populateStyleLists(true);
+
+		if (processor.musicMode == 3)
+			ui_musiCon_inbuilt.melodyDraw_updateTimeMarkerBounds(processor.sequencer.midiTicksElapsed);
 	}
 
 	// IF SONIFICATION TAB, UPDATE UI IN REALTIME

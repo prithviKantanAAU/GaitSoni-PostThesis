@@ -267,8 +267,10 @@ private:
 			for (int j = 0; j < 16; j++)
 			{
 				addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw[i][j]);
+				addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_Vel[j]);
 			}
 		}
+		addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_TimeMarker);
 	}
 	void addControls_Music_INDIVIDUAL()
 	{
@@ -346,8 +348,8 @@ private:
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER_Label);
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER);
 		addAndMakeVisible(ringVisualize.emph_Strategy);
-		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
-		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
+		//addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
+		//addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
 	}
 
@@ -593,6 +595,17 @@ private:
 		{
 			value = processor.sequencer.mixerSettings.eqSettings[currentVariant][trackIdx][3* ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i];
 			ui_musiCon_indiv.channel_EQ_Settings[i].setValue(value);
+		}
+	}
+
+	// Refresh Melody Draw on Scale Tonic Change
+	void melodyDraw_ResetOnScaleTonicChange()
+	{
+		processor.sequencer.flushInbuiltMelody();
+		for (int j = 0; j < 16; j++)
+		{
+			processor.sequencer.updateInbuiltMelody(ui_musiCon_inbuilt.melodyDraw_selectedBox[j],
+			j, ui_musiCon_inbuilt.melodyDraw_Vels[j]);
 		}
 	}
 

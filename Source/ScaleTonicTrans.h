@@ -73,6 +73,8 @@ public:
 			}
 		}
 
+		if (trackIndex == 5) noteNum -= scales[scaleID2][degreeFound];
+
 		// MEL DEGREE SONIFY
 		if ((APName_Soni == "Mel Degree") && trackIndex == 5)
 		{
@@ -81,7 +83,7 @@ public:
 			degreeFound %= 8;
 		}
 
-		// MEL DEGREE SONIFY - X
+		// MEL DEGREE SONIFY
 		if ((X_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_X * 16);
@@ -89,15 +91,17 @@ public:
 			degreeFound %= 8;
 		}
 
-		// MEL DEGREE SONIFY - Y
+		// MEL DEGREE SONIFY
 		if ((Y_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_Y * 16);
 			octaveNum += (short)(degreeFound / 8);
 			degreeFound %= 8;
 		}
-		
+
 		outKey = tonics_Offsets[tonic_Offset2] + 12 * octaveNum + scales[scaleID2][degreeFound] + minDiff;
+		if (trackIndex == 5) outKey = noteNum + scales[scaleID2][degreeFound];
+		
 		return outKey;
 	}
 

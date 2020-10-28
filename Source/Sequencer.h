@@ -317,7 +317,15 @@ public:
 	}
 
 	// UPDATE INBUILT MELODY IN CURRENTMUSIC
-	void updateInbuiltMelody(int row, int col) // 0 -7 // 0 - 15
+	void flushInbuiltMelody()
+	{
+		for (int i = 0; i < currentMusic.midiTracks[0].numEvents; i++)
+		{
+			currentMusic.midiTracks[0].infoMatrix[i][1] = scaleTonicTrans.inbuilt_BaseKey;
+		}
+	}
+
+	void updateInbuiltMelody(int row, int col, int vel) // 0 -7 // 0 - 15
 	{
 		currentMusic.presentDegrees[col] = row + 1;
 		int midiKeyToWrite = scaleTonicTrans.getMidiKeyFromDegree
@@ -332,6 +340,7 @@ public:
 				if (currentMusic.midiTracks[0].infoMatrix[i][0] == 1)
 				{
 					currentMusic.midiTracks[0].infoMatrix[i][1] = midiKeyToWrite;
+					currentMusic.midiTracks[0].infoMatrix[i][2] = vel;
 					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
 				}
 			}
