@@ -991,6 +991,17 @@ void GaitSonificationAudioProcessorEditor::timerCallback()
 		if (processor.sequencer.currentMusic.isStylesPopulated && ui_musiCon_gen.style.getNumItems() == 0)
 			populateStyleLists(true);
 
+		if (processor.sequencer.isPlaying)
+		{
+			for (int i = 0; i < 8; i++)
+				for (int j = 0; j < processor.sequencer.currentMusic.numVoices[i]; j++)
+					ui_musiCon_gen.updateNoteDegreeLab(
+						i,
+						j,
+						processor.sequencer.scaleDegree_Voices[j][i]
+					);
+		}
+
 		if (processor.musicMode == 3)
 			ui_musiCon_inbuilt.melodyDraw_updateTimeMarkerBounds(processor.sequencer.midiTicksElapsed);
 	}

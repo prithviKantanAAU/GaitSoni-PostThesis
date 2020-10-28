@@ -94,8 +94,6 @@ public:
 
 	void setLayout()
 	{
-		//inbuilt_ChooseMIDI.setBounds(615, 235, 95, 25);
-		//inbuilt_Tonic.setBounds(710, 235, 95, 25);
 		inbuilt_Scale.setBounds(50, 265, 100, 25);
 
 		for (int i = 0; i < 8; i++)

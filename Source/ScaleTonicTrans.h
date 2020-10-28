@@ -42,6 +42,7 @@ public:
 		float apVal_2D_Y)
 	{
 		short octaveNum = noteNum / 12;
+		short octaveInc = 0;
 		short noteNum_NORM = noteNum - octaveNum * 12 - tonic_Offset1;
 		short outKey = 0;
 
@@ -51,7 +52,9 @@ public:
 		short degreeFound = 1;
 		for (int i = 1; i <= 8; i++)
 		{
-			degreeDiff[i - 1] = noteNum_NORM - scales[scaleID1][i];
+			degreeDiff[i - 1] = (trackIndex == 5) ?
+				degreeDiff[i - 1] = noteNum_NORM - scales[scaleID2][i] :
+				degreeDiff[i - 1] = noteNum_NORM - scales[scaleID1][i];
 			if (degreeDiff[i - 1] == 0)
 			{
 				isDegreeFound = true;
@@ -73,13 +76,15 @@ public:
 			}
 		}
 
-		if (trackIndex == 5) noteNum -= scales[scaleID2][degreeFound];
+		if (trackIndex == 5) 
+			noteNum -= scales[scaleID2][degreeFound];
 
 		// MEL DEGREE SONIFY
 		if ((APName_Soni == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + mapVal * 16);
-			octaveNum += (short)(degreeFound / 8);
+			octaveInc = (short)(degreeFound / 8);
+			octaveNum += octaveInc;
 			degreeFound %= 8;
 		}
 
@@ -87,7 +92,8 @@ public:
 		if ((X_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_X * 16);
-			octaveNum += (short)(degreeFound / 8);
+			octaveInc = (short)(degreeFound / 8);
+			octaveNum += octaveInc;
 			degreeFound %= 8;
 		}
 
@@ -95,12 +101,14 @@ public:
 		if ((Y_2D_AP_Name == "Mel Degree") && trackIndex == 5)
 		{
 			degreeFound = (int)(degreeFound + apVal_2D_Y * 16);
-			octaveNum += (short)(degreeFound / 8);
+			octaveInc = (short)(degreeFound / 8);
+			octaveNum += octaveInc;
 			degreeFound %= 8;
 		}
 
 		outKey = tonics_Offsets[tonic_Offset2] + 12 * octaveNum + scales[scaleID2][degreeFound] + minDiff;
-		if (trackIndex == 5) outKey = noteNum + scales[scaleID2][degreeFound];
+		if (trackIndex == 5) 
+			outKey = noteNum + scales[scaleID2][degreeFound] + 12 * octaveInc;
 		
 		return outKey;
 	}
@@ -117,10 +125,50 @@ public:
 	int analyzeNoteDegree(String key, String scale, int keyVal)
 	{
 		int degree = 1;
+		int tonicOffset = 0;
+		int scaleIdx = 0;
+		for (int i = 0; i < numTonics; i++)
+			if (key == tonics_Names[i])
+				tonicOffset = i;
+		for (int i = 0; i < numScales; i++)
+			if (scale == scales_Names[i])
+				scaleIdx = i;
 
+		short octaveNum = keyVal / 12;
+		short octaveInc = 0;
+		short noteNum_NORM = keyVal - octaveNum * 12 - tonicOffset;
+		noteNum_NORM = noteNum_NORM < 0 ? noteNum_NORM + 12 : noteNum_NORM;
+		short outKey = 0;
 
+		short degreeDiff[8] = { 0 };
+		short minDiff = 12;
+		bool isDegreeFound = false;
+		short degreeFound = 1;
+		for (int i = 1; i <= 8; i++)
+		{
+			degreeDiff[i - 1] = noteNum_NORM - scales[scaleIdx][i];
+			if (degreeDiff[i - 1] == 0)
+			{
+				isDegreeFound = true;
+				degreeFound = i;
+				minDiff = 0;
+				break;
+			}
+		}
 
-		return degree;
+		if (!isDegreeFound)
+		{
+			for (int i = 1; i <= 8; i++)
+			{
+				if (abs(degreeDiff[i - 1]) < minDiff)
+				{
+					minDiff = degreeDiff[i - 1];
+					degreeFound = i;
+				}
+			}
+		}
+
+		return degreeFound;
 	}
 
 };

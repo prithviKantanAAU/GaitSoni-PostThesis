@@ -253,6 +253,8 @@ private:
 			addAndMakeVisible(ui_musiCon_gen.song_track_GainOffset_Lab[i]);
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant[i]);
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant_Lab[i]);
+			for (int j = 0; j < 4; j++)
+				addAndMakeVisible(ui_musiCon_gen.noteDegree_Lab[j][i]);
 		}
 		addAndMakeVisible(ui_musiCon_gen.showControls_Channel);
 		addAndMakeVisible(ui_musiCon_gen.showControls_RingVisualize);

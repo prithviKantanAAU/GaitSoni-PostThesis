@@ -56,6 +56,8 @@ public:
 	TextButton showControls_RingVisualize;		//Press To Show Ring Visualize Controls
 	Slider fluidity;							//Fluidity Slider
 	Label fluidity_Lab;							//Fluidity Slider Label
+	Label noteDegree_Lab[4][8];					//Note Degree Labels
+	bool noteDegree_toDisp[8] = { false, false, false, true, true, true, false, false };
 
 	void configure()
 	{
@@ -206,6 +208,8 @@ public:
 			song_track_GainOffset[i].setVisible(on);
 			song_track_Mute[i].setVisible(on);
 			inst_Variant[i].setVisible(on);
+			for (int j = 0; j < 4; j++)
+				noteDegree_Lab[j][i].setVisible(on);
 		}
 		showControls_Channel.setVisible(on);
 		showControls_RingVisualize.setVisible(on);
@@ -240,11 +244,17 @@ public:
 			song_track_GainOffset[i].setBounds(horizPos - 3, 150, 35, 80);
 			//inst_Variant[i].setBounds(50, 355 + 50 * i, 200, 40);
 			inst_Variant[i].setBounds(horizPos - 25 + 10, 235, 50, 25);
-
+			for (int j = 0; j < 4; j++)
+			{
+				noteDegree_Lab[j][i].setBounds(horizPos-10,155 + j*10,20,20);
+			}
 		}
+	}
 
-		//showControls_RingVisualize.setBounds(550, 290, 200, 25);
-		//showControls_Channel.setBounds(750, 290, 200, 25);
+	void updateNoteDegreeLab(int trackNum, int voiceNum, int degree)
+	{
+		if (noteDegree_toDisp[trackNum])
+			noteDegree_Lab[voiceNum][trackNum].setText(String(degree), dontSendNotification);
 	}
 };
 
