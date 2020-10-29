@@ -5,8 +5,6 @@ public:
 	MidiTrack_Drum() {};
 	~MidiTrack_Drum() {};
 	String name = "";
-	short variantConfig[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-	float variantConfig_GAINS[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	int numEvents = 0;
 	bool isEventNoteOn[500] = { false };
 	int infoMatrix[500][4] = { 0 };	// Type - Val - Vel - TS

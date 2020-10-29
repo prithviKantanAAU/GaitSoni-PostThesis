@@ -10,6 +10,7 @@
 #include "ScaleTonicTrans.h"
 #include "mixerSettings.h"
 #include "FaustStrings.h"
+#include "tempoTickIncCalculation.h"
 
 class Sequencer
 {
@@ -24,6 +25,7 @@ public:
 	DspFaust dspFaust;
 	MixerSettings mixerSettings;
 	FaustStrings faustStrings;
+	TempoTickInc tempoTickInc;
 	
 	void resetCounters();
 	short musicMode = 1;
@@ -72,9 +74,9 @@ public:
 			is3by4Mode = false;
 		}
 		// SET SELECTED RHYTHM TO FIRST CHOICE WITH APPROPRIATE TIMING MODE
-		for (int i = 0; i < currentMusic.drum_numBase; i++)
+		for (int i = 0; i < currentMusic.styles[currentMusic.style_current].grooves_total; i++)
 		{
-			if (currentMusic.drum_beatTypes[i] == timingMode)
+			if (currentMusic.styles[currentMusic.style_current].groove_types[i] == timingMode)
 			{
 				index_baseBeat = i;
 				break;
@@ -125,6 +127,13 @@ public:
 		false												// CRASH
 	};
 	int pitches[4][8] = { 0 };
+	float scaleDegree_Voices[4][8] =
+	{
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,1,1}
+	};
 	bool isVel_FromSongFile[8] =
 	{
 		false,
@@ -170,8 +179,9 @@ public:
 	// UPDATE CHOSEN RHYTHM WITH NEXT
 	void nextRhythm(short musicMode) 
 	{
-		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
-		index_baseBeat = currentMusic.getNextBeat(index_baseBeat, timingMode);
+		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
+		currentMusic.styles[currentMusic.style_current].groove_current =
+			(currentMusic.styles[currentMusic.style_current].groove_current + 1) % currentMusic.styles[currentMusic.style_current].grooves_total;
 	};
 
 	// SCALE AND TONIC TRANSFORMATIONS
@@ -200,17 +210,17 @@ public:
 		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
 		
 		// RESET NEXT EVENT INDICES TO ZERO
-		currentMusic.baseBeats[index_baseBeat].flush_nextEventIndices();
+		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
 		int eventIdx_Present_Trackwise = 0;
 
 		for (int h = 0; h < numTracks; h++)
 		{	// i REPRESENTS IDX OF TRACKWISE EVENTS
-			for (int i = 0; i < currentMusic.baseBeats[index_baseBeat].eventCount_ByTrack[h]; i++)
+			for (int i = 0; i < currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventCount_ByTrack[h]; i++)
 			{
-				eventIdx_Present_Trackwise = currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_ALL[i][h];
-				if (midiTicksElapsed_MOD < currentMusic.baseBeats[index_baseBeat].infoMatrix[eventIdx_Present_Trackwise][3])
+				eventIdx_Present_Trackwise = currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventIdx_ByTrack_ALL[i][h];
+				if (midiTicksElapsed_MOD < currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].infoMatrix[eventIdx_Present_Trackwise][3])
 				{
-					currentMusic.baseBeats[index_baseBeat].eventIdx_ByTrack_NEXT[h] = i;
+					currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].eventIdx_ByTrack_NEXT[h] = i;
 					break;
 				}
 			}
@@ -221,12 +231,11 @@ public:
 	float cookMIDIVel(float midiVel, short trackIndex, String APName)
 	{
 		float output = 0;
-		if (midiVel < 64)
-			output = fmin(0 + 3 * midiVel / 64.0, 2.999);
-		else if (midiVel < 96)
-			output = fmin(3 + 3 * (midiVel - 64) / 32.0, 5.999);
+
+		if (midiVel < 32)
+			output = pow(midiVel / 32.0, 2);
 		else
-			output = fmin(6 + 3 * (midiVel - 96) / 32.0, 9);
+			output = 1 + 9.0 / 95.0 * (midiVel - 32);
 
 		return output;
 	};
@@ -252,7 +261,7 @@ public:
 
 		for (int i = 0; i < numTracks; i++)
 		{
-			trackVariant = currentMusic.baseBeats[index_baseBeat].variantConfig[i] - 1;
+			trackVariant = currentMusic.styles[currentMusic.style_current].variantConfig[i] - 1;
 			if (i != trackIndex && trackIdx_to_midiTrack_map[i] == targetTrackId)
 			{
 				for (int j = 0; j < currentMusic.numVoices[trackIndex]; j++)
@@ -307,5 +316,36 @@ public:
 			break;
 		}
 		return songProgress >= 1 ? true : false;
+	}
+
+	// UPDATE INBUILT MELODY IN CURRENTMUSIC
+	void flushInbuiltMelody()
+	{
+		for (int i = 0; i < currentMusic.midiTracks[0].numEvents; i++)
+		{
+			currentMusic.midiTracks[0].infoMatrix[i][1] = scaleTonicTrans.inbuilt_BaseKey;
+		}
+	}
+
+	void updateInbuiltMelody(int row, int col, int vel) // 0 -7 // 0 - 15
+	{
+		currentMusic.presentDegrees[col] = row + 1;
+		int midiKeyToWrite = scaleTonicTrans.getMidiKeyFromDegree
+		(currentMusic.presentDegrees[col], scaleID_TRANS, tonicOffset_TRANS);
+		int sixteenthTicks = 240;
+		int noteLength = 60;
+
+		for (int i = 0; i < currentMusic.midiTracks[0].numEvents; i++)
+		{
+			if (((currentMusic.midiTracks[0].infoMatrix[i][3] / 240) % 16) == col)
+			{
+				if (currentMusic.midiTracks[0].infoMatrix[i][0] == 1)
+				{
+					currentMusic.midiTracks[0].infoMatrix[i][1] = midiKeyToWrite;
+					currentMusic.midiTracks[0].infoMatrix[i][2] = vel;
+					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
+				}
+			}
+		}
 	}
 };

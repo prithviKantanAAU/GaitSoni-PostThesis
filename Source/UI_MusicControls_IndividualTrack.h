@@ -20,8 +20,8 @@ public:
 	short channel_EQ_ActiveFiltIdx = 0;
 	String channel_EQ_Labels_Text[3] =
 	{
-		"Frequency",
-		"Gain",
+		"F",
+		"G",
 		"Q"
 	};
 	float channel_EQ_Bounds[3][2] =
@@ -32,10 +32,10 @@ public:
 	};
 	String channel_Comp_Labels_Text[4] =
 	{
-		"Threshold",
-		"Ratio",
-		"Attack",
-		"Release"
+		"Th",
+		"Rt",
+		"At",
+		"Rl"
 	};
 	float channel_Comp_Bounds[4][2] =
 	{
@@ -72,8 +72,10 @@ public:
 			channel_Comp_Settings[i].setRange(channel_Comp_Bounds[i][0], channel_Comp_Bounds[i][1]);
 			channel_Comp_Settings[i].setNumDecimalPlacesToDisplay(2);
 			channel_Comp_Settings[i].setColour(channel_Comp_Settings[i].trackColourId, Colours::yellow);
+			channel_Comp_Settings[i].setTextBoxStyle(juce::Slider::NoTextBox,false,10,10);
+			channel_Comp_Settings[i].setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 			channel_Comp_Labels[i].setText(channel_Comp_Labels_Text[i], dontSendNotification);
-			channel_Comp_Labels[i].attachToComponent(&channel_Comp_Settings[i], true);
+			channel_Comp_Labels[i].attachToComponent(&channel_Comp_Settings[i], false);
 		}
 
 		for (int i = 0; i < 3; i++)
@@ -82,9 +84,11 @@ public:
 			channel_EQ_Settings[i].setNumDecimalPlacesToDisplay(2);
 			if (i == 0)	
 				channel_EQ_Settings[i].setSkewFactor(0.3);
+			channel_EQ_Settings[i].setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+			channel_EQ_Settings[i].setTextBoxStyle(juce::Slider::NoTextBox, false, 10, 10);
 			channel_EQ_Settings[i].setColour(channel_EQ_Settings[i].trackColourId, Colours::yellow);
 			channel_EQ_Labels[i].setText(channel_EQ_Labels_Text[i], dontSendNotification);
-			channel_EQ_Labels[i].attachToComponent(&channel_EQ_Settings[i], true);
+			channel_EQ_Labels[i].attachToComponent(&channel_EQ_Settings[i], false);
 		}
 	}
 
@@ -106,12 +110,12 @@ public:
 
 	void setLayout()
 	{
-		channel_TrackIdx.setBounds(750, 320, 180, 30);
-		channel_EQ_FiltIdx.setBounds(750, 360, 180, 30);
+		channel_TrackIdx.setBounds(900, 70, 90, 25);
+		channel_EQ_FiltIdx.setBounds(1000, 70, 100, 25);
 		for (int i = 0; i < 3; i++)
-			channel_EQ_Settings[i].setBounds(750, 400 + i * 40, 180, 30);
+			channel_EQ_Settings[i].setBounds(900 + 30*i, 125, 30, 105);
 		for (int i = 0; i < 4; i++)
-			channel_Comp_Settings[i].setBounds(750, 540 + i * 40, 180, 30);
+			channel_Comp_Settings[i].setBounds(990 + 30*i, 125, 30, 105);
 	}
 };
 

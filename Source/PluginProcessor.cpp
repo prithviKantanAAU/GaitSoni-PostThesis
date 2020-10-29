@@ -50,7 +50,8 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 		// INCREMENT BASIC PLAYBACK COUNTERS
 		sequencer.timeElapsed_SONG += 0.001;
 		pulsesElapsed = pulsesElapsed % 100;
-		sequencer.midiTicksElapsed += sequencer.ticksPerMS;
+		sequencer.midiTicksElapsed += sequencer.tempoTickInc.getNewTickIncrement(
+			sequencer.midiTicksElapsed,sequencer.currentMusic.finalTimeStamp,sequencer.ticksPerMS);
 		sequencer.tapTempoCounter = min(1, sequencer.tapTempoCounter + 0.001);		// Limit to 1
 
 		// RUN MUSICAL CLOCK CALLBACK

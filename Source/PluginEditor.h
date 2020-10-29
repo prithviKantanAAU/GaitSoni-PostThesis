@@ -226,13 +226,13 @@ private:
 		addAndMakeVisible(ui_musiCon_gen.song_Stop);
 		addAndMakeVisible(ui_musiCon_gen.song_Filename);
 		addAndMakeVisible(ui_musiCon_gen.music_Mode);
-		addAndMakeVisible(ui_musiCon_gen.rhythm_SetNext);
 		addAndMakeVisible(ui_musiCon_gen.song_LoadFile);
 		addAndMakeVisible(ui_musiCon_gen.tempo_Tap);
 		addAndMakeVisible(ui_musiCon_gen.tempo_Slider);
-		addAndMakeVisible(ui_musiCon_gen.rhythm_Prev);
-		addAndMakeVisible(ui_musiCon_gen.rhythm_Now);
-		addAndMakeVisible(ui_musiCon_gen.rhythm_Next);
+		addAndMakeVisible(ui_musiCon_gen.style);
+		addAndMakeVisible(ui_musiCon_gen.groove);
+		addAndMakeVisible(ui_musiCon_gen.fluidity);
+		addAndMakeVisible(ui_musiCon_gen.fluidity_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_Gain);
 		addAndMakeVisible(ui_musiCon_gen.song_master_Gain_Lab);
 		addAndMakeVisible(ui_musiCon_gen.song_master_EQ_B1_F);
@@ -253,6 +253,8 @@ private:
 			addAndMakeVisible(ui_musiCon_gen.song_track_GainOffset_Lab[i]);
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant[i]);
 			addAndMakeVisible(ui_musiCon_gen.inst_Variant_Lab[i]);
+			for (int j = 0; j < 4; j++)
+				addAndMakeVisible(ui_musiCon_gen.noteDegree_Lab[j][i]);
 		}
 		addAndMakeVisible(ui_musiCon_gen.showControls_Channel);
 		addAndMakeVisible(ui_musiCon_gen.showControls_RingVisualize);
@@ -262,6 +264,15 @@ private:
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 16; j++)
+			{
+				addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw[i][j]);
+				addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_Vel[j]);
+			}
+		}
+		addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_TimeMarker);
 	}
 	void addControls_Music_INDIVIDUAL()
 	{
@@ -339,15 +350,15 @@ private:
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER_Label);
 		addAndMakeVisible(ringVisualize.emphFunc_ORDER);
 		addAndMakeVisible(ringVisualize.emph_Strategy);
-		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
-		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
+		//addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_ChooseMIDI);
+		//addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Tonic);
 		addAndMakeVisible(ui_musiCon_inbuilt.inbuilt_Scale);
 	}
 
 	//Real time update of a) Song remaining time and b) Ring box positions
 	void updateTimeLabels()				
 	{
-		ui_musiCon_gen.song_TimeLeft.setText("Remaining Time: "
+		ui_musiCon_gen.song_TimeLeft.setText("Time Left: "
 			+ std::to_string((int)processor.sequencer.timeLeft_Song) + " s", dontSendNotification);
 		if (presentMusiCon_Disp == 1)
 		{
@@ -394,57 +405,42 @@ private:
 			break;
 		}
 	}
+
+	void populateStyleLists(bool isBoth)
+	{
+		int numStyles = processor.sequencer.currentMusic.numStyles;
+		int currentStyle = processor.sequencer.currentMusic.style_current;
+		int numGrooves = processor.sequencer.currentMusic.styles[currentStyle].grooves_total;
+		String name_Present = "";
+		if (isBoth)
+		{
+			for (int i = 0; i < numStyles; i++)
+			{
+				name_Present = processor.sequencer.currentMusic.styles[i].name;
+				ui_musiCon_gen.style.addItem(name_Present, i + 1);
+				ui_musiCon_gen.style.setSelectedId(1);
+			}
+		}
+		for (int j = 0; j < numGrooves; j++)
+		{
+			name_Present = processor.sequencer.currentMusic.styles[currentStyle].grooves[j].name;
+			ui_musiCon_gen.groove.addItem(name_Present, 10 * currentStyle + j + 1);
+			ui_musiCon_gen.groove.setSelectedId(10 * currentStyle + 1);
+		}
+	};
 	
 	//Set instrument variants for selected rhythm
 	void setRhythmSpecificVariants()	
 	{
 		for (int i = 0; i < 8; i++)
-			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.baseBeats
-				[processor.sequencer.index_baseBeat].variantConfig[i]);
+			ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.styles
+				[processor.sequencer.currentMusic.style_current].variantConfig[i]);
 	};
 	
 	//UPDATE RHYTHM NAME LABELS WHEN RHYTHM IS CHANGED
 	void refreshBeatLabels()			
 	{
-		// Init Helper Variables
-		int currentBeat = processor.sequencer.index_baseBeat;
-		int nextBeatIdx = 0;
-		int lastBeatIdx = 0;
-		int timingMode = 0;
-		short indices_correctTimingMode[50] = { 0 };
-		short indices_filled = 0;
-		timingMode = processor.sequencer.timingMode;
 		
-		// Refresh Indices for All 3 Labels
-		for (int i = 0; i < processor.sequencer.currentMusic.drum_numBase; i++)
-			{
-				if (processor.sequencer.currentMusic.drum_beatTypes[i] == timingMode)
-				{
-					indices_correctTimingMode[indices_filled] = i;
-					indices_filled++;
-				}
-			}
-			for (int j = 0; j < indices_filled; j++)
-			{
-				if (indices_correctTimingMode[(j + 1) % indices_filled] == currentBeat)
-					lastBeatIdx = indices_correctTimingMode[j];
-				if (indices_correctTimingMode[(j - 1 < 0) ? j - 1 + indices_filled : j - 1 ] == currentBeat)
-					nextBeatIdx = indices_correctTimingMode[j];
-			}
-		// Change Text
-		String text_LastBeat = processor.sequencer.currentMusic.baseBeats[lastBeatIdx].name;
-		ui_musiCon_gen.rhythm_Now.setText(processor.sequencer.currentMusic.baseBeats[currentBeat].name, dontSendNotification);
-		ui_musiCon_gen.rhythm_Prev.setText(text_LastBeat, dontSendNotification);
-		ui_musiCon_gen.rhythm_Next.setText(processor.sequencer.currentMusic.baseBeats[nextBeatIdx].name, dontSendNotification);
-		
-		// Change Color
-		ui_musiCon_gen.rhythm_Now.setColour(ui_musiCon_gen.rhythm_Now.backgroundColourId, Colours::yellow);
-		ui_musiCon_gen.rhythm_Now.setColour(ui_musiCon_gen.rhythm_Now.textColourId, Colours::black);
-		ui_musiCon_gen.rhythm_Now.setJustificationType(Justification::centred);
-		ui_musiCon_gen.rhythm_Prev.setColour(ui_musiCon_gen.rhythm_Prev.backgroundColourId, Colours::darkred);
-		ui_musiCon_gen.rhythm_Prev.setJustificationType(Justification::centred);
-		ui_musiCon_gen.rhythm_Next.setColour(ui_musiCon_gen.rhythm_Next.backgroundColourId, Colours::green);
-		ui_musiCon_gen.rhythm_Next.setJustificationType(Justification::centred);
 	}
 	
 	//Set track gain offset sliders
@@ -452,8 +448,8 @@ private:
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sequencer.currentMusic.baseBeats
-				[processor.sequencer.index_baseBeat].variantConfig_GAINS[i]);
+			ui_musiCon_gen.song_track_GainOffset[i].setValue(processor.sequencer.currentMusic.styles
+				[processor.sequencer.currentMusic.style_current].variantConfig_GAINS[i]);
 		}
 	}
 	
@@ -562,7 +558,8 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.sequencer.currentMusic.baseBeats[rhythm_Idx].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
+				short currentVariant = processor.sequencer.currentMusic.styles
+					[processor.sequencer.currentMusic.style_current].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
 				processor.sequencer.mixerSettings.compSettings[currentVariant - 1][activeTrack][i] = ui_musiCon_indiv.channel_Comp_Settings[i].getValue();
 				processor.sequencer.applyCurrentVariantComp(activeTrack);
 			};
@@ -574,7 +571,8 @@ private:
 			{
 				short rhythm_Idx = processor.sequencer.index_baseBeat;
 				short activeTrack = ui_musiCon_indiv.channel_ActiveTrack;
-				short currentVariant = processor.sequencer.currentMusic.baseBeats[rhythm_Idx].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
+				short currentVariant = processor.sequencer.currentMusic.styles
+					[processor.sequencer.currentMusic.style_current].variantConfig[ui_musiCon_indiv.channel_ActiveTrack];
 				processor.sequencer.mixerSettings.eqSettings[currentVariant - 1][activeTrack][3 * ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i] =
 					ui_musiCon_indiv.channel_EQ_Settings[i].getValue();
 				processor.sequencer.applyCurrentVariantEQ(activeTrack);
@@ -590,7 +588,8 @@ private:
 		float value = 0;
 		for (int i = 0; i < 4; i++)
 		{
-			currentVariant = processor.sequencer.currentMusic.baseBeats[currentRhythm].variantConfig[trackIdx] - 1;
+			currentVariant = processor.sequencer.currentMusic.styles
+				[processor.sequencer.currentMusic.style_current].variantConfig[trackIdx] - 1;
 			value = processor.sequencer.mixerSettings.compSettings[currentVariant][trackIdx][i];
 			ui_musiCon_indiv.channel_Comp_Settings[i].setValue(value);
 		}
@@ -598,6 +597,17 @@ private:
 		{
 			value = processor.sequencer.mixerSettings.eqSettings[currentVariant][trackIdx][3* ui_musiCon_indiv.channel_EQ_ActiveFiltIdx + i];
 			ui_musiCon_indiv.channel_EQ_Settings[i].setValue(value);
+		}
+	}
+
+	// Refresh Melody Draw on Scale Tonic Change
+	void melodyDraw_ResetOnScaleTonicChange()
+	{
+		processor.sequencer.flushInbuiltMelody();
+		for (int j = 0; j < 16; j++)
+		{
+			processor.sequencer.updateInbuiltMelody(ui_musiCon_inbuilt.melodyDraw_selectedBox[j],
+			j, ui_musiCon_inbuilt.melodyDraw_Vels[j]);
 		}
 	}
 
@@ -794,7 +804,7 @@ private:
 		// RHYTHM
 		for (int i = 0; i < 20; i++)
 		{
-			if (processor.sysSnapshot.rhythm == processor.sequencer.currentMusic.baseBeats[i].name)
+			if (processor.sysSnapshot.rhythm == processor.sequencer.currentMusic.styles[i].name)
 			{
 				processor.sequencer.index_baseBeat = i;
 				processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
