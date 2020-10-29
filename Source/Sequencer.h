@@ -42,6 +42,7 @@ public:
 	void loadNewFile_MIDI(String name)
 	{
 		currentMusic.loadMidiFile(name);
+		tempoTickInc.generateTempoCurve(&currentMusic.midiTracks[0]);
 		if (!isFileLoaded)
 			isFileLoaded = true;
 	}
