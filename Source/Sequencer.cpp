@@ -194,7 +194,7 @@ void Sequencer::stopMusic()
 }
 
 // CHECK NEW MIDI EVENTS FOR SINGLE TRACK
-void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
+void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 {
 	// GET MIXER INFO
 	int trackVariant = currentMusic.styles[currentMusic.style_current].variantConfig[trackIndex - 1];
@@ -205,13 +205,13 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	int numEvents_toHandle = 0;
 
 	// DEFINE TICK INTERVAL TO CHECK FOR NEW EVENTS
-	double timeStamp_IntervalStart = midiTicksElapsed - ticksPerMS;
+	double timeStamp_IntervalStart = midiTicksElapsed - tickInc;
 	double timeStamp_IntervalEnd = midiTicksElapsed;
 
 	// DEFINE TICK INTERVAL FOR NEW LOOPED EVENTS
 	double timeStamp_IntervalEnd_MOD = midiTicksElapsed
 		- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
-	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - ticksPerMS;
+	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - tickInc;
 
 	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
 	ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;

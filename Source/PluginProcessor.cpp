@@ -50,12 +50,13 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 		// INCREMENT BASIC PLAYBACK COUNTERS
 		sequencer.timeElapsed_SONG += 0.001;
 		pulsesElapsed = pulsesElapsed % 100;
-		sequencer.midiTicksElapsed += sequencer.tempoTickInc.getNewTickIncrement(
-			sequencer.midiTicksElapsed,sequencer.currentMusic.finalTimeStamp,sequencer.ticksPerMS);
+		double tickInc = sequencer.tempoTickInc.getNewTickIncrement(
+			sequencer.midiTicksElapsed, sequencer.currentMusic.finalTimeStamp, sequencer.ticksPerMS);
+		sequencer.midiTicksElapsed += tickInc;
 		sequencer.tapTempoCounter = min(1, sequencer.tapTempoCounter + 0.001);		// Limit to 1
 
 		// RUN MUSICAL CLOCK CALLBACK
-		clockCallback();
+		clockCallback(tickInc);
 
 		// STOP MUSIC IF SONG COMPLETE
 		if (sequencer.getSongProgress())
@@ -68,14 +69,14 @@ void GaitSonificationAudioProcessor::hiResTimerCallback()
 }
 
 // MUSIC CLOCK CALLBACK - EVERY 1 MS
-void GaitSonificationAudioProcessor::clockCallback()
+void GaitSonificationAudioProcessor::clockCallback(double tickInc)
 {
 	// IF CLOCK PULSE DUE, TRIGGER CLOCK
 	if (checkIfPulseDue())
 		triggerClock(true);
 
 	// CHECK FOR NEW MIDI EVENTS, HANDLE IF NEEDED
-	sequencer.check_Handle_New_MIDIEvents();
+	sequencer.check_Handle_New_MIDIEvents(tickInc);
 
 	// UPDATE MUSIC PHASE
 	sequencer.musicPhase.updatePhase();

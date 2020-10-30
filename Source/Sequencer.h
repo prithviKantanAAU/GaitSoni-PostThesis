@@ -42,6 +42,7 @@ public:
 	void loadNewFile_MIDI(String name)
 	{
 		currentMusic.loadMidiFile(name);
+		tempoTickInc.flushIncVector();
 		tempoTickInc.generateTempoCurve(&currentMusic.midiTracks[0]);
 		if (!isFileLoaded)
 			isFileLoaded = true;
@@ -150,13 +151,13 @@ public:
 
 	bool isNewEvents_ToHandle[8] = {false};
 	bool isNewEvents_PitchOnly[8] = { false };
-	void check_Handle_New_MIDIEvents()
+	void check_Handle_New_MIDIEvents(double tickInc)
 	{
 		for (int i = 1; i <= numTracks; i++)
-			checkNew_MIDIEvents_SINGLE(i);
+			checkNew_MIDIEvents_SINGLE(i,tickInc);
 		mapNew_MIDIEvents();
 	}
-	void checkNew_MIDIEvents_SINGLE(int trackIndex);
+	void checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc);
 	void mapNew_MIDIEvents();
 	bool infoMapped_CurrentPulse_MIDI = false;
 
