@@ -74,6 +74,7 @@ mixMasterTab(x) = tgroup("Mapping_Tabs",hgroup("Mixer_And_Master",x));
 // SLIDER GROUPS
 // MUSIC INFO TAB
 pitchInfo(x) = musicInfoTab(vgroup("Pitch",x));
+accentInfo(x) = musicInfoTab(vgroup("Accent",x));
 velocityInfo(x) = musicInfoTab(vgroup("Velocity",x));
 // MIX AND MASTER TAB
 trackGainGroup(x) = mixMasterTab(vgroup("Track Gain",x));
@@ -86,8 +87,9 @@ eqTrackGroup(i,x) = eqTab(hgroup("Track %i",x));
 // COMP TAB
 compTrackGroup(i,x) = compTab(hgroup("Track %i",x));
 
-// Tempo
+// Tempo and Fluidity
 tempo = musicInfoTab(vslider("Tempo",120,50,150,0.1)) : limit(60,150);
+fluidity = musicInfoTab(vslider("Fluidity",1,0.05,10,0.01)) : limit(0.2,5);
 
 //Variants
 VAR_1 = variantGroup(nentry("Variant_1",1,1,3,1));
@@ -110,7 +112,15 @@ KEYNUM_M = pitchInfo(hslider("T6_P_1",100,20,10000,0.001));										// 6
 KEYNUM_CS_1 = pitchInfo(hslider("T7_P_1",100,20,10000,0.001));									// 7-1
 KEYNUM_CS_2 = pitchInfo(hslider("T7_P_2",100,20,10000,0.001));									// 7-2
 KEYNUM_CS_3 = pitchInfo(hslider("T7_P_3",100,20,10000,0.001));									// 7-3
-KEYNUM_CS_4 = pitchInfo(hslider("T7_P_4",100,20,10000,0.001));									// 7-4			
+KEYNUM_CS_4 = pitchInfo(hslider("T7_P_4",100,20,10000,0.001));									// 7-4
+
+//Accent Info
+ACC_M = accentInfo(hslider("T6_A_1",5,0,9,0.01));												// 6
+ACC_C_1 = accentInfo(hslider("T4_A_1",5,0,9,0.01));												// 4-1
+ACC_C_2 = accentInfo(hslider("T4_A_2",5,0,9,0.01));												// 4-2
+ACC_C_3 = accentInfo(hslider("T4_A_3",5,0,9,0.01));												// 4-3
+ACC_C_4 = accentInfo(hslider("T4_A_4",5,0,9,0.01));												// 4-4
+ACC_R = accentInfo(hslider("T5_A_1",5,0,9,0.01));												// 5
 																								// VELOCITIES
 V_K = velocityInfo(hslider("T1_V_1",9,0,9,0.1));													// 1
 V_S = velocityInfo(hslider("T2_V_1",9,0,9,0.1));													// 2
@@ -173,11 +183,10 @@ velToTrigger(vel) = trigger with
 
 // CONVERT 0-10 VELOCITY VALUE TO MONO GAIN MULTIPLIER
 applyVelocity(velocity,trigger,maxVel) = _ : *(gainMult)	 with
-{ 
-  gainMult = sampledVel * sampledVel * 0.01;
-  sampledVel = velCooked : ba.sAndH(velSampleInstant);
-  velCooked = velocity * 9.0 / maxVel;
-  velSampleInstant = trigger;
+{
+  sampledVel = velocity : ba.sAndH(trigger);
+  dBGain = (sampledVel - 10) * 26.0 / 9.0;
+  gainMult = ba.db2linear(dBGain);
 };
 
 // CONVERT 0 - 1 SONI SLIDER VALUE TO 1 - 6 ZONE VALUE
@@ -193,7 +202,7 @@ SONI_SB_THRESH_VALS = waveform {-0.1, 0.33, 0.66, 0.8, 0.9, 0.95, 1.1};
 SONI_SB_THRESH_VALS_RD(i) = SONI_SB_THRESH_VALS,i : rdtable;
 
 // TEMPO-BASED INSTRUMENT RELEASE FACTOR
-tempo_RelFactor = 1 + 1.5 * (120-tempo) / 40 * (tempo < 120);
+tempo_RelFactor = fluidity + 1.5 * (120-tempo) / 40 * (tempo < 120);
 
 // MASTER LIMITER
 masterLimiter(ipGaindB) = _ : compLimiter(ipGaindB,10,0,0.001,0.05,0.050);
@@ -277,20 +286,20 @@ stereoMasterSection(trackIndex) = stereoOut
 
 //4 - Synthesis
 samplePlayer(fileFunc,trigger) = fileFunc(ba.countup(96000,trigger));
-K_FILES = soundfile("K_SMPL[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\K_V3.wav'}]",1) : !,!,_;
-S_V1_FILES = soundfile("S_SMPL_V1[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V1_3.wav'}]",1) : !,!,_;
-S_V2_FILES = soundfile("S_SMPL_V2[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V2_3.wav'}]",1) : !,!,_;
-S_V3_FILES = soundfile("S_SMPL_V3[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\S_V3_3.wav'}]",1) : !,!,_;
-CR_FILES = soundfile("CR_SMPL[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V1.wav'; 	     'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V2.wav';
-									   'D:\\GaitSonification\\Drum Samples\\Final Library\\CR_V3.wav'}]",1) : !,!,_;
-HH_V1_FILES = soundfile("HH_SMPL_V1[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V1_3.wav'}]",1) : !,!,_;
-HH_V2_FILES = soundfile("HH_SMPL_V2[url:{'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_1.wav'; 'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_2.wav';
-										'D:\\GaitSonification\\Drum Samples\\Final Library\\HH_V2_3.wav'}]",1) : !,!,_;
+K_FILES = soundfile("K_SMPL[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\K_V3.wav'}]",1) : !,!,_;
+S_V1_FILES = soundfile("S_SMPL_V1[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V1_3.wav'}]",1) : !,!,_;
+S_V2_FILES = soundfile("S_SMPL_V2[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V2_3.wav'}]",1) : !,!,_;
+S_V3_FILES = soundfile("S_SMPL_V3[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\S_V3_3.wav'}]",1) : !,!,_;
+CR_FILES = soundfile("CR_SMPL[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V1.wav'; 	     'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V2.wav';
+									   'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\CR_V3.wav'}]",1) : !,!,_;
+HH_V1_FILES = soundfile("HH_SMPL_V1[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V1_3.wav'}]",1) : !,!,_;
+HH_V2_FILES = soundfile("HH_SMPL_V2[url:{'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_1.wav'; 'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_2.wav';
+										'D:\\\\GaitSonification\\\\Drum Samples\\\\Final Library\\\\HH_V2_3.wav'}]",1) : !,!,_;
 
 K_SMPL_V1(i) =   0,i : K_FILES;			K_SMPL_V2(i) =   1,i : K_FILES;			K_SMPL_V3(i) =   2,i : K_FILES;
 S_SMPL_V1_1(i) = 0,i : S_V1_FILES;		S_SMPL_V1_2(i) = 1,i : S_V1_FILES;		S_SMPL_V1_3(i) = 2,i : S_V1_FILES;
@@ -300,19 +309,24 @@ CR_SMPL_V1(i) = 0,i : CR_FILES;			CR_SMPL_V2(i) = 1,i : CR_FILES;			CR_SMPL_V3(i
 HH_SMPL_V1_1(i) = 0,i : HH_V1_FILES;	HH_SMPL_V1_2(i) = 1,i : HH_V1_FILES;	HH_SMPL_V1_3(i) = 2,i : HH_V1_FILES;
 HH_SMPL_V2_1(i) = 0,i : HH_V2_FILES;	HH_SMPL_V2_2(i) = 1,i : HH_V2_FILES;	HH_SMPL_V2_3(i) = 2,i : HH_V2_FILES;
 
-fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger,vel) = output
+fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger,vel,acc) = output
   with
 {
   fc_cooked = fc : si.smooth(ba.tau2pole(0.005));
+  acc_cooked = 1 + (acc-5.0)/5.0;
   output = os.osc(fc_cooked + dev) * ampEnv;
   dev = I * ampEnv * modFreq * os.triangle(modFreq);
-  I = I_fixed + (I_ampDependent * (0.5 + velFactor) + I_freq) * (ampEnv);
+  I = I_fixed + (I_ampDependent * acc_cooked * (0.5 + velFactor) + I_freq) * (ampEnv);
   I_freq = 4 * (fc - 300)/300;
   modFreq = (modRatio + Soni_X_P3_ChordFreqDist) * fc_cooked;
   release_basic = ba.tempo(ba.tempo(tempo))/ma.SR * (1 + velFactor * 2);
   env_basic = en.ar(a,release_basic,trigger);
   triggerCooked = (env_basic > 0.5) + (env_basic > env_basic');
-  chosenEnv = en.adsr(a,d,s,r,triggerCooked),	en.adsre(a,d,s,r,triggerCooked), en.ar(a,r,trigger), en.are(a,r,trigger), en.arfe(a,r,0.3,trigger) : ba.selectn(5,envType); 
+  chosenEnv = en.adsr(a,d,s,r*tempo_RelFactor,triggerCooked),
+  			  en.adsre(a,d,s,r*tempo_RelFactor,triggerCooked),
+  			  en.ar(a,r*tempo_RelFactor,trigger), 
+  			  en.are(a,r*tempo_RelFactor,trigger),
+  			  en.arfe(a,r*tempo_RelFactor,0.3,trigger) : ba.selectn(5,envType); 
   ampEnv = chosenEnv : si.smooth(ba.tau2pole(a));
   velFactor = 1 : applyVelocity(vel,trigger,9);
 };
@@ -323,8 +337,8 @@ with
   output = melSynth,melSynth;																					// OUTPUT SUMMING
   melSynth = synthFunc(fundamentalCooked) * env : applyVelocity(velocity,trigger,9);							// MEL COMPONENT
   fundamentalCooked = 2 * fundamental * soniVibratoLFO * velVibrato : limit(20,5000);
-  env = en.ar(0.001,synthRelease,trigger);																		// MEL ENVELOPE
-  velVibrato = 1 + (0.02 * ((200 - tempo)/140) : applyVelocity(velocity,trigger,9)) * os.osc(tempo/15) : si.smooth(ba.tau2pole(0.001));
+  env = en.ar(0.001,synthRelease * tempo_RelFactor,trigger);													// MEL ENVELOPE
+  velVibrato = 1 + (0.008 * ((200 - tempo)/140) : applyVelocity(velocity,trigger,9)) * os.osc(tempo/60) : si.smooth(ba.tau2pole(0.001));
   soniVibratoLFO = 1 + Soni_X_P3_ChordFreqDist * os.osc(tempo/15) * 0.5 : si.smoo;								// CF DIST SONI - VIBRATO LFO
 };
 
@@ -335,7 +349,7 @@ fmSynth(fundamental,numMod,freqFactor,release,depth,trigger) = (fmSynth + dirtyB
   freqList = par(i,numMod,fundamental * pow(freqFactor,i));														// (1)CARRIER + MOD FREQ LIST
   depthList = par(i,numMod-1,depthCooked);																		// MOD DEPTH LIST
   depthCooked = depth * env * 9;																				// COOKED DEPTH
-  env = sqrt(en.ar(0.001,release, trigger)) : si.smooth(ba.tau2pole(0.001));									// AMP ENVELOPE
+  env = sqrt(en.ar(0.001,release * tempo_RelFactor, trigger)) : si.smooth(ba.tau2pole(0.001));					// AMP ENVELOPE
 };
 
 pulseWave(freq,widthPercent) = output with
@@ -345,21 +359,22 @@ pulseWave(freq,widthPercent) = output with
   interval = ma.SR / freq;																						// PUlSE TOTAL PERIOD
 };
 
-pianoSim_singleNote(freq,trigger) = monoOut
+pianoSim_singleNote(freq,trigger,acc) = monoOut
   with
 {
   monoOut = pulseWave(freq,PIANO_WAVEWIDTH1),pulseWave(freq,
-			PIANO_WAVEWIDTH2),pulseWave(freq,PIANO_WAVEWIDTH3):> fi.lowpass(2,cutoff) * ampEnv;					// WAVESUMMING
-  cutoff = (freqEnv + 0.01) * 4000 * freq / 600 * (1 - min(freq,1000)/2000) : limit(20,20000);					// FC
-  freqEnv = en.arfe(0.001,1.6,0.4,trigger) : si.smooth(ba.tau2pole(0.0001));									// FREQUENCY ENV
-  ampEnv = pow(en.ar(0.001,4,trigger),6)  : si.smooth(ba.tau2pole(0.0001));										// AMPLITUDE ENV
+			PIANO_WAVEWIDTH2),pulseWave(freq,PIANO_WAVEWIDTH3):> fi.lowpass(2,cutoff) * ampEnv;							// WAVESUMMING
+  cutoff = (freqEnv + 0.01) * 4000 * freq / 600 * (1 - min(freq,1000)/2000) : limit(20,20000);							// FC
+  freqEnv = (1 + (acc - 5.0)/5.0) * en.arfe(0.001,1.6,0.4 * tempo_RelFactor,trigger) : si.smooth(ba.tau2pole(0.0001));	// FREQUENCY ENV
+  ampEnv = pow(en.ar(0.001,4 * tempo_RelFactor,trigger),6)  : si.smooth(ba.tau2pole(0.0001));							// AMPLITUDE ENV
 };
 
-voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(1,vowel_H,0,freq/2.0,0.04) * env with
+voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(2,vowel_H,0,freqLow,0.04) * env : fi.resonlp(8000,3,1) with
 {
-  	vowel_idx = _~+(trigger) : %(4) : _ + 0.4 * (0.5 + 0.5*os.osc(0.3));
-	env = en.ar(0.04, 3  / tempo * 78.6, trigger);
-  	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.04));
+	freqLow = freq / 2.0;
+  	vowel_idx = _~+(trigger) : %(4) : _ + 0.2;
+	env = en.ar(0.02, 3  / tempo * 78.6 * tempo_RelFactor, trigger);
+  	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.01));
 };
 
 fullChordSynth(freqList,synthFunc,env) = stereoChordOut with
@@ -373,9 +388,9 @@ fullChordSynth(freqList,synthFunc,env) = stereoChordOut with
   stereoChordOut = freq1Bus,freq2Bus,freq3Bus,freq4Bus :> stereoLinGain(env);												// SUM + ENVELOPE
 };
 
-chordSingle_Synth(freq,panFunc,synthFunc) = noteOut with
+chordSingle_Synth(freq,acc,synthFunc) = noteOut with
 {
-  noteOut = synthFunc(freq) : getPanFunction(panFunc);
+  noteOut = synthFunc(freq,acc),synthFunc(freq + 0.5,acc);
 };
 
 ks(freq,damping) = +~((de.fdelay4(1024,del)*damping) : dampingFilter)
@@ -483,7 +498,7 @@ Soni_STS3_Wah(LFO,minFreq,maxFreq) = _,_ : singleChannelWah,singleChannelWah wit
 Soni_D1_Spatialize_PAN = _,_ : _*(M_L),_*(M_R) with
 {
   M_L = sqrt(1 - Soni_X_D1_Spatialize) * 1.414;
-  M_R = sqrt(Soni_X_D1_Spatialize);
+  M_R = sqrt(Soni_X_D1_Spatialize)  * 1.414;
 };
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // Generation // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -532,16 +547,19 @@ hhTrack = hhSynth : applyVelocity(V_HH,TRG_HH,3) : monoChannel(3) : getPanFuncti
 
 KEYNUM_LIST_C = KEYNUM_C_1,KEYNUM_C_2,KEYNUM_C_3,KEYNUM_C_4;																// LIST MIDI KEYS
 F0_LIST_HZ_C = getChordFinalFreqs(KEYNUM_LIST_C);																			// MIDI KEYS TO FREQ
+ACC_LIST_C = ACC_C_1,ACC_C_2,ACC_C_3,ACC_C_4;																				// ACCENTS
 chordFreq(noteIdx) = F0_LIST_HZ_C : ba.selectn(4,noteIdx);																	// FREQ SELECTOR
 chordVel(noteIdx) =  V_LIST_C 	  : ba.selectn(4,noteIdx);																	// VEL SELECTOR
 chordTrg(noteIdx) =  TRG_LIST_C	  : ba.selectn(4,noteIdx);																	// TRG SELECTOR
-chord_SF_V1(trigger,freq) = pianoSim_singleNote(freq,trigger);																// CHORD - SF VARIANT 1
-chord_SF_V2(trigger,freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
-											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger,7);				// CHORD - SF VARIANT 2
-chord_SF_V3(trigger,freq) = os.CZresTrap(0.5*(1+os.osc(freq)),4.54) * en.are(0.001,2,trigger);
+chordAcc(noteIdx) = ACC_LIST_C : ba.selectn(4,noteIdx);																		// ACC SELECTOR
+chord_SF_V1(trigger,freq,acc) = pianoSim_singleNote(freq,trigger,acc);														// CHORD - SF VARIANT 1
+chord_SF_V2(trigger,freq,acc) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
+											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger,7,acc);			// CHORD - SF VARIANT 2
+chord_SF_V3(trigger,freq,acc) 
+  = os.CZresTrap(0.5*(1+os.osc(freq)),4.54 * (1 + acc/5)) * en.are(0.001,2 * tempo_RelFactor,trigger);
 chord_notePanFunc(idx) = ba.take(idx+1,PANPOS_NOTES);
-chordSynthFunc(trigger,freq) = chord_SF_V1(trigger,freq), chord_SF_V2(trigger,freq), chord_SF_V3(trigger,freq) : ba.selectn(3,VAR_4 - 1);
-chordSum = par(i,4,chordSingle_Synth(chordFreq(i), chord_notePanFunc(i), chordSynthFunc(chordTrg(i))) : stereoEffect(applyVelocity(chordVel(i),chordTrg(i),9))) :> _,_;
+chordSynthFunc(trigger,freq,acc) = chord_SF_V1(trigger,freq,acc), chord_SF_V2(trigger,freq,acc), chord_SF_V3(trigger,freq,acc) : ba.selectn(3,VAR_4 - 1);
+chordSum = par(i,4,chordSingle_Synth(chordFreq(i), chordAcc(i), chordSynthFunc(chordTrg(i))) : stereoEffect(applyVelocity(chordVel(i),chordTrg(i),9))) :> _,_;
 chordTrack = chordSum : stereoChannel(4);
 
 //Riff
