@@ -27,10 +27,11 @@ public:
 
 	// NOISE CONTROL
 	Random noiseControl_Gen;
-	int noiseControl_Range = 1000;
+	int noiseControl_Range = 500;
 
 	// FASTER UPHILL
-	float fasterUphill_ORDER = 1;
+	float fasterUphill_ORDER = 1.2;
+	float fasterUphill_SCALEFACTOR = 0.7;
 
 	void generateTempoCurve(MidiTrack *melody)		 // TEMPO RULES WILL BE APPLIED HERE BASED ON THE MELODY
 	{
@@ -61,11 +62,12 @@ public:
 		for (int i = 0; i < 10000; i++)
 		{
 			songPercent = i / 100.0;
-			melodyTicks_CURRENT = i / 10000.0 * melody->infoMatrix[melody->numEvents - 1][3];
+			melodyTicks_CURRENT = i / 10000.0 * melody->infoMatrix[melody->numEvents - 2][3];
 
 			// APPLY TEMPO RITARDANDO AT END
 			contribution_TR = getPercentVal_fromFuncBounds(songPercent, 100,
-				ritardando_percent_tempo_min, ritardando_percent_song_start, 99.99, ritardando_shape_order);
+				ritardando_percent_tempo_min, ritardando_percent_song_start, 100, ritardando_shape_order);
+			contribution_TR = fmax(-100, contribution_TR);
 
 			// FASTER UPHILL
 			for (int j = 0; j < noteOns_Total - 1; j++)
@@ -82,7 +84,7 @@ public:
 			// NOISE CONTROL
 			contribution_NC = fetchNewRandomPercent(noiseControl_Range);
 
-			percent_IncChange[i] += contribution_TR + contribution_NC;
+			percent_IncChange[i] += contribution_TR + contribution_NC + contribution_FU;
 		}
 	}
 
@@ -111,6 +113,11 @@ public:
 	{
 		if (keyNext > keyPrev)
 		{
+			float key_changeRange = keyNext - keyPrev;
+			float ticks_changeRange = ticksEnd - ticksStart;
+			float songPosition_Frac = pow((ticksPresent - ticksStart) / ticks_changeRange, order);
+			float tempoContribution = songPosition_Frac * key_changeRange * fasterUphill_SCALEFACTOR;
+			return tempoContribution;
 		}
 		else return 0;
 	}
