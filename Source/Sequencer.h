@@ -361,15 +361,18 @@ public:
 	void applySixteenthSkip(double *mod_end, double *mod_start, double tickInc)
 	{
 		*mod_end = midiTicksElapsed
-			- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
+			- (int)(midiTicksElapsed / 15360) * 15360;
 		*mod_start = *mod_end - tickInc;
 
 		int ticksPerBar = 240 * sixteenthNotesPerMeasure;
 		int presentBarNum = (int)midiTicksElapsed / 3840;
-		int ticksElapsed_MOD = midiTicksElapsed - presentBarNum * 3840;
+		double ticksElapsed_MOD = midiTicksElapsed - presentBarNum * 3840;
 		if (ticksElapsed_MOD >= ticksPerBar)
 		{
 			midiTicksElapsed += (3840 - ticksPerBar);
+			*mod_start += (3840 - ticksPerBar);
+			*mod_end += (3840 - ticksPerBar);
+			if (*mod_end > 15360) *mod_end -= 15360;
 		}
 	}
 };

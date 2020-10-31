@@ -247,7 +247,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		processor.sequencer.setTimeSignatureInbuilt(numCols);
 		processor.sequencer.currentMusic.resetMelodyTrackEventIndices();
 		processor.sequencer.currentMusic.repopulatePercTrackEvents(processor.sequencer.ticksPerMeasure);
-		ui_musiCon_inbuilt.adjustMelDrawBoxVisibility(numCols + 1,presentTab);
+		ui_musiCon_inbuilt.adjustMelDrawBoxVisibility(numCols,presentTab);
 		processor.sequencer.stopMusic();
 		processor.sequencer.togglePlayPause();
 	};
