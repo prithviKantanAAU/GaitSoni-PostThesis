@@ -182,6 +182,8 @@ public:
 		fluidity.setColour(fluidity.trackColourId, Colours::yellow);
 		fluidity.setColour(fluidity.backgroundColourId, Colours::blue);
 		fluidity_Lab.setText("Melody Flow", dontSendNotification);
+
+		song_TimeLeft.setColour(song_TimeLeft.textColourId, Colours::yellow);
 	}
 
 	void toggleVisible(bool on)
@@ -224,7 +226,7 @@ public:
 		tempo_Slider.setBounds(410, 50, 200, 30);
 		song_Progress.setBounds(50, 35, 550, 10);
 		music_Mode.setBounds(50, 235, 100, 25);
-		song_TimeLeft.setBounds(1000, 280, 200, 30);
+		song_TimeLeft.setBounds(615, 231, 200, 30);
 		song_BarBeat_Counter.setBounds(800, 280, 200, 30);
 		style.setBounds(50, 90, 100, 30);
 		song_Filename.setBounds(900, 30, 300, 25);
@@ -246,15 +248,15 @@ public:
 			inst_Variant[i].setBounds(horizPos - 25 + 10, 235, 50, 25);
 			for (int j = 0; j < 4; j++)
 			{
-				noteDegree_Lab[j][i].setBounds(horizPos-10,155 + j*10,20,20);
+				noteDegree_Lab[j][i].setBounds(horizPos-17,155 + j*10,30,20);
 			}
 		}
 	}
 
-	void updateNoteDegreeLab(int trackNum, int voiceNum, int degree)
+	void updateNoteDegreeLab(int trackNum, int voiceNum, float degree)
 	{
 		if (noteDegree_toDisp[trackNum])
-			noteDegree_Lab[voiceNum][trackNum].setText(String(degree), dontSendNotification);
+			noteDegree_Lab[voiceNum][trackNum].setText(String(degree,1), dontSendNotification);
 	}
 };
 

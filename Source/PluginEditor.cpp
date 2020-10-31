@@ -96,7 +96,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		if (processor.sequencer.handleTapTempoPress())
 		{
 			processor.setTempo(processor.sequencer.tempo);
-			ringVisualizeBoxConfig();
+			//ringVisualizeBoxConfig();
 		}
 		ui_musiCon_gen.tempo_Slider.setValue(processor.tempo);
 	};
@@ -179,8 +179,6 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		ui_musiCon_gen.inst_Variant[i].addItem("3", 3);
 		ui_musiCon_gen.inst_Variant[i].addListener(this);
 		ui_musiCon_gen.inst_Variant[i].setSelectedId(processor.sequencer.currentMusic.styles[processor.sequencer.currentMusic.style_current].variantConfig[i]);
-		//ui_musiCon_gen.inst_Variant_Lab[i].setText(ui_musiCon_gen.inst_Names[i], dontSendNotification);
-		//ui_musiCon_gen.inst_Variant_Lab[i].attachToComponent(&ui_musiCon_gen.inst_Variant[i], true);
 
 		// Instrument Mute
 		ui_musiCon_gen.song_track_Mute[i].onStateChange = [this, i]
@@ -242,6 +240,17 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 			};
 		}
 	}
+
+	ui_musiCon_inbuilt.cycleBeatsSixteenth.onValueChange = [this]
+	{
+		int numCols = (int)ui_musiCon_inbuilt.cycleBeatsSixteenth.getValue();
+		processor.sequencer.setTimeSignatureInbuilt(numCols);
+		processor.sequencer.currentMusic.resetMelodyTrackEventIndices();
+		processor.sequencer.currentMusic.repopulatePercTrackEvents(processor.sequencer.ticksPerMeasure);
+		ui_musiCon_inbuilt.adjustMelDrawBoxVisibility(numCols + 1,presentTab);
+		processor.sequencer.stopMusic();
+		processor.sequencer.togglePlayPause();
+	};
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB
@@ -689,6 +698,7 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		processor.sequencer.currentMusic.styles
 			[processor.sequencer.currentMusic.style_current].groove_current = 
 			box->getSelectedId() - 1 - 10 * processor.sequencer.currentMusic.style_current;
+		processor.sequencer.currentMusic.repopulatePercTrackEvents(processor.sequencer.ticksPerMeasure);
 		processor.sequencer.resetPercMIDIOnChange(processor.sequencer.midiTicksElapsed);
 		processor.sequencer.initializeTracksForPlayback();
 		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);

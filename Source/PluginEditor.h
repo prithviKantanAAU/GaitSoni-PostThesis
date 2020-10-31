@@ -273,6 +273,8 @@ private:
 			}
 		}
 		addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_TimeMarker);
+		for(int i = 0; i < 4; i++) addAndMakeVisible(ui_musiCon_inbuilt.chordDegree[i]);
+		addAndMakeVisible(ui_musiCon_inbuilt.cycleBeatsSixteenth);
 	}
 	void addControls_Music_INDIVIDUAL()
 	{
@@ -358,7 +360,7 @@ private:
 	//Real time update of a) Song remaining time and b) Ring box positions
 	void updateTimeLabels()				
 	{
-		ui_musiCon_gen.song_TimeLeft.setText("Remaining Time: "
+		ui_musiCon_gen.song_TimeLeft.setText("Time Left: "
 			+ std::to_string((int)processor.sequencer.timeLeft_Song) + " s", dontSendNotification);
 		if (presentMusiCon_Disp == 1)
 		{

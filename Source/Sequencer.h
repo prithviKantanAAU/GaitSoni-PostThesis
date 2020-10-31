@@ -10,6 +10,7 @@
 #include "ScaleTonicTrans.h"
 #include "mixerSettings.h"
 #include "FaustStrings.h"
+#include "tempoTickIncCalculation.h"
 
 class Sequencer
 {
@@ -24,6 +25,7 @@ public:
 	DspFaust dspFaust;
 	MixerSettings mixerSettings;
 	FaustStrings faustStrings;
+	TempoTickInc tempoTickInc;
 	
 	void resetCounters();
 	short musicMode = 1;
@@ -40,6 +42,8 @@ public:
 	void loadNewFile_MIDI(String name)
 	{
 		currentMusic.loadMidiFile(name);
+		tempoTickInc.flushIncVector();
+		tempoTickInc.generateTempoCurve(&currentMusic.midiTracks[0]);
 		if (!isFileLoaded)
 			isFileLoaded = true;
 	}
@@ -95,6 +99,7 @@ public:
 	float timeTotal_Song = 0;
 	float tempo = 120;
 	float timeElapsed_SONG = 0.0;								// PLAYBACK Time Elapsed
+	int sixteenthNotesPerMeasure = 16;
 	
 	double lastPulseTime = 0.0;									// Last 16th Pulse Time
 	double nextPulseTime = 0.0;									// Next 16th Pulse Time
@@ -125,7 +130,7 @@ public:
 		false												// CRASH
 	};
 	int pitches[4][8] = { 0 };
-	int scaleDegree_Voices[4][8] =
+	float scaleDegree_Voices[4][8] =
 	{
 		{1,1,1,1,1,1,1,1},
 		{1,1,1,1,1,1,1,1},
@@ -147,13 +152,13 @@ public:
 
 	bool isNewEvents_ToHandle[8] = {false};
 	bool isNewEvents_PitchOnly[8] = { false };
-	void check_Handle_New_MIDIEvents()
+	void check_Handle_New_MIDIEvents(double tickInc)
 	{
 		for (int i = 1; i <= numTracks; i++)
-			checkNew_MIDIEvents_SINGLE(i);
+			checkNew_MIDIEvents_SINGLE(i,tickInc);
 		mapNew_MIDIEvents();
 	}
-	void checkNew_MIDIEvents_SINGLE(int trackIndex);
+	void checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc);
 	void mapNew_MIDIEvents();
 	bool infoMapped_CurrentPulse_MIDI = false;
 
@@ -344,6 +349,27 @@ public:
 					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
 				}
 			}
+		}
+	}
+
+	void setTimeSignatureInbuilt(int numSixteenthNotes)
+	{
+		sixteenthNotesPerMeasure = numSixteenthNotes;
+		ticksPerMeasure = numSixteenthNotes * 240 * 4;
+	}
+
+	void applySixteenthSkip(double *mod_end, double *mod_start, double tickInc)
+	{
+		*mod_end = midiTicksElapsed
+			- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
+		*mod_start = *mod_end - tickInc;
+
+		int ticksPerBar = 240 * sixteenthNotesPerMeasure;
+		int presentBarNum = (int)midiTicksElapsed / 3840;
+		int ticksElapsed_MOD = midiTicksElapsed - presentBarNum * 3840;
+		if (ticksElapsed_MOD >= ticksPerBar)
+		{
+			midiTicksElapsed += (3840 - ticksPerBar);
 		}
 	}
 };

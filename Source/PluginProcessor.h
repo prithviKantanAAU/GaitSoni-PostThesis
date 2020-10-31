@@ -338,7 +338,7 @@ public:
 		else return false;
 	};
 	void triggerClock(bool polarity);							//Set FAUST Master Clock to 1/0
-	void clockCallback();										//Operations when clock triggered
+	void clockCallback(double tickInc);							//Operations when clock triggered
 
 	// Music Sequencing
 	Sequencer sequencer;										

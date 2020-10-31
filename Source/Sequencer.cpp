@@ -194,7 +194,7 @@ void Sequencer::stopMusic()
 }
 
 // CHECK NEW MIDI EVENTS FOR SINGLE TRACK
-void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
+void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 {
 	// GET MIXER INFO
 	int trackVariant = currentMusic.styles[currentMusic.style_current].variantConfig[trackIndex - 1];
@@ -205,16 +205,18 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 	int numEvents_toHandle = 0;
 
 	// DEFINE TICK INTERVAL TO CHECK FOR NEW EVENTS
-	double timeStamp_IntervalStart = midiTicksElapsed - ticksPerMS;
+	double timeStamp_IntervalStart = midiTicksElapsed - tickInc;
 	double timeStamp_IntervalEnd = midiTicksElapsed;
 
 	// DEFINE TICK INTERVAL FOR NEW LOOPED EVENTS
-	double timeStamp_IntervalEnd_MOD = midiTicksElapsed
-		- (int)(midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
-	double timeStamp_IntervalStart_MOD = timeStamp_IntervalEnd_MOD - ticksPerMS;
+	double timeStamp_IntervalEnd_MOD = 0;
+	double timeStamp_IntervalStart_MOD = 0;
+
+	// DO SOMETHING ABOUT SKIPPED EVENTS HERE (!)
+	applySixteenthSkip(&timeStamp_IntervalEnd_MOD, &timeStamp_IntervalStart_MOD, tickInc);
 
 	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
-	ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
+	// ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
 
 	// INITIALIZE EVENT INDICES
 	int nextEventIndex = 0;
@@ -360,7 +362,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 					}
 				}
 
-				currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].incrementEventsHandled();				// INCREMENT EVENT
+				currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].incrementEventsHandled(ticksPerMeasure);				// INCREMENT EVENT
 			}
 		}
 	}
@@ -399,7 +401,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 
 				// IF 0 THEN DO NOTHING
 				if (percObj->infoMatrix[eventIdx_LOOP_Trackwise][0] == 0)
-					percObj->incrementEventsHandled(trackIndex);
+					percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);
 
 				//HANDLE NOTE ON
 				if (percObj->infoMatrix[eventIdx_LOOP_Trackwise][0] == 1)
@@ -411,7 +413,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						{
 							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[eventIdx_LOOP_Trackwise][2], trackIndex, cue_AP_Name);
 							
-							percObj->incrementEventsHandled(trackIndex);	 			// INCREMENT EVENT COUNT
+							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
 						}
 					}
 				}
@@ -423,7 +425,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex)
 						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
 							vels[i][trackIndex] = 0;
-							percObj->incrementEventsHandled(trackIndex);				// INCREMENT EVENT COUNT
+							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);				// INCREMENT EVENT COUNT
 						}
 					}
 				}

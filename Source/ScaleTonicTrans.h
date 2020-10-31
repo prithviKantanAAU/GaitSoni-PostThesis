@@ -122,7 +122,7 @@ public:
 		return outKey;
 	}
 
-	int analyzeNoteDegree(String key, String scale, int keyVal)
+	float analyzeNoteDegree(String key, String scale, int keyVal)
 	{
 		int degree = 1;
 		int tonicOffset = 0;
@@ -143,7 +143,7 @@ public:
 		short degreeDiff[8] = { 0 };
 		short minDiff = 12;
 		bool isDegreeFound = false;
-		short degreeFound = 1;
+		float degreeFound = 1;
 		for (int i = 1; i <= 8; i++)
 		{
 			degreeDiff[i - 1] = noteNum_NORM - scales[scaleIdx][i];
@@ -163,7 +163,8 @@ public:
 				if (abs(degreeDiff[i - 1]) < minDiff)
 				{
 					minDiff = degreeDiff[i - 1];
-					degreeFound = i;
+					float inc = minDiff < 0 ? -0.5 : 0.5;
+					degreeFound = i + inc;
 				}
 			}
 		}
