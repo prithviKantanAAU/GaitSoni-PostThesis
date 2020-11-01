@@ -99,6 +99,7 @@ public:
 	float timeTotal_Song = 0;
 	float tempo = 120;
 	float timeElapsed_SONG = 0.0;								// PLAYBACK Time Elapsed
+	int sixteenthNotesPerMeasure = 16;
 	
 	double lastPulseTime = 0.0;									// Last 16th Pulse Time
 	double nextPulseTime = 0.0;									// Next 16th Pulse Time
@@ -209,7 +210,7 @@ public:
 	void resetPercMIDIOnChange(double midiTicksElapsed)
 	{
 		// FIND MOD MIDI TICKS ELAPSED
-		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
+		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / 15360) * 15360;
 		
 		// RESET NEXT EVENT INDICES TO ZERO
 		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
@@ -348,6 +349,40 @@ public:
 					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
 				}
 			}
+		}
+	}
+
+	void setTimeSignatureInbuilt(int numSixteenthNotes)
+	{
+		sixteenthNotesPerMeasure = numSixteenthNotes;
+		ticksPerMeasure = numSixteenthNotes * 240 * 4;
+	}
+
+	void applySixteenthSkip(double *total_start, double *total_end,
+		double *mod_end, double *mod_start, double tickInc)
+	{
+		*total_start = midiTicksElapsed - tickInc;
+		*total_end = midiTicksElapsed;
+
+		*mod_end = midiTicksElapsed
+			- (int)(midiTicksElapsed / 15360) * 15360;
+		*mod_start = *mod_end - tickInc;
+
+		int ticksPerBar = 240 * sixteenthNotesPerMeasure;
+		int presentBarNum = (int)*mod_end / 3840;
+		double ticksElapsed_MOD = *mod_end - presentBarNum * 3840;
+		if (ticksElapsed_MOD > ticksPerBar)
+		{
+			midiTicksElapsed += (3840 - ticksPerBar);
+			*total_start = midiTicksElapsed - tickInc;
+			*total_end = midiTicksElapsed;
+
+			*mod_start += (3840 - ticksPerBar);
+			*mod_end += (3840 - ticksPerBar);
+			
+			*mod_end = midiTicksElapsed
+				- (int)(midiTicksElapsed / 15360) * 15360;
+			*mod_start = *mod_end - tickInc;
 		}
 	}
 };

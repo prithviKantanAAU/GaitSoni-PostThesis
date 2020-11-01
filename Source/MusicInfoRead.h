@@ -206,7 +206,21 @@ public:
 				beatContainer->infoMatrix[j][3] = currentMidiMessage.getTimeStamp();
 			}
 		}
-		beatContainer->populateTrackwiseEvents(numVoices, pitchesToMonitor);
+		beatContainer->populateTrackwiseEvents(numVoices, pitchesToMonitor,15360);
+	}
+
+	void resetMelodyTrackEventIndices()
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			midiTracks[i].resetPlayback();
+		}
+	}
+
+	void repopulatePercTrackEvents(int ticksPerMeasure)
+	{
+		styles[style_current].grooves[styles->groove_current].
+			populateTrackwiseEvents(numVoices, pitchesToMonitor, ticksPerMeasure);
 	}
 
 	// LOAD VARIANT AND GAIN OFFSET METADATA								// MODIFY !!!!!!!!!!!!!!!!!!!

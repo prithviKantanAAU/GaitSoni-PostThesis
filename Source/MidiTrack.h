@@ -19,11 +19,22 @@ public:
 		}
 	}
 	int Idx_nextEvent = 0;			
-	void incrementEventsHandled() 
+	void incrementEventsHandled(int ticksPerMeasure) 
 	{
 		Idx_nextEvent++; 
 		while (infoMatrix[Idx_nextEvent][0] == 0)
 			Idx_nextEvent++;
+		// HANDLE TIME SIGNATURE
+
+		int timeStamp_nextEvent = infoMatrix[Idx_nextEvent][3];
+		int timeStamp_nextEvent_MOD = timeStamp_nextEvent % 3840;
+		while (timeStamp_nextEvent_MOD >= ticksPerMeasure / 4)
+		{
+			Idx_nextEvent++;
+			timeStamp_nextEvent = infoMatrix[Idx_nextEvent][3];
+			timeStamp_nextEvent_MOD = timeStamp_nextEvent % 3840;
+		}
+		
 	}
 };
 
