@@ -17,6 +17,7 @@ public:
 	float melodyDraw_colourVals[16] =
 	{ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
 	Label melodyDraw_TimeMarker;
+	ComboBox chordType;
 
 	UI_MusicControls_Inbuilt()
 	{
@@ -120,6 +121,7 @@ public:
 		melodyDraw_TimeMarker.setVisible(on);
 		for (int i = 0; i < 4; i++) chordDegree[i].setVisible(on);
 		cycleBeatsSixteenth.setVisible(on);
+		chordType.setVisible(on);
 	}
 
 	void melodyDraw_updateSelectedBoxColour(int col)
@@ -157,6 +159,7 @@ public:
 	void setLayout()
 	{
 		inbuilt_Scale.setBounds(50, 265, 100, 25);
+		chordType.setBounds(195, 265, 100, 25);
 
 		for (int i = 0; i < 8; i++)
 		{

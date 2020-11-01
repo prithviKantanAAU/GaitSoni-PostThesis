@@ -389,7 +389,12 @@ public:
 	void setChord_Inbuilt(short boxIndex, short chordDegree)
 	{
 		currentMusic.presentChords[boxIndex - 1] = chordDegree;
-		int noteDegrees[4] = { chordDegree, chordDegree + 2, chordDegree + 4, chordDegree + 7 };
+		int noteDegrees[4] = { 
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][0], 
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][1],
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][2],
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][3]
+		};
 		int noteNums[4] = { 0, 0, 0, 0 };
 		for (int i = 0; i < 4; i++)
 			noteNums[i] = scaleTonicTrans.getMidiKeyFromDegree(noteDegrees[i], scaleID_ORIG, tonicOffset_ORIG);

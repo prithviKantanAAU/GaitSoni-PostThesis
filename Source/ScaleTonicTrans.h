@@ -23,6 +23,25 @@ public:
 	short tonics_Offsets[12] =
 	{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
+	short numChordTypes = 5;
+	String chordTypes_Names[10] =
+	{
+		"Normal",
+		"Sevenths",
+		"Sixths",
+		"Ninths",
+		"Sus4"
+	};
+
+	int chordTypes_DegreeIntervals[10][4] = 
+	{
+		{0, 2, 4, 7},
+		{0, 2, 4, 6},
+		{0, 2, 4, 5},
+		{0, 2, 4, 8},
+		{0, 2, 3, 4}
+	};
+
 	short scales[10][16] =
 	{
 		{-1,0,2,4,5,7,9,11,12,14, 16, 17, 19, 21, 23, 24},		//Major

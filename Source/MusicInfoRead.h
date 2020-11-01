@@ -118,6 +118,7 @@ public:
 	short presentChords[4] = { 1, 6, 4, 5 };
 	String currentScale = "";
 	String currentKey = "";
+	short presentChordsType = 0;
 
 	// Drum Rhythms
 	
