@@ -385,4 +385,55 @@ public:
 			*mod_start = *mod_end - tickInc;
 		}
 	}
+
+	void setChord_Inbuilt(short boxIndex, short chordDegree)
+	{
+		currentMusic.presentChords[boxIndex - 1] = chordDegree;
+		int noteDegrees[4] = { chordDegree, chordDegree + 2, chordDegree + 4, chordDegree + 7 };
+		int noteNums[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < 4; i++)
+			noteNums[i] = scaleTonicTrans.getMidiKeyFromDegree(noteDegrees[i], scaleID_ORIG, tonicOffset_ORIG);
+		int sixteenthTicks = 240;
+		int noteLength_Chord = 1920;
+		int noteLength_Bass = 60;
+
+		int checkBounds_START = noteLength_Chord * (boxIndex - 1);
+		int checkBounds_END = noteLength_Chord * (boxIndex);
+		int eventTimeStamp = 0;
+		int eventType = 0;
+		int currentVoice = 0;
+
+		// CHORD TRACK
+		for (int i = 0; i < currentMusic.midiTracks[1].numEvents; i++)
+		{
+			eventTimeStamp = currentMusic.midiTracks[1].infoMatrix[i][3];
+			eventType = currentMusic.midiTracks[1].infoMatrix[i][0];
+			// NOTE ONS
+			if ((eventTimeStamp % (4 * noteLength_Chord) == checkBounds_START) && eventType == 1)
+			{
+				currentMusic.midiTracks[1].infoMatrix[i][1] = noteNums[currentVoice];
+				currentVoice = (currentVoice + 1) % 4;
+			}
+			// NOTE OFFS
+			if ((eventTimeStamp % (4 * noteLength_Chord) == checkBounds_END) && eventType == 2)
+			{
+				currentMusic.midiTracks[1].infoMatrix[i][1] = noteNums[currentVoice];
+				currentVoice = (currentVoice + 1) % 4;
+			}
+		}
+
+		// BASSLINE
+		for (int i = 0; i < currentMusic.midiTracks[2].numEvents; i++)
+		{
+			eventTimeStamp = currentMusic.midiTracks[2].infoMatrix[i][3];
+			eventType = currentMusic.midiTracks[2].infoMatrix[i][0];
+			if ((eventTimeStamp % (4 * noteLength_Chord) >= checkBounds_START) &&
+				(eventTimeStamp % (4 * noteLength_Chord) < checkBounds_END) &&
+				(eventType == 1))
+			{
+				currentMusic.midiTracks[2].infoMatrix[i][1] = noteNums[0];
+				currentMusic.midiTracks[2].infoMatrix[i + 1][1] = noteNums[0];
+			}
+		}
+	}
 };

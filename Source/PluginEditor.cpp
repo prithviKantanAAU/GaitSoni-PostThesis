@@ -251,6 +251,9 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		processor.sequencer.stopMusic();
 		processor.sequencer.togglePlayPause();
 	};
+
+	for (int i = 0; i < 4; i++)
+	ui_musiCon_inbuilt.chordDegree[i].addListener(this);
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB
@@ -710,6 +713,14 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		{
 			processor.sequencer.switchInstVariant(i, ui_musiCon_gen.inst_Variant[i].getSelectedId());
 			channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (box == &ui_musiCon_inbuilt.chordDegree[i])
+		{
+			processor.sequencer.setChord_Inbuilt(i + 1, box->getSelectedId());
 		}
 	}
 
