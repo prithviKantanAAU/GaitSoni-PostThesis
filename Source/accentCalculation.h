@@ -23,35 +23,35 @@ public:
 
 	float rhythmicAccentByPosition[5][2] =
 	{
-		{3840, 4},
-		{1920, 2.5},
-		{960, 1},
-		{480, 0.5},
+		{3840, 0.5},
+		{1920, 0.3},
+		{960, 0.15},
+		{480, 0.1},
 		{240, 0}
 	};
 
 	float harmonicTensionByDegree[10] = 
 	{
-		5,
-		2,
-		6,
-		3,
-		4,
-		3,
-		6,
-		5,
-		2
+		0.5,
+		0.2,
+		0.6,
+		0.3,
+		0.4,
+		0.3,
+		0.6,
+		0.5,
+		0.2
 	};
 
 	float melodicTensionByDegreeDiff[10] = 
 	{
 		0,
-		3,
-		1,
-		2,
-		1,
-		3,
-		2,
+		0.5,
+		0.2,
+		0.3,
+		0.2,
+		0.4,
+		0.3,
 		0
 	};
 
@@ -73,7 +73,7 @@ public:
 		{
 			// HARMONIC CHARGE
 			if (degree_Chord - (int)degree_Chord > 0.4)
-				contribution_HC = 3;
+				contribution_HC = 0.3;
 			else
 			contribution_HC = harmonicTensionByDegree[(int)degree_Chord];
 
@@ -81,7 +81,7 @@ public:
 			if (degree_Chord != chord_Degree_Z1)
 			{
 				degree_Diff = abs(degree_Chord - chord_Degree_Z1);
-				contribution_HA = 5 * pow(degree_Diff / 7, 0.5);
+				contribution_HA = 0.5 * pow(degree_Diff / 7, 0.5);
 			}
 
 			chord_Degree_Z1 = degree_Chord;
@@ -93,11 +93,11 @@ public:
 			// MELODIC CHARGE
 			degree_Mel = degreesMatrix[0][5];
 			if (degree_Mel - (int)degree_Mel > 0.4)
-				contribution_A_Melodic = 3;
+				contribution_A_Melodic = 0.3;
 			else
 			{
 				degree_Diff = (int)abs(degree_Mel - degree_Chord);
-				contribution_A_Melodic = pow(melodicTensionByDegreeDiff[degree_Diff],2);
+				contribution_A_Melodic = pow(melodicTensionByDegreeDiff[degree_Diff],2) * 2;
 			}
 		}
 
@@ -114,9 +114,12 @@ public:
 			}
 		}
 
-		total = contribution_MC + contribution_HC + contribution_A_Metrical
-			+ contribution_A_Melodic + contribution_HA;
-		return total;
+		total = contribution_MC
+			//+ contribution_HC 
+			+ contribution_A_Metrical
+			+ contribution_A_Melodic;
+			//+ contribution_HA;
+		return fmin(1,total);
 	}
 
 	float addRhythmicAccent(int timeStamp)
@@ -125,7 +128,7 @@ public:
 		{
 			if ((int)timeStamp % (int)rhythmicAccentByPosition[i][0] < 10)
 			{
-				return rhythmicAccentByPosition[i][1];
+				return rhythmicAccentByPosition[i][1] * 2;
 			}
 		}
 		return 0;

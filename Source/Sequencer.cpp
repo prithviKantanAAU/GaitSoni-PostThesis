@@ -456,6 +456,9 @@ void Sequencer::mapNew_MIDIEvents()
 		std::string faustAddress = "";
 		double pitch_Hz = 100;
 		float accent = 5;
+		float accent_MapVal = 1;
+		int presentVariant = currentMusic.styles
+		[currentMusic.style_current].variantConfig[presentTrack - 1];
 
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
@@ -472,7 +475,12 @@ void Sequencer::mapNew_MIDIEvents()
 					// ADD ACCENT MAPPING HERE
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "A", currentVoice);
 					accent = accent_Voices[currentVoice - 1][presentTrack - 1];
-					dspFaust.setParamValue(faustAddress.c_str(), accent);
+					accent_MapVal = 
+					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1] +
+					accent * (mixerSettings.var_accMaxs[presentVariant - 1][presentTrack - 1] -
+					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1]);
+
+					dspFaust.setParamValue(faustAddress.c_str(), accent_MapVal);
 				}
 
 				// VELOCITY
