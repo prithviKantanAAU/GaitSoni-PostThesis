@@ -11,6 +11,7 @@
 #include "mixerSettings.h"
 #include "FaustStrings.h"
 #include "tempoTickIncCalculation.h"
+#include "accentCalculation.h"
 
 class Sequencer
 {
@@ -26,6 +27,7 @@ public:
 	MixerSettings mixerSettings;
 	FaustStrings faustStrings;
 	TempoTickInc tempoTickInc;
+	AccentCalculation accentCalculation;
 	
 	void resetCounters();
 	short musicMode = 1;
@@ -136,6 +138,13 @@ public:
 		{1,1,1,1,1,1,1,1},
 		{1,1,1,1,1,1,1,1},
 		{1,1,1,1,1,1,1,1}
+	};
+	float accent_Voices[4][8] = 
+	{
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5}
 	};
 	bool isVel_FromSongFile[8] =
 	{

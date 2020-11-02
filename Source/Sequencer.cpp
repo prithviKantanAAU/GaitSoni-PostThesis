@@ -293,7 +293,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						scaleTonicTrans.analyzeNoteDegree(currentMusic.currentKey, currentMusic.currentScale,
 						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1]);
 						
-						// APPLY PITCH TRANSFORMATIONS IF ANY
+						// CALCULATE MELODIC ACCENT
+						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
+						accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
+						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
 
 						// LIMIT AND STORE FINAL PITCHES
 						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
@@ -317,6 +320,11 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						scaleDegree_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
 							scaleTonicTrans.analyzeNoteDegree("C", 
 								scaleTonicTrans.scales_Names[scaleID_TRANS], transformedKey);
+
+						// CALCULATE MELODIC ACCENT
+						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
+							accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
+								currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
 
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
 						for (int l = 0; l < numTracks; l++)
@@ -413,6 +421,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
 							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[eventIdx_LOOP_Trackwise][2], trackIndex, cue_AP_Name);
+
+							// ADD RHYTHMIC ACCENT
+							accent_Voices[i][trackIndex] +=
+							accentCalculation.addRhythmicAccent(percObj->infoMatrix[eventIdx_LOOP_Trackwise][3]);
 							
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
 						}
@@ -443,6 +455,7 @@ void Sequencer::mapNew_MIDIEvents()
 	{
 		std::string faustAddress = "";
 		double pitch_Hz = 100;
+		float accent = 5;
 
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
@@ -455,6 +468,11 @@ void Sequencer::mapNew_MIDIEvents()
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
+
+					// ADD ACCENT MAPPING HERE
+					faustAddress = faustStrings.getMusicAddress(presentTrack, "A", currentVoice);
+					accent = accent_Voices[currentVoice - 1][presentTrack - 1];
+					dspFaust.setParamValue(faustAddress.c_str(), accent);
 				}
 
 				// VELOCITY
