@@ -64,8 +64,8 @@ public:
 	{
 		presentPhase_Rad = (presentPhase_Rad + phaseInc) > fullRotation ?
 						  (presentPhase_Rad + phaseInc - fullRotation): (presentPhase_Rad + phaseInc);
-		emphFunc_Present = emphFunc_getValue_Overall(emphFunc_MAX, emphFunc_MIN,
-				presentPhase_Rad, emphFunc_FREQMULT, emphFunc_C, emphFunc_WID, emphFunc_ORDER);
+		/*emphFunc_Present = emphFunc_getValue_Overall(emphFunc_MAX, emphFunc_MIN,
+				presentPhase_Rad, emphFunc_FREQMULT, emphFunc_C, emphFunc_WID, emphFunc_ORDER);*/
 	}
 
 	void resetPhase()

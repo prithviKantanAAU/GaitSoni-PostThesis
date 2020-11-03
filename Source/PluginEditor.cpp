@@ -251,6 +251,16 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 		processor.sequencer.stopMusic();
 		processor.sequencer.togglePlayPause();
 	};
+
+	for (int i = 0; i < 4; i++)
+	ui_musiCon_inbuilt.chordDegree[i].addListener(this);
+	ui_musiCon_inbuilt.chordType.addListener(this);
+	for (int i = 0; i < processor.sequencer.scaleTonicTrans.numChordTypes; i++)
+	{
+		ui_musiCon_inbuilt.chordType.addItem
+		(processor.sequencer.scaleTonicTrans.chordTypes_Names[i], i + 1);
+	}
+	ui_musiCon_inbuilt.chordType.setSelectedId(1);
 }
 
 // CONFIGURE SONIFICATION CONTROL BEHAVIOR - FULL TAB
@@ -711,6 +721,21 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			processor.sequencer.switchInstVariant(i, ui_musiCon_gen.inst_Variant[i].getSelectedId());
 			channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
 		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (box == &ui_musiCon_inbuilt.chordDegree[i])
+		{
+			processor.sequencer.setChord_Inbuilt(i + 1, box->getSelectedId());
+		}
+	}
+
+	if (box == &ui_musiCon_inbuilt.chordType)
+	{
+		processor.sequencer.currentMusic.presentChordsType = box->getSelectedId() - 1;
+		for (int i = 0; i < 4; i++)
+			processor.sequencer.setChord_Inbuilt(i + 1, ui_musiCon_inbuilt.chordDegree[i].getSelectedId());
 	}
 
 	if (box == &ui_bmbf_gen.exerciseMode)

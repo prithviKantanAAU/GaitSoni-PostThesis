@@ -11,6 +11,7 @@
 #include "mixerSettings.h"
 #include "FaustStrings.h"
 #include "tempoTickIncCalculation.h"
+#include "accentCalculation.h"
 
 class Sequencer
 {
@@ -26,6 +27,7 @@ public:
 	MixerSettings mixerSettings;
 	FaustStrings faustStrings;
 	TempoTickInc tempoTickInc;
+	AccentCalculation accentCalculation;
 	
 	void resetCounters();
 	short musicMode = 1;
@@ -137,6 +139,13 @@ public:
 		{1,1,1,1,1,1,1,1},
 		{1,1,1,1,1,1,1,1}
 	};
+	float accent_Voices[4][8] = 
+	{
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5},
+		{5,5,5,5,5,5,5,5}
+	};
 	bool isVel_FromSongFile[8] =
 	{
 		false,
@@ -210,7 +219,7 @@ public:
 	void resetPercMIDIOnChange(double midiTicksElapsed)
 	{
 		// FIND MOD MIDI TICKS ELAPSED
-		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / ticksPerMeasure) * ticksPerMeasure;
+		double midiTicksElapsed_MOD = midiTicksElapsed - (int)((int)midiTicksElapsed / 15360) * 15360;
 		
 		// RESET NEXT EVENT INDICES TO ZERO
 		currentMusic.styles[currentMusic.style_current].grooves[currentMusic.styles[currentMusic.style_current].groove_current].flush_nextEventIndices();
@@ -303,21 +312,8 @@ public:
 	// Song Completion Fraction -> Sequencer
 	bool getSongProgress()
 	{
-		switch (musicMode)										// Depends on Music Mode
-		{
-		case 1:
-			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
-			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		case 2:
-			songProgress = pulsesElapsed / 1536.0;
-			timeLeft_Song = timeTotal_Song * (1 - songProgress);
-			break;
-		case 3:
-			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
-			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		}
+		songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
+		timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
 		return songProgress >= 1 ? true : false;
 	}
 
@@ -358,21 +354,87 @@ public:
 		ticksPerMeasure = numSixteenthNotes * 240 * 4;
 	}
 
-	void applySixteenthSkip(double *mod_end, double *mod_start, double tickInc)
+	void applySixteenthSkip(double *total_start, double *total_end,
+		double *mod_end, double *mod_start, double tickInc)
 	{
+		*total_start = midiTicksElapsed - tickInc;
+		*total_end = midiTicksElapsed;
+
 		*mod_end = midiTicksElapsed
 			- (int)(midiTicksElapsed / 15360) * 15360;
 		*mod_start = *mod_end - tickInc;
 
 		int ticksPerBar = 240 * sixteenthNotesPerMeasure;
-		int presentBarNum = (int)midiTicksElapsed / 3840;
-		double ticksElapsed_MOD = midiTicksElapsed - presentBarNum * 3840;
-		if (ticksElapsed_MOD >= ticksPerBar)
+		int presentBarNum = (int)*mod_end / 3840;
+		double ticksElapsed_MOD = *mod_end - presentBarNum * 3840;
+		if (ticksElapsed_MOD > ticksPerBar)
 		{
 			midiTicksElapsed += (3840 - ticksPerBar);
+			*total_start = midiTicksElapsed - tickInc;
+			*total_end = midiTicksElapsed;
+
 			*mod_start += (3840 - ticksPerBar);
 			*mod_end += (3840 - ticksPerBar);
-			if (*mod_end > 15360) *mod_end -= 15360;
+			
+			*mod_end = midiTicksElapsed
+				- (int)(midiTicksElapsed / 15360) * 15360;
+			*mod_start = *mod_end - tickInc;
+		}
+	}
+
+	void setChord_Inbuilt(short boxIndex, short chordDegree)
+	{
+		currentMusic.presentChords[boxIndex - 1] = chordDegree;
+		int noteDegrees[4] = { 
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][0], 
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][1],
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][2],
+			chordDegree + scaleTonicTrans.chordTypes_DegreeIntervals[currentMusic.presentChordsType][3]
+		};
+		int noteNums[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < 4; i++)
+			noteNums[i] = scaleTonicTrans.getMidiKeyFromDegree(noteDegrees[i], scaleID_ORIG, tonicOffset_ORIG);
+		int sixteenthTicks = 240;
+		int noteLength_Chord = 1920;
+		int noteLength_Bass = 60;
+
+		int checkBounds_START = noteLength_Chord * (boxIndex - 1);
+		int checkBounds_END = noteLength_Chord * (boxIndex);
+		int eventTimeStamp = 0;
+		int eventType = 0;
+		int currentVoice = 0;
+
+		// CHORD TRACK
+		for (int i = 0; i < currentMusic.midiTracks[1].numEvents; i++)
+		{
+			eventTimeStamp = currentMusic.midiTracks[1].infoMatrix[i][3];
+			eventType = currentMusic.midiTracks[1].infoMatrix[i][0];
+			// NOTE ONS
+			if ((eventTimeStamp % (4 * noteLength_Chord) == checkBounds_START) && eventType == 1)
+			{
+				currentMusic.midiTracks[1].infoMatrix[i][1] = noteNums[currentVoice];
+				currentVoice = (currentVoice + 1) % 4;
+			}
+			// NOTE OFFS
+			if ((eventTimeStamp % (4 * noteLength_Chord) == checkBounds_END) && eventType == 2)
+			{
+				currentMusic.midiTracks[1].infoMatrix[i][1] = noteNums[currentVoice];
+				currentVoice = (currentVoice + 1) % 4;
+			}
+		}
+
+		// BASSLINE
+		for (int i = 0; i < currentMusic.midiTracks[2].numEvents; i++)
+		{
+			eventTimeStamp = currentMusic.midiTracks[2].infoMatrix[i][3];
+			eventType = currentMusic.midiTracks[2].infoMatrix[i][0];
+			if ((eventTimeStamp % (4 * noteLength_Chord) >= checkBounds_START) &&
+				(eventTimeStamp % (4 * noteLength_Chord) < checkBounds_END) &&
+				(eventType == 1))
+			{
+				currentMusic.midiTracks[2].infoMatrix[i][1] = noteNums[0];
+				currentMusic.midiTracks[2].infoMatrix[i + 1][1] = noteNums[0];
+			}
 		}
 	}
 };

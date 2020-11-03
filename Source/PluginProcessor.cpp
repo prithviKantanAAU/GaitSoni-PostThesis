@@ -73,7 +73,7 @@ void GaitSonificationAudioProcessor::clockCallback(double tickInc)
 {
 	// IF CLOCK PULSE DUE, TRIGGER CLOCK
 	if (checkIfPulseDue())
-		triggerClock(true);
+		triggerClock();
 
 	// CHECK FOR NEW MIDI EVENTS, HANDLE IF NEEDED
 	sequencer.check_Handle_New_MIDIEvents(tickInc);
@@ -173,15 +173,11 @@ void GaitSonificationAudioProcessor::sensorCallback()
 }
 
 // TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE
-void GaitSonificationAudioProcessor::triggerClock(bool polarity)
+void GaitSonificationAudioProcessor::triggerClock()
 {
-	if (polarity == true)
-	{
-		// FAUST SET ON
-		sequencer.incrementPulseCounter();
-		sequencer.lastPulseTime = sequencer.nextPulseTime;
-		sequencer.nextPulseTime += sequencer.midiTickIncrement;
-	}
+	sequencer.incrementPulseCounter();
+	sequencer.lastPulseTime = sequencer.nextPulseTime;
+	sequencer.nextPulseTime += sequencer.midiTickIncrement;
 }
 
 // APPLY SEQUENCER SONIFICATIONS ON COMPUTED AP VALUE

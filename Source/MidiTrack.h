@@ -24,19 +24,17 @@ public:
 		Idx_nextEvent++; 
 		while (infoMatrix[Idx_nextEvent][0] == 0)
 			Idx_nextEvent++;
-		
 		// HANDLE TIME SIGNATURE
 
 		int timeStamp_nextEvent = infoMatrix[Idx_nextEvent][3];
-		int barNum_nextEvent = timeStamp_nextEvent / 3840;
-		int timeStamp_nextEvent_MOD = timeStamp_nextEvent - barNum_nextEvent * 3840;
-		while (timeStamp_nextEvent_MOD > ticksPerMeasure / 4)
+		int timeStamp_nextEvent_MOD = timeStamp_nextEvent % 3840;
+		while (timeStamp_nextEvent_MOD >= ticksPerMeasure / 4)
 		{
-			timeStamp_nextEvent = infoMatrix[Idx_nextEvent][3];
-			barNum_nextEvent = timeStamp_nextEvent / 3840;
-			timeStamp_nextEvent_MOD = timeStamp_nextEvent - barNum_nextEvent * 3840;
 			Idx_nextEvent++;
+			timeStamp_nextEvent = infoMatrix[Idx_nextEvent][3];
+			timeStamp_nextEvent_MOD = timeStamp_nextEvent % 3840;
 		}
+		
 	}
 };
 

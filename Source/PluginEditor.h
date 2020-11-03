@@ -275,6 +275,7 @@ private:
 		addAndMakeVisible(ui_musiCon_inbuilt.melodyDraw_TimeMarker);
 		for(int i = 0; i < 4; i++) addAndMakeVisible(ui_musiCon_inbuilt.chordDegree[i]);
 		addAndMakeVisible(ui_musiCon_inbuilt.cycleBeatsSixteenth);
+		addAndMakeVisible(ui_musiCon_inbuilt.chordType);
 	}
 	void addControls_Music_INDIVIDUAL()
 	{

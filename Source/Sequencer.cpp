@@ -205,24 +205,21 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 	int numEvents_toHandle = 0;
 
 	// DEFINE TICK INTERVAL TO CHECK FOR NEW EVENTS
-	double timeStamp_IntervalStart = midiTicksElapsed - tickInc;
-	double timeStamp_IntervalEnd = midiTicksElapsed;
+	double timeStamp_IntervalStart = 0;
+	double timeStamp_IntervalEnd = 0;
 
 	// DEFINE TICK INTERVAL FOR NEW LOOPED EVENTS
 	double timeStamp_IntervalEnd_MOD = 0;
 	double timeStamp_IntervalStart_MOD = 0;
 
 	// DO SOMETHING ABOUT SKIPPED EVENTS HERE (!)
-	applySixteenthSkip(&timeStamp_IntervalEnd_MOD, &timeStamp_IntervalStart_MOD, tickInc);
-
-	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
-	// ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
+	applySixteenthSkip(&timeStamp_IntervalStart, &timeStamp_IntervalEnd,
+		&timeStamp_IntervalEnd_MOD, &timeStamp_IntervalStart_MOD, tickInc);
 
 	// INITIALIZE EVENT INDICES
 	int nextEventIndex = 0;
 	int finalEventIndex = 0;
 	double eventTimeStamp = 0;
-	bool isValidNote = false;
 
 	// INITIALIZE VOICE VALUES
 	short voiceToTurnOff = 0;
@@ -292,7 +289,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						scaleTonicTrans.analyzeNoteDegree(currentMusic.currentKey, currentMusic.currentScale,
 						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][1]);
 						
-						// APPLY PITCH TRANSFORMATIONS IF ANY
+						// CALCULATE MELODIC ACCENT
+						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
+						accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
+						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
 
 						// LIMIT AND STORE FINAL PITCHES
 						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
@@ -316,6 +316,11 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						scaleDegree_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
 							scaleTonicTrans.analyzeNoteDegree("C", 
 								scaleTonicTrans.scales_Names[scaleID_TRANS], transformedKey);
+
+						// CALCULATE MELODIC ACCENT
+						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
+							accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
+								currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
 
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
 						for (int l = 0; l < numTracks; l++)
@@ -412,6 +417,11 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						if (currentMusic.pitchesToMonitor[i][trackIndex] == (int)percObj->infoMatrix[eventIdx_LOOP_Trackwise][1])
 						{
 							vels[i][trackIndex] = cookMIDIVel(percObj->infoMatrix[eventIdx_LOOP_Trackwise][2], trackIndex, cue_AP_Name);
+
+							// ADD RHYTHMIC ACCENT
+							accent_Voices[i][trackIndex] +=
+							accentCalculation.addRhythmicAccent(percObj->infoMatrix[eventIdx_LOOP_Trackwise][3]);
+							accent_Voices[i][trackIndex] = fmin(1, accent_Voices[i][trackIndex]);
 							
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
 						}
@@ -442,6 +452,10 @@ void Sequencer::mapNew_MIDIEvents()
 	{
 		std::string faustAddress = "";
 		double pitch_Hz = 100;
+		float accent = 5;
+		float accent_MapVal = 1;
+		int presentVariant = currentMusic.styles
+		[currentMusic.style_current].variantConfig[presentTrack - 1];
 
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
@@ -454,6 +468,16 @@ void Sequencer::mapNew_MIDIEvents()
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
+
+					// ADD ACCENT MAPPING HERE
+					faustAddress = faustStrings.getMusicAddress(presentTrack, "A", currentVoice);
+					accent = accent_Voices[currentVoice - 1][presentTrack - 1];
+					accent_MapVal = 
+					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1] +
+					accent * (mixerSettings.var_accMaxs[presentVariant - 1][presentTrack - 1] -
+					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1]);
+
+					dspFaust.setParamValue(faustAddress.c_str(), accent_MapVal);
 				}
 
 				// VELOCITY

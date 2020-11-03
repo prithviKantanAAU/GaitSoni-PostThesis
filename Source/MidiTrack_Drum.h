@@ -29,7 +29,7 @@ public:
 		flush_nextEventIndices();
 		int ticksPerBar = ticksPerMeasure / 4;
 		int eventTimeStamp = 0;
-		int eventTimeStamp_MOD = 0;
+		double eventTimeStamp_MOD = 0;
 		int barNum = 0;
 
 		for (int i = 0; i < 8; i++)							// EACH TRACK
@@ -79,8 +79,8 @@ public:
 		// HANDLE TIME SIGNATURE
 
 		int timeStamp_nextEvent = infoMatrix[nextIdx][3];
-		int barNum_nextEvent = timeStamp_nextEvent / 3840;
-		int timeStamp_nextEvent_MOD = timeStamp_nextEvent - barNum_nextEvent * 3840;
+		int barNum_nextEvent = timeStamp_nextEvent / 3840 + 1;
+		double timeStamp_nextEvent_MOD = timeStamp_nextEvent - barNum_nextEvent * 3840;
 		while (timeStamp_nextEvent_MOD > ticksPerMeasure / 4)
 		{
 			timeStamp_nextEvent = infoMatrix[nextIdx][3];

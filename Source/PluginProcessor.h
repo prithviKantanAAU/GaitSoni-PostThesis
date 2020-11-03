@@ -332,12 +332,9 @@ public:
 	// Check - 16th Note Pulse Due?? Only for timekeeping, no more clocking
 	bool checkIfPulseDue()										
 	{
-		double timeMeasure = sequencer.midiTicksElapsed;
-		if (timeMeasure >= sequencer.nextPulseTime)
-			return true;
-		else return false;
+		return (sequencer.midiTicksElapsed >= sequencer.nextPulseTime);
 	};
-	void triggerClock(bool polarity);							//Set FAUST Master Clock to 1/0
+	void triggerClock();							//Set FAUST Master Clock to 1/0
 	void clockCallback(double tickInc);							//Operations when clock triggered
 
 	// Music Sequencing

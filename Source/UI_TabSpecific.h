@@ -1,6 +1,6 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
-class UI_TabSpecific
+class UI_TabSpecific : public juce::Component
 {
 public:
 	UI_TabSpecific()
@@ -13,7 +13,6 @@ public:
 
 	void configure()
 	{
-
 	}
 
 	void toggleVisible(bool on)

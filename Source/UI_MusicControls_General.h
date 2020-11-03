@@ -244,7 +244,6 @@ public:
 			int horizPos = 210 + 50 * i;
 			song_track_Mute[i].setBounds(horizPos, 90, 50, 30);
 			song_track_GainOffset[i].setBounds(horizPos - 3, 150, 35, 80);
-			//inst_Variant[i].setBounds(50, 355 + 50 * i, 200, 40);
 			inst_Variant[i].setBounds(horizPos - 25 + 10, 235, 50, 25);
 			for (int j = 0; j < 4; j++)
 			{

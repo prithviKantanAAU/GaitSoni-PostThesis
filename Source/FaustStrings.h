@@ -42,6 +42,7 @@ public:
 		std::string attribute = "";
 		if (pOrV == "P") attribute = "Pitch";
 		if (pOrV == "V") attribute = "Velocity";
+		if (pOrV == "A") attribute = "Accent";
 		std::string address = baseName + "Mapping_Tabs/Music_Info/" + attribute + "/T"
 			+ std::to_string(trackNum) + "_" + pOrV.toStdString() + "_" + std::to_string(voiceNum);
 		return address;
