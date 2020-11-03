@@ -425,6 +425,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 							// ADD RHYTHMIC ACCENT
 							accent_Voices[i][trackIndex] +=
 							accentCalculation.addRhythmicAccent(percObj->infoMatrix[eventIdx_LOOP_Trackwise][3]);
+							accent_Voices[i][trackIndex] = fmin(1, accent_Voices[i][trackIndex]);
 							
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
 						}

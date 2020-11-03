@@ -81,7 +81,7 @@ public:
 		}
 	};
 
-	float masterGain = -16;
+	float masterGain = -21;
 
 	float trackGains[8][3] =
 	{

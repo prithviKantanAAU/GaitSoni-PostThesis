@@ -23,7 +23,7 @@ public:
 
 	float rhythmicAccentByPosition[5][2] =
 	{
-		{3840, 0.5},
+		{3840, 0.3},
 		{1920, 0.3},
 		{960, 0.15},
 		{480, 0.1},
@@ -126,9 +126,9 @@ public:
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			if ((int)timeStamp % (int)rhythmicAccentByPosition[i][0] < 10)
+			if ((int)timeStamp % (int)rhythmicAccentByPosition[i][0] == 0)
 			{
-				return rhythmicAccentByPosition[i][1] * 2;
+				return rhythmicAccentByPosition[i][1];
 			}
 		}
 		return 0;
