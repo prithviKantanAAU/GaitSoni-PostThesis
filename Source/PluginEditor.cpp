@@ -215,6 +215,7 @@ void GaitSonificationAudioProcessorEditor::configureMusicControls()
 
 	ui_musiCon_gen.fluidity.onValueChange = [this]
 	{
+		processor.sequencer.mixerSettings.fluidity = ui_musiCon_gen.fluidity.getValue();
 		processor.sequencer.dspFaust.setParamValue(
 			processor.sequencer.faustStrings.Fluidity.c_str(),
 			ui_musiCon_gen.fluidity.getValue()

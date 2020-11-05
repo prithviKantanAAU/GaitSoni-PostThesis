@@ -312,21 +312,8 @@ public:
 	// Song Completion Fraction -> Sequencer
 	bool getSongProgress()
 	{
-		switch (musicMode)										// Depends on Music Mode
-		{
-		case 1:
-			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
-			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		case 2:
-			songProgress = pulsesElapsed / 1536.0;
-			timeLeft_Song = timeTotal_Song * (1 - songProgress);
-			break;
-		case 3:
-			songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
-			timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
-			break;
-		}
+		songProgress = midiTicksElapsed / currentMusic.finalTimeStamp;
+		timeLeft_Song = (currentMusic.finalTimeStamp - midiTicksElapsed) / (1000 * ticksPerMS);
 		return songProgress >= 1 ? true : false;
 	}
 
@@ -351,9 +338,10 @@ public:
 		{
 			if (((currentMusic.midiTracks[0].infoMatrix[i][3] / 240) % 16) == col)
 			{
-				if (currentMusic.midiTracks[0].infoMatrix[i][0] == 1)
+				if (currentMusic.midiTracks[0].infoMatrix[i][0] == 1 || currentMusic.midiTracks[0].infoMatrix[i][0] == 5)
 				{
 					currentMusic.midiTracks[0].infoMatrix[i][1] = midiKeyToWrite;
+					currentMusic.midiTracks[0].infoMatrix[i][0] = vel > 73 ? 1 : 5;
 					currentMusic.midiTracks[0].infoMatrix[i][2] = vel;
 					currentMusic.midiTracks[0].infoMatrix[i + 1][1] = midiKeyToWrite;
 				}

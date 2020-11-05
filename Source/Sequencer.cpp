@@ -51,6 +51,7 @@ void Sequencer::initializeTracksForPlayback()
 		switchInstVariant(i, currentMusic.styles[currentMusic.style_current].variantConfig[i]);
 
 	}
+	dspFaust.setParamValue(faustStrings.Fluidity.c_str(), mixerSettings.fluidity);
 	applyMasterGain(mixerSettings.masterGain);
 	dspFaust.setParamValue(faustStrings.MasterEQ_1_Q.c_str(), 0.7);
 	dspFaust.setParamValue(faustStrings.MasterEQ_2_Q.c_str(), 0.7);
@@ -216,14 +217,10 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 	applySixteenthSkip(&timeStamp_IntervalStart, &timeStamp_IntervalEnd,
 		&timeStamp_IntervalEnd_MOD, &timeStamp_IntervalStart_MOD, tickInc);
 
-	// SET TICKS PER BAR DEPENDING ON TIME SIGNATURE 4/4 OR 3/4
-	// ticksPerMeasure = timingMode != 2 ? 16 * currentMusic.midi_ticksPerBeat : 12 * currentMusic.midi_ticksPerBeat;
-
 	// INITIALIZE EVENT INDICES
 	int nextEventIndex = 0;
 	int finalEventIndex = 0;
 	double eventTimeStamp = 0;
-	bool isValidNote = false;
 
 	// INITIALIZE VOICE VALUES
 	short voiceToTurnOff = 0;
@@ -259,14 +256,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 		}
 
 		// IF NOTHING TO HANDLE, LEAVE FIRST PART. IF SOMETHING, THEN SET FLAG TRUE
-		if (numEvents_toHandle == 0)
-		{
-			isNewEvents_ToHandle[trackIndex] = false;
-		}
-		else
-		{
-			isNewEvents_ToHandle[trackIndex] = true;
-		}
+		isNewEvents_ToHandle[trackIndex] = (numEvents_toHandle == 0) ? false : true;
 
 		// IF THERE ARE PITCH / FILE VEL EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[trackIndex] == true)
@@ -426,7 +416,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 							accent_Voices[i][trackIndex] +=
 							accentCalculation.addRhythmicAccent(percObj->infoMatrix[eventIdx_LOOP_Trackwise][3]);
 							accent_Voices[i][trackIndex] = fmin(1, accent_Voices[i][trackIndex]);
-							
+					
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
 						}
 					}
@@ -454,21 +444,20 @@ void Sequencer::mapNew_MIDIEvents()
 	// CYCLE THROUGH ALL TRACKS
 	for (int presentTrack = 1; presentTrack <= numTracks; presentTrack++)
 	{
-		std::string faustAddress = "";
-		double pitch_Hz = 100;
-		float accent = 5;
-		float accent_MapVal = 1;
-		int presentVariant = currentMusic.styles
-		[currentMusic.style_current].variantConfig[presentTrack - 1];
-
 		// CHECK ALL TRACKS FOR NEW EVENTS TO HANDLE
 		if (isNewEvents_ToHandle[presentTrack - 1])
 		{
+			std::string faustAddress = "";
+			double pitch_Hz = 100;
+			float accent = 5;
+			float accent_MapVal = 1;
+			int presentVariant = currentMusic.styles
+				[currentMusic.style_current].variantConfig[presentTrack - 1];
 			for (int currentVoice = 1; currentVoice <= currentMusic.numVoices[presentTrack - 1]; currentVoice++)
 			{
-				// PITCH
 				if (isPitched[presentTrack - 1])
 				{
+					// PITCH
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
@@ -480,7 +469,6 @@ void Sequencer::mapNew_MIDIEvents()
 					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1] +
 					accent * (mixerSettings.var_accMaxs[presentVariant - 1][presentTrack - 1] -
 					mixerSettings.var_accMins[presentVariant - 1][presentTrack - 1]);
-
 					dspFaust.setParamValue(faustAddress.c_str(), accent_MapVal);
 				}
 

@@ -5,18 +5,6 @@ public:
 	MixerSettings() {};
 	~MixerSettings() {};
 
-	String varNames[8][3] =
-	{
-		{"Acoustic Kick", "Electro Kick", "Alt Kick"},
-		{"Acoustic Snare", "Clap", "Alt Snare"},
-		{"Acoustic Hats", "Acoustic Ride", "Marimba"},
-		{"Acoustic Piano", "Xylophone", "Guitar"},
-		{"Deep Bass", "Electro Bass", "Dist Bass"},
-		{"Basic Lead", "Warm Lead", "Trumpet"},
-		{"Synth Pluck", "Warm Pad", "Bright Pad"},
-		{"Crash 1", "Crash 2", "Crash 3"}
-	};
-
 	short var_accMins[3][8] =
 	{
 		{0,0,0,5,5,5,5,0},
@@ -82,6 +70,7 @@ public:
 	};
 
 	float masterGain = -21;
+	float fluidity = 1;
 
 	float trackGains[8][3] =
 	{
