@@ -346,6 +346,37 @@ public:
 	//Sonification
 	float mapVal = 0;													// AP Value					
 	short exerciseMode_Present = 0;										
+	void mapMBFvar_FAUST(float mapVal_1D, float mapVal_2D_X, float mapVal_2D_Y);
+	void dynTrajectory_updateCenterCoordinates()
+	{
+		if (exerciseMode_Present == 3)
+		{
+			// IF DYNAMIC REACHING, ENABLE DYN TRAJECTORY, UPDATE CENTER COORDINATES
+			float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
+			float dynReach_CenterCoordinates_ANTICIPATED[2] = { 0.0, 0.0 };
+
+			// FETCH PRESENT INFO ON 2D CENTER COORDINATES
+			dynZoneCenter.barsElapsed = sequencer.barsElapsed;
+			dynReach_CenterCoordinates[0] = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
+			dynReach_CenterCoordinates[1] = gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
+
+			// GET NEW 2D TARGET CENTER COORDINATES AND ASSIGN 
+			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad,
+				dynReach_CenterCoordinates);
+			gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
+			gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
+
+			// Feedback Type: Anticipated Distance Error (2D)
+			if (gaitAnalysis.staticBalance_FB_TYPE == 3)
+			{
+				// GET ANTICIPATED CENTER COORDINATES AND ASSIGN
+				dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + dynZoneCenter.anticipationPhase,
+					dynReach_CenterCoordinates_ANTICIPATED);
+				gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates[0];
+				gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates[1];
+			}
+		};
+	}
 	
 	// Exercise Mode
 	void setExerciseMode(short exerciseMode)							// Set Exercise Mode

@@ -85,6 +85,11 @@ void GaitSonificationAudioProcessor::clockCallback(double tickInc)
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
 void GaitSonificationAudioProcessor::sensorCallback()
 {
+	// INITIALIZE RESET VALUES
+	float ap_ResetVal_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal;
+	float ap_ResetVal_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].resetVal;
+	float ap_ResetVal_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].resetVal;
+
 	// IF ASSIGNED BUT NOT CONNECTED, SEND OUT OSC PACKETS FOR IP VERIFICATION
 	ipVerify_AssignedSensors();
 
@@ -93,83 +98,67 @@ void GaitSonificationAudioProcessor::sensorCallback()
 		if (gaitAnalysis.sensorInfo.isOnline[i])
 			gaitAnalysis.sensors_OSCReceivers[i].updateBuffers();
 
-	// IF DYNAMIC REACHING, ENABLE DYN TRAJECTORY, UPDATE CENTER COORDINATES
-	float dynReach_CenterCoordinates[2] = { 0.0, 0.0 };
-	float dynReach_CenterCoordinates_ANTICIPATED[2] = { 0.0, 0.0 };
+	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS
+	if (pulsesElapsed % 3000 == 0)
+		gaitAnalysis.trunk_CalibrateRest(gaitAnalysis.sensors_OSCReceivers
+			[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
 	
 	// DYNAMIC REACHING TRAJECTORY UPDATE
-	if (exerciseMode_Present == 3)
-	{
-		// FETCH PRESENT INFO
-		dynZoneCenter.barsElapsed = sequencer.barsElapsed;
-		dynReach_CenterCoordinates[0] = gaitAnalysis.staticBalance_BoundsCoordinates[0][0];
-		dynReach_CenterCoordinates[1] = gaitAnalysis.staticBalance_BoundsCoordinates[0][1];
-
-		// GET NEW 2D TARGET CENTER COORDINATES AND ASSIGN 
-		dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad,
-											dynReach_CenterCoordinates);
-		gaitAnalysis.staticBalance_BoundsCoordinates[0][0] = dynReach_CenterCoordinates[0];
-		gaitAnalysis.staticBalance_BoundsCoordinates[0][1] = dynReach_CenterCoordinates[1];
-
-		// Feedback Type: Anticipated Distance Error (2D)
-		if (gaitAnalysis.staticBalance_FB_TYPE == 3)
-		{
-			// GET ANTICIPATED CENTER COORDINATES AND ASSIGN
-			dynZoneCenter.getCenterCoordinates(sequencer.musicPhase.presentPhase_Rad + dynZoneCenter.anticipationPhase,
-				dynReach_CenterCoordinates_ANTICIPATED);
-			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[0] = dynReach_CenterCoordinates[0];
-			gaitAnalysis.staticBalance_CenterXY_ANTICIPATED[1] = dynReach_CenterCoordinates[1];
-		}
-
-		// ASSIGN AP VAL AFTER CALCULATION
-		sequencer.AP_Val_2D_X = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].resetVal
-		: gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
-		sequencer.AP_Val_2D_Y = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].resetVal
-		: gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
-	}
+	void dynTrajectory_updateCenterCoordinates();
 
 	// COMPUTE CHOSEN MOVEMENT PARAM
 	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);
 
-	// RECALIBRATE TRUNK SENSOR REST EVERY 3 SECONDS
-	if (pulsesElapsed % 3000 == 0)
-		gaitAnalysis.trunk_CalibrateRest(gaitAnalysis.sensors_OSCReceivers[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
-
-	// COMPUTE PRESENT AP VALUE IF STANDBY DISABLED
-	mapVal = isStandby ? audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal
-						 : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
+	// COMPUTE FEEDBACK VARIABLES
+	sequencer.AP_Val_2D_X = isStandby ? ap_ResetVal_2D_X : gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0];
+	sequencer.AP_Val_2D_Y = isStandby ? ap_ResetVal_2D_Y : gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1];
+	mapVal = isStandby ? ap_ResetVal_1D : jlimit(0.0, 1.0, gaitAnalysis.gaitParams.calc_AP_Val());
 	sequencer.AP_Val = mapVal;
 
-	// MAP X AND Y AP TO FAUST / WHEREVER
-	if (gaitAnalysis.gaitParams.gaitParam_ObjectArray[gaitAnalysis.gaitParams.activeGaitParam].name ==
-		"Trunk Projection Zone" && gaitAnalysis.staticBalance_FB_TYPE != 1)
+	// MAP FEEDBACK VARIABLES TO FAUST IF PLAYING
+	if (sequencer.isPlaying)
+		mapMBFvar_FAUST(mapVal, sequencer.AP_Val_2D_X, sequencer.AP_Val_2D_Y);
+
+	// IF SENSOR RECORDING ENABLED, WRITE PRESENT LINE TO FILE
+	if (imuRecord.isRecording_Sensor)
+		writeSensorValue_ToFile(gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[gaitAnalysis.gaitParams.activeGaitParam].currentValue);
+}
+
+void GaitSonificationAudioProcessor::mapMBFvar_FAUST(float mapVal_1D, float mapVal_2D_X, float mapVal_2D_Y)
+{
+	String mpName = gaitAnalysis.gaitParams.gaitParam_ObjectArray
+					[gaitAnalysis.gaitParams.activeGaitParam].name;
+	String apName = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
+	int apType = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type;
+
+	// HANDLE 1D SONIFICATION CASE FIRST
+	if (gaitAnalysis.staticBalance_FB_TYPE == 1)
+	{
+		if (apType == 1)							// ACOUSTIC SONIFICATION
+		{
+			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), mapVal_1D);
+			return;
+		}
+
+		if (apType == 2)							// SEQUENCER SONIFICATION
+		{
+			if (apName == "Tempo")
+				sequencer.tempoTickInc.ap_forSkew = mapVal_1D;
+			return;
+		}
+	}
+	// HANDLE 2D SONIFICATION CASE NEXT
+	else if (mpName == "Trunk Projection Zone")
 	{
 		sequencer.dspFaust.setParamValue
 		(soniAddress_2D_X.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0]);
 
 		sequencer.dspFaust.setParamValue
 		(soniAddress_2D_Y.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1]);
-	}
 
-	// CHECK MUSIC PLAYBACK
-	if (sequencer.isPlaying && gaitAnalysis.staticBalance_FB_TYPE == 1)
-	{
-		// CHECK AP TYPE
-		switch (audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type)
-		{
-		case 1:	// AUDIO - BASED
-			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), mapVal);
-			break;
-		case 2: // SEQUENCER - BASED
-			applySequencerSonifications();
-			break;
-		}
+		return;
 	}
-
-	// IF SENSOR RECORDING ENABLED, WRITE PRESENT LINE TO FILE
-	if (imuRecord.isRecording_Sensor)
-		writeSensorValue_ToFile(gaitAnalysis.gaitParams.gaitParam_ObjectArray
-			[gaitAnalysis.gaitParams.activeGaitParam].currentValue);
 }
 
 // TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE
@@ -183,10 +172,7 @@ void GaitSonificationAudioProcessor::triggerClock()
 // APPLY SEQUENCER SONIFICATIONS ON COMPUTED AP VALUE
 void GaitSonificationAudioProcessor::applySequencerSonifications()
 {
-	switch (audioParams.activeAudioParam)
-	{
-
-	}
+	
 }
 
 // FIRST TIME SET SENSOR PULSE INTERVALS, NEXT SIXTEENTH MUSIC PULSE TIME
@@ -202,10 +188,10 @@ void GaitSonificationAudioProcessor::ipVerify_AssignedSensors()
 	int remotePort = 0;	 
 	String remoteIP = "";
 
-	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)
-		if (gaitAnalysis.sensorInfo.bodyLocation[i] != 4)
+	for (int i = 0; i < gaitAnalysis.sensorInfo.numSensorsMax; i++)		// CHECK FOR ALL SENSORS
+		if (gaitAnalysis.sensorInfo.bodyLocation[i] != 4)				// ONLY IF ASSIGNED
 		{
-			if (!gaitAnalysis.sensorInfo.isOnline[i])
+			if (!gaitAnalysis.sensorInfo.isOnline[i])					// ONLY IF OFFLINE
 			{
 				remotePort = gaitAnalysis.sensorInfo.UDP_Ports_REMOTE[i];
 				remoteIP = gaitAnalysis.sensorInfo.remoteIP[i];

@@ -33,6 +33,9 @@ public:
 	float fasterUphill_ORDER = 1.2;
 	float fasterUphill_SCALEFACTOR = 0.7;
 
+	// TEMPO AP SKEW
+	float ap_forSkew = 0.5;
+
 	void generateTempoCurve(MidiTrack *melody)		 // TEMPO RULES WILL BE APPLIED HERE BASED ON THE MELODY
 	{
 		float songPercent = 0;
@@ -90,9 +93,13 @@ public:
 
 	double getNewTickIncrement(double ticks_Elapsed, double ticks_Total, double tickIncrement_Base)
 	{
+		float apMult = 1;
+		if (fabs(ap_forSkew - 0.5) > 0.02)
+			apMult = 0.5 + ap_forSkew;
+
 		double percent_SongComplete = ticks_Elapsed / ticks_Total * 100.0;
 		int percent_IncChange_ReadIdx = (int)(percent_SongComplete * 100);
-		return tickIncrement_Base * (100.0 + percent_IncChange[percent_IncChange_ReadIdx]) / 100.0;
+		return tickIncrement_Base * apMult * (100.0 + percent_IncChange[percent_IncChange_ReadIdx]) / 100.0;
 	};
 
 	float getPercentVal_fromFuncBounds(float percentSong_Present, float percentTempo_Start,
