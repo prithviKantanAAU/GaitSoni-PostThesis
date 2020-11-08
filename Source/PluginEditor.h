@@ -466,6 +466,8 @@ private:
 	{
 		ui_musiCon_gen.song_Filename.setText("Current File: " 
 			+ processor.sequencer.currentMusic.songName, dontSendNotification);
+		if (processor.musicMode == 3)
+			ui_musiCon_gen.song_Filename.setText("Inbuilt Music Mode", dontSendNotification);
 	}
 	
 	//Sonification Controls

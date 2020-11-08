@@ -60,8 +60,9 @@ public:
 		beatsPerBar = value;
 	}
 
-	void updatePhase()
+	void updatePhase(double tickInc)
 	{
+		phaseInc = tickInc / 3840.0 * 2 * M_PI;
 		presentPhase_Rad = (presentPhase_Rad + phaseInc) > fullRotation ?
 						  (presentPhase_Rad + phaseInc - fullRotation): (presentPhase_Rad + phaseInc);
 		/*emphFunc_Present = emphFunc_getValue_Overall(emphFunc_MAX, emphFunc_MIN,

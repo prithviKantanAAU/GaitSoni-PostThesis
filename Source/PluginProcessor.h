@@ -230,69 +230,59 @@ public:
 	GaitAnalysis gaitAnalysis;									// MP Computation Object
 	void sensorCallback();										// Sensor Callback
 	void ipVerify_AssignedSensors();								// Send out OSC Packets for IP Verification
-	
-	// Update Present AP
-	void updateAudioParameter(int index, short type)			
-	{ 
-		float resetValue = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal;
-		if (type == 1)											// MP Sonification Param
+
+	// UPDATE PRESENT AP
+	void updateAudioParameter(int index, short fbType_1D_2DXY)
+	{
+		// RESET ALL FEEDBACK IN ALL CASES
+		float resetValue_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].resetVal;
+		sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue_1D);
+		float resetValue_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].resetVal;
+		sequencer.dspFaust.setParamValue(soniAddress_2D_X.c_str(), resetValue_2D_X);
+		float resetValue_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].resetVal;
+		sequencer.dspFaust.setParamValue(soniAddress_2D_Y.c_str(), resetValue_2D_Y);
+		int updatedParamIdx_Prev = 0;
+		float resetValue_ACTUAL = 0;
+
+		// INCREMENT ACTIVE INDEX, SET AP NAMES AND FAUST ADDRESSES
+		switch (fbType_1D_2DXY)
 		{
-			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
+		case 1:
+			updatedParamIdx_Prev = audioParams.activeAudioParam;
 			audioParams.activeAudioParam = index - 1;
+			resetValue_ACTUAL = resetValue_1D;
 			sequencer.soni_AP_Name = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
 			soniAddress_Primary = sequencer.faustStrings.getSonificationStringAddress
 			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
-			
-		}
-		
-		if (type == 2)											// Music Cue Param
-		{
-			sequencer.dspFaust.setParamValue(soniAddress_Cue.c_str(), resetValue);
-			audioParams.activeCueParam = index - 1;
-			soniAddress_Cue = sequencer.faustStrings.getSonificationStringAddress
-			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].faustIndex).toStdString();
-			sequencer.cue_AP_Name = audioParams.audioParam_ObjectArray
-				[audioParams.activeCueParam].name;
-		}
-
-		if (type == 3)											// 2D FB X
-		{
-			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
-			sequencer.dspFaust.setParamValue(soniAddress_2D_X.c_str(), resetValue);
+			break;
+		case 3:
+			updatedParamIdx_Prev = audioParams.activeAudioParam_DynTarget_X;
 			audioParams.activeAudioParam_DynTarget_X = index - 1;
-			if (index > audioParams.numSoni_Musical)
-			{
-				soniAddress_2D_X = "";
-				sequencer.X_2D_AP_Name = soniAddress_2D_X;
-			}
-			else
-			{
-				soniAddress_2D_X = sequencer.faustStrings.getSonificationStringAddress
-				(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].faustIndex).toStdString();
-				sequencer.X_2D_AP_Name = audioParams.audioParam_ObjectArray
-					[audioParams.activeAudioParam_DynTarget_X].name;
-			}
+			resetValue_ACTUAL = resetValue_2D_X;
+			soniAddress_2D_X = sequencer.faustStrings.getSonificationStringAddress
+			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].faustIndex).toStdString();
+			sequencer.X_2D_AP_Name = audioParams.audioParam_ObjectArray
+			[audioParams.activeAudioParam_DynTarget_X].name;
+			break;
+		case 4:
+			updatedParamIdx_Prev = audioParams.activeAudioParam_DynTarget_Y;
+			audioParams.activeAudioParam_DynTarget_Y = index - 1;
+			resetValue_ACTUAL = resetValue_2D_Y;
+			soniAddress_2D_Y = sequencer.faustStrings.getSonificationStringAddress
+			(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].faustIndex).toStdString();
+			sequencer.Y_2D_AP_Name = audioParams.audioParam_ObjectArray
+			[audioParams.activeAudioParam_DynTarget_Y].name;
+			break;
 		}
 
-		if (type == 4)											// 2D FB X
-		{
-			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), resetValue);
-			sequencer.dspFaust.setParamValue(soniAddress_2D_Y.c_str(), resetValue);
-			audioParams.activeAudioParam_DynTarget_Y = index - 1;
-			if (index > audioParams.numSoni_Musical)
-			{
-				soniAddress_2D_Y = "";
-				sequencer.Y_2D_AP_Name = soniAddress_2D_Y;
-			}
-			else
-			{
-				soniAddress_2D_Y = sequencer.faustStrings.getSonificationStringAddress
-				(audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].faustIndex).toStdString();
-				sequencer.Y_2D_AP_Name = audioParams.audioParam_ObjectArray
-					[audioParams.activeAudioParam_DynTarget_Y].name;
-			}
-		}
-	};
+		// CASEWISE AP HYPERPARAMETER RESET - GET PREVIOUS AP NAME
+		String apName = audioParams.audioParam_ObjectArray[updatedParamIdx_Prev].name;
+		
+		// TEMPO
+		if (apName == "Tempo")
+			sequencer.tempoTickInc.ap_forSkew = resetValue_ACTUAL;
+	}
+	
 	void applySequencerSonifications();							// Apply Sequencer-based Sonifications
 
 	// Audio Parameter Calculation 
@@ -381,6 +371,9 @@ public:
 	// Exercise Mode
 	void setExerciseMode(short exerciseMode)							// Set Exercise Mode
 	{
+		if (exerciseMode != 3) gaitAnalysis.gaitParams.feedback_DIM = 1;
+		else if (gaitAnalysis.staticBalance_FB_TYPE > 1) gaitAnalysis.gaitParams.feedback_DIM = 2;
+		else gaitAnalysis.gaitParams.feedback_DIM = 1;
 		exerciseMode_Present = exerciseMode;
 		gaitAnalysis.gaitParams.exerciseMode_Present = exerciseMode;
 	};

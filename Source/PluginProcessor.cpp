@@ -79,7 +79,7 @@ void GaitSonificationAudioProcessor::clockCallback(double tickInc)
 	sequencer.check_Handle_New_MIDIEvents(tickInc);
 
 	// UPDATE MUSIC PHASE
-	sequencer.musicPhase.updatePhase();
+	sequencer.musicPhase.updatePhase(tickInc);
 }
 
 // COMPUTE MP, AP, STORE SENSOR RECORDING EVERY 10 MS
@@ -104,7 +104,7 @@ void GaitSonificationAudioProcessor::sensorCallback()
 			[gaitAnalysis.idx_Sensor_Trunk].acc_Buf);
 	
 	// DYNAMIC REACHING TRAJECTORY UPDATE
-	void dynTrajectory_updateCenterCoordinates();
+	dynTrajectory_updateCenterCoordinates();
 
 	// COMPUTE CHOSEN MOVEMENT PARAM
 	gaitAnalysis.compute(gaitAnalysis.gaitParams.activeGaitParam, isCalibrating);
@@ -127,38 +127,56 @@ void GaitSonificationAudioProcessor::sensorCallback()
 
 void GaitSonificationAudioProcessor::mapMBFvar_FAUST(float mapVal_1D, float mapVal_2D_X, float mapVal_2D_Y)
 {
+	// INITIALIZE NAMES
 	String mpName = gaitAnalysis.gaitParams.gaitParam_ObjectArray
 					[gaitAnalysis.gaitParams.activeGaitParam].name;
-	String apName = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
-	int apType = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type;
+	String apName_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
+	int apType_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type;
 
-	// HANDLE 1D SONIFICATION CASE FIRST
-	if (gaitAnalysis.staticBalance_FB_TYPE == 1)
+	String apName_2D_X = "NONE";
+	int apType_2D_X = 0;
+	String apName_2D_Y = "NONE";
+	int apType_2D_Y = 0;
+	
+	if (audioParams.activeAudioParam_DynTarget_X < audioParams.numSoni_Musical)
 	{
-		if (apType == 1)							// ACOUSTIC SONIFICATION
+		apName_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].name;
+		apType_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].type;
+	}
+
+	if (audioParams.activeAudioParam_DynTarget_Y < audioParams.numSoni_Musical)
+	{
+		apName_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].name;
+		apType_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].type;
+	}
+
+	String apNames[5] = { apName_1D, apName_2D_X, apName_2D_Y };
+	float apVals[5] = { mapVal_1D, mapVal_2D_X, mapVal_2D_Y };
+	int apTypes[5] = { apType_1D, apType_2D_X, apType_2D_Y };
+	String apFAUSTAddr[5] = { soniAddress_Primary, soniAddress_2D_X, soniAddress_2D_Y };
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (apTypes[i] == 1)
 		{
-			sequencer.dspFaust.setParamValue(soniAddress_Primary.c_str(), mapVal_1D);
-			return;
+			switch (gaitAnalysis.gaitParams.feedback_DIM)
+			{
+			case 1:
+				sequencer.dspFaust.setParamValue(apFAUSTAddr[0].toStdString().c_str(), apVals[0]);
+				break;
+			case 2:
+				sequencer.dspFaust.setParamValue(apFAUSTAddr[1].toStdString().c_str(), apVals[1]);
+				sequencer.dspFaust.setParamValue(apFAUSTAddr[2].toStdString().c_str(), apVals[2]);
+				break;
+			}
 		}
 
-		if (apType == 2)							// SEQUENCER SONIFICATION
+		if (apTypes[i] == 2)			// SEQUENCER SONIFICATION - CHECK ALL APs AND ASSIGN CORRECT VALUE
 		{
-			if (apName == "Tempo")
-				sequencer.tempoTickInc.ap_forSkew = mapVal_1D;
-			return;
+			if (apNames[i] == "Tempo")
+				sequencer.tempoTickInc.ap_forSkew = apVals[i];
 		}
-	}
-	// HANDLE 2D SONIFICATION CASE NEXT
-	else if (mpName == "Trunk Projection Zone")
-	{
-		sequencer.dspFaust.setParamValue
-		(soniAddress_2D_X.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[0]);
-
-		sequencer.dspFaust.setParamValue
-		(soniAddress_2D_Y.c_str(), gaitAnalysis.gaitParams.apVal_DYN_TaskDependent[1]);
-
-		return;
-	}
+	}	
 }
 
 // TRIGGER MUSIC MASTER CLOCK AT 16TH NOTE INTERVAL FOR COUNTER UPDATE

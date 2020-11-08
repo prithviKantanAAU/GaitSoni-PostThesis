@@ -16,6 +16,7 @@ public:
 	short numSensorLocations = 3;					// BODILY LOCATIONS
 	String exerciseModes[10] = { "Testing","Static Upright","Dynamic Trunk","Jerk Feedback","STS Angle Cue","Gait" };
 	short exerciseMode_Present = 1;
+	short feedback_DIM = 1;
 	GaitParam_Single gaitParam_ObjectArray[30];
 	float AP_Val = 0;
 	float order_MapFunc = 1;
@@ -235,6 +236,13 @@ public:
 	{
 		GaitParam_Single *present_MP_Obj = &gaitParam_ObjectArray[activeGaitParam];
 		float MP_Val = 0;
+		float adaptiveRange = 0;
+		float error = 0;
+		float MP_MIN = present_MP_Obj->minVal;
+		float MP_MAX = present_MP_Obj->maxVal;
+		float MP_MIN_TGT = present_MP_Obj->target_MIN;
+		float MP_MAX_TGT = present_MP_Obj->target_MAX;
+
 		if (isSliderMode)
 		{
 			MP_Val = present_MP_Obj->minVal + sliderVal * (present_MP_Obj->maxVal - present_MP_Obj->minVal);
@@ -242,14 +250,8 @@ public:
 		else
 		{
 			MP_Val = present_MP_Obj->currentValue;
+			MP_Val = jlimit(MP_MIN, MP_MAX, MP_Val);
 		}
-
-		float adaptiveRange = 0;
-		float error = 0;
-		float MP_MIN = present_MP_Obj->minVal;
-		float MP_MAX = present_MP_Obj->maxVal;
-		float MP_MIN_TGT = present_MP_Obj->target_MIN;
-		float MP_MAX_TGT = present_MP_Obj->target_MAX;
 
 		// IF TARGET MET, RETURN 0
 		if (MP_Val <= MP_MAX_TGT && MP_Val >= MP_MIN_TGT)
@@ -259,13 +261,13 @@ public:
 		{
 			if (MP_Val < MP_MIN_TGT)
 			{
-				adaptiveRange = MP_MIN_TGT - MP_MIN;
+				adaptiveRange = fmax(0.00001, MP_MIN_TGT - MP_MIN);
 				error = (MP_MIN_TGT - MP_Val) / adaptiveRange;
 			}
 
 			else if (MP_Val > MP_MAX_TGT)
 			{
-				adaptiveRange = MP_MAX - MP_MAX_TGT;
+				adaptiveRange = fmax(0.00001, MP_MAX - MP_MAX_TGT);
 				error = (MP_Val - MP_MAX_TGT) / adaptiveRange;
 			}
 

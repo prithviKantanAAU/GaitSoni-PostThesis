@@ -652,10 +652,13 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	ui_bmbf_ex.dynTarget_FB_X.addListener(this);
 	for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
 	{
-		if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[6])
+		if (processor.audioParams.audioParam_ObjectArray
+			[processor.audioParams.indices_AP_OVERALL[i]].isIncluded_UseScenarios[6])
 		{
 			ui_bmbf_ex.dynTarget_FB_X.
-				addItem(processor.audioParams.audioParam_ObjectArray[i].name, i + 1);
+				addItem(processor.audioParams.audioParam_ObjectArray
+					[processor.audioParams.indices_AP_OVERALL[i]].name, 
+					processor.audioParams.indices_AP_OVERALL[i] + 1);
 		}
 	}
 
@@ -663,18 +666,21 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	ui_bmbf_ex.dynTarget_FB_Y.addListener(this);
 	for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
 	{
-		if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[6])
+		if (processor.audioParams.audioParam_ObjectArray
+			[processor.audioParams.indices_AP_OVERALL[i]].isIncluded_UseScenarios[6])
 		{
 			ui_bmbf_ex.dynTarget_FB_Y.
-				addItem(processor.audioParams.audioParam_ObjectArray[i].name, i + 1);
+				addItem(processor.audioParams.audioParam_ObjectArray
+					[processor.audioParams.indices_AP_OVERALL[i]].name, 
+					processor.audioParams.indices_AP_OVERALL[i] + 1);
 		}
 	}
 
 	// DYN TARGET XY UNASSIGNED
-	ui_bmbf_ex.dynTarget_FB_X.addItem("NONE", 100);
-	ui_bmbf_ex.dynTarget_FB_Y.addItem("NONE", 100);
-	ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
-	ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
+	//ui_bmbf_ex.dynTarget_FB_X.addItem("NONE", 40);
+	//ui_bmbf_ex.dynTarget_FB_Y.addItem("NONE", 40);
+	ui_bmbf_ex.dynTarget_FB_X.setSelectedId(40);
+	ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(40);
 	
 }
 
@@ -759,8 +765,8 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		}
 
 		// Toggle Exercise Specific Controls
-		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
-		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
+		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(40);
+		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(40);
 		ui_mpCal.changeButtonText(ui_bmbf_gen.exerciseMode.getSelectedId());
 		ui_bmbf_ex.toggleVisible(ui_bmbf_gen.exerciseMode.getSelectedId(), isSonificationTab);
 		
@@ -796,16 +802,15 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		processor.dynZoneCenter.currentShape = ui_bmbf_ex.dynTrajectory_Shape.getSelectedId() - 1;
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_TYPE)
+	{
 		processor.gaitAnalysis.staticBalance_FB_TYPE = ui_bmbf_ex.dynTarget_FB_TYPE.getSelectedId();
+		if (processor.gaitAnalysis.staticBalance_FB_TYPE > 1) 
+			processor.gaitAnalysis.gaitParams.feedback_DIM = 2;
+		else processor.gaitAnalysis.gaitParams.feedback_DIM = 1;
+	}
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_DATA)
 		processor.gaitAnalysis.staticBalance_FB_DATA = ui_bmbf_ex.dynTarget_FB_DATA.getSelectedId();
-
-	if (box == &ui_bmbf_ex.dynTarget_FB_X)
-		processor.audioParams.activeAudioParam_DynTarget_X = ui_bmbf_ex.dynTarget_FB_X.getSelectedId() - 1;
-
-	if (box == &ui_bmbf_ex.dynTarget_FB_Y)
-		processor.audioParams.activeAudioParam_DynTarget_Y = ui_bmbf_ex.dynTarget_FB_Y.getSelectedId() - 1;
 
 	if (box == &ui_bmbf_ex.HS_TimingMode)
 		processor.gaitAnalysis.isHalfTime = ui_bmbf_ex.HS_TimingMode.getSelectedId() == 1 ? false : true;
@@ -822,12 +827,6 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 		channel_refreshSliders(ui_musiCon_indiv.channel_ActiveTrack);
 	}
 
-	
-	/*if (box == &ringVisualize.emph_Strategy)
-	{
-		processor.updateAudioParameter(box->getSelectedId(), 2);
-	}*/
-
 	if (box == &ui_musiCon_gen.music_Mode)
 	{
 		processor.musicMode = box->getSelectedId();
@@ -838,30 +837,23 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 			if (presentTab == 1) ui_musiCon_gen.song_LoadFile.setVisible(true);
 			ui_musiCon_inbuilt.toggleVisible(false);
 			break;
-		case 2:
-			if (presentTab == 1) ui_musiCon_gen.song_LoadFile.setVisible(true);
-			ui_musiCon_inbuilt.toggleVisible(false);
-			break;
 		case 3:
 			ui_musiCon_gen.song_LoadFile.setVisible(false);
 			ui_musiCon_inbuilt.toggleVisible(true);
 			File forAppDirectory;
 			String path = forAppDirectory.getSpecialLocation(File::currentApplicationFile).getFullPathName();
 			path = path.upToLastOccurrenceOf("\\", true, false);
-			path += "MIDI Inbuilt Library\\";
-			path += processor.sequencer.currentMusic.MelLibFiles[0];
+			path += "MIDI Inbuilt Library\\" + processor.sequencer.currentMusic.MelLibFiles[0];
 			processor.sequencer.setTimingMode(path);
 			processor.setTempo(ui_musiCon_gen.tempo_Slider.getValue());
 			setRhythmSpecificVariants();
 			processor.sequencer.initializeTracksForPlayback();
 			setGainSliders();
 			processor.sequencer.setFilename(path);
-			// INITIALIZE BASE KEY FOR MELODY DRAW
 			processor.sequencer.scaleTonicTrans.inbuilt_BaseKey =
 				processor.sequencer.currentMusic.midiTracks[0].infoMatrix[1][1];
 			melodyDraw_ResetOnScaleTonicChange();
 			updateMusicControlValues();
-			refreshBeatLabels();
 			break;
 		}
 	}
@@ -882,14 +874,20 @@ void GaitSonificationAudioProcessorEditor::comboBoxChanged(ComboBox *box)
 	{
 		processor.gaitAnalysis.staticBalance_FB_TYPE = box->getSelectedId();
 		processor.sequencer.dspFaust.setParamValue(processor.soniAddress_Primary.c_str(), 0);
-		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(100);
-		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(100);
+		ui_bmbf_ex.dynTarget_FB_X.setSelectedId(40);
+		ui_bmbf_ex.dynTarget_FB_Y.setSelectedId(40);
 	}
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_DATA)
 	{
 		processor.gaitAnalysis.staticBalance_FB_DATA = box->getSelectedId();
 	}
+
+	/*if (box == &ui_bmbf_ex.dynTarget_FB_X)
+		processor.audioParams.activeAudioParam_DynTarget_X = ui_bmbf_ex.dynTarget_FB_X.getSelectedId() - 1;
+
+	if (box == &ui_bmbf_ex.dynTarget_FB_Y)
+		processor.audioParams.activeAudioParam_DynTarget_Y = ui_bmbf_ex.dynTarget_FB_Y.getSelectedId() - 1;*/
 
 	if (box == &ui_bmbf_ex.dynTarget_FB_X)
 	{
@@ -918,8 +916,11 @@ void GaitSonificationAudioProcessorEditor::repopulateLists(short exerciseMode)
 
 	for (int i = 0; i < processor.audioParams.numSoni_Musical; i++)
 	{
-		if (processor.audioParams.audioParam_ObjectArray[i].isIncluded_UseScenarios[exerciseMode - 1])
-			ui_bmbf_gen.audioParam_Current.addItem(processor.audioParams.audioParam_ObjectArray[i].name, i+ 1);
+		if (processor.audioParams.audioParam_ObjectArray[processor.audioParams.indices_AP_OVERALL[i]]
+			.isIncluded_UseScenarios[exerciseMode - 1])
+			ui_bmbf_gen.audioParam_Current.addItem(processor.audioParams.
+				audioParam_ObjectArray[processor.audioParams.indices_AP_OVERALL[i]].name, 
+				processor.audioParams.indices_AP_OVERALL[i] + 1);
 	}
 	ui_bmbf_gen.audioParam_Current.setSelectedId(processor.audioParams.indices_AP[exerciseMode - 1][0] + 1);
 }
