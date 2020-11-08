@@ -127,34 +127,23 @@ void GaitSonificationAudioProcessor::sensorCallback()
 
 void GaitSonificationAudioProcessor::mapMBFvar_FAUST(float mapVal_1D, float mapVal_2D_X, float mapVal_2D_Y)
 {
-	// INITIALIZE NAMES
+	// INITIALIZE AP NAMES AND TYPES
 	String mpName = gaitAnalysis.gaitParams.gaitParam_ObjectArray
 					[gaitAnalysis.gaitParams.activeGaitParam].name;
 	String apName_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].name;
 	int apType_1D = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam].type;
+	String apName_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].name;;
+	int apType_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].type;
+	String apName_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].name;
+	int apType_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].type;
 
-	String apName_2D_X = "NONE";
-	int apType_2D_X = 0;
-	String apName_2D_Y = "NONE";
-	int apType_2D_Y = 0;
-	
-	if (audioParams.activeAudioParam_DynTarget_X < audioParams.numSoni_Musical)
-	{
-		apName_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].name;
-		apType_2D_X = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_X].type;
-	}
-
-	if (audioParams.activeAudioParam_DynTarget_Y < audioParams.numSoni_Musical)
-	{
-		apName_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].name;
-		apType_2D_Y = audioParams.audioParam_ObjectArray[audioParams.activeAudioParam_DynTarget_Y].type;
-	}
-
+	// PUT EVERYTHING IN ARRAYS
 	String apNames[5] = { apName_1D, apName_2D_X, apName_2D_Y };
 	float apVals[5] = { mapVal_1D, mapVal_2D_X, mapVal_2D_Y };
 	int apTypes[5] = { apType_1D, apType_2D_X, apType_2D_Y };
 	String apFAUSTAddr[5] = { soniAddress_Primary, soniAddress_2D_X, soniAddress_2D_Y };
 
+	// CHECK AND MAP EACH AP TYPE IF NEEDED
 	for (int i = 0; i < 3; i++)
 	{
 		if (apTypes[i] == 1)
