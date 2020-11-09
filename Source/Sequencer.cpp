@@ -414,7 +414,9 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 
 							// ADD RHYTHMIC ACCENT
 							accent_Voices[i][trackIndex] +=
-							accentCalculation.addRhythmicAccent(percObj->infoMatrix[eventIdx_LOOP_Trackwise][3]);
+							accentCalculation.addRhythmicAccent(
+								percObj->infoMatrix[eventIdx_LOOP_Trackwise][3],
+								vels[i][trackIndex]);
 							accent_Voices[i][trackIndex] = fmin(1, accent_Voices[i][trackIndex]);
 					
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
@@ -459,7 +461,9 @@ void Sequencer::mapNew_MIDIEvents()
 				{
 					// PITCH
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
-					pitch_Hz = MidiMessage::getMidiNoteInHertz(pitches[currentVoice - 1][presentTrack - 1]);
+					pitch_Hz = accentCalculation.applyHighSharp
+					(pitches[currentVoice - 1][presentTrack - 1],
+					 &vels[currentVoice - 1][presentTrack - 1]);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
 
 					// ADD ACCENT MAPPING HERE

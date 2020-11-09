@@ -9,6 +9,7 @@
 */
 
 #pragma once
+#include "../JuceLibraryCode/JuceHeader.h"
 
 class AccentCalculation
 {
@@ -23,9 +24,9 @@ public:
 
 	float rhythmicAccentByPosition[5][2] =
 	{
-		{3840, 0.3},
-		{1920, 0.3},
-		{960, 0.15},
+		{3840, 0.25},
+		{1920, 0.25},
+		{960, 0.18},
 		{480, 0.1},
 		{240, 0}
 	};
@@ -122,15 +123,30 @@ public:
 		return fmin(1,total);
 	}
 
-	float addRhythmicAccent(int timeStamp)
+	float addRhythmicAccent(int timeStamp, float &velValue)
 	{
 		for (int i = 0; i < 5; i++)
 		{
 			if ((int)timeStamp % (int)rhythmicAccentByPosition[i][0] == 0)
 			{
+				velValue *= (1 + pow(rhythmicAccentByPosition[i][1],1.3) * 2) * 0.8;
 				return rhythmicAccentByPosition[i][1];
 			}
 		}
 		return 0;
+	}
+
+	float applyHighSharp(int midiKeyNum, float *vel)
+	{
+		float pitch_Hz = MidiMessage::getMidiNoteInHertz(midiKeyNum);
+		float centOffset = jlimit(0, 15, (midiKeyNum - 24) / 2);
+		float centOffset_MULT = pow(2, centOffset / 1200);
+		float final_pitch = pitch_Hz * centOffset_MULT;
+
+		if (*vel > 1)
+		*vel += (midiKeyNum - 48) / 12.0;
+		*vel *= 0.7;
+
+		return final_pitch;
 	}
 };
