@@ -331,15 +331,16 @@ fmSynth_Versatile(fc,modRatio,I_fixed,I_ampDependent,a,d,s,r,envType,trigger,vel
   velFactor = 1 : applyVelocity(vel,trigger,9);
 };
 
-leadSynth(fundamental,synthFunc,velocity,trigger,synthRelease,synthCutoff) = output
+leadSynth(fundamental,synthFunc,velocity,trigger,synthRelease,synthCutoff,acc) = output
 with
 {																			
   output = melSynth,melSynth;																					// OUTPUT SUMMING
   melSynth = synthFunc(fundamentalCooked) * env : applyVelocity(velocity,trigger,9);							// MEL COMPONENT
-  fundamentalCooked = 2 * fundamental * soniVibratoLFO * velVibrato : limit(20,5000);
+  fundamentalCooked = 2 * fundamental * soniVibratoLFO * accVibrato : limit(20,5000);
   env = en.ar(0.001,synthRelease * tempo_RelFactor,trigger);													// MEL ENVELOPE
-  velVibrato = 1 + (0.008 * ((200 - tempo)/140) : applyVelocity(velocity,trigger,9)) * os.osc(tempo/60) : si.smooth(ba.tau2pole(0.001));
-  soniVibratoLFO = 1 + Soni_X_P3_ChordFreqDist * os.osc(tempo/15) * 0.5 : si.smoo;								// CF DIST SONI - VIBRATO LFO
+vibLFO = os.osc(tempo/15);
+  accVibrato = 1 + (0.00045 * acc * vibLFO) : si.smooth(ba.tau2pole(0.001));
+  soniVibratoLFO = 1 + Soni_X_P3_ChordFreqDist * vibLFO * 0.5 : si.smoo;								// CF DIST SONI - VIBRATO LFO
 };
 
 fmSynth(fundamental,numMod,freqFactor,release,depth,trigger) = (fmSynth + dirtyBus) * env 	with
@@ -369,11 +370,12 @@ pianoSim_singleNote(freq,trigger,acc) = monoOut
   ampEnv = pow(en.ar(0.001,4 * tempo_RelFactor,trigger),6)  : si.smooth(ba.tau2pole(0.0001));							// AMPLITUDE ENV
 };
 
-voiceSynth_FormantBP(freq,vel,trigger) = pm.SFFormantModelBP(2,vowel_H,0,freqLow,0.04) * env : fi.resonlp(8000,3,1) with
+voiceSynth_FormantBP(freq,vel,trigger,acc) = pm.SFFormantModelBP(2,vowel_H,fric,freqLow,0.04) * env : fi.resonlp(8000,3,1) with
 {
+  	fric = 0.13 - acc/10.0 * 0.13 : max(0);
 	freqLow = freq / 2.0;
   	vowel_idx = _~+(trigger) : %(4) : _ + 0.2;
-	env = en.ar(0.02, 3  / tempo * 78.6 * tempo_RelFactor, trigger);
+	env = en.ar(0.02, 1.5  / tempo * 78.6 * tempo_RelFactor * (1 + acc/5.0), trigger);
   	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.01));
 };
 
@@ -556,7 +558,7 @@ chord_SF_V1(trigger,freq,acc) = pianoSim_singleNote(freq,trigger,acc);										
 chord_SF_V2(trigger,freq,acc) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
 											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,trigger,7,acc);			// CHORD - SF VARIANT 2
 chord_SF_V3(trigger,freq,acc) 
-  = os.CZresTrap(0.5*(1+os.osc(freq)),4.54 * (1 + acc/5)) * en.are(0.001,2 * tempo_RelFactor,trigger);
+  = os.CZresTrap(0.5*(1+os.osc(freq)),4.54 * (1 + pow(acc/5,2))) * en.are(0.001,2 * tempo_RelFactor,trigger);
 chord_notePanFunc(idx) = ba.take(idx+1,PANPOS_NOTES);
 chordSynthFunc(trigger,freq,acc) = chord_SF_V1(trigger,freq,acc), chord_SF_V2(trigger,freq,acc), chord_SF_V3(trigger,freq,acc) : ba.selectn(3,VAR_4 - 1);
 chordSum = par(i,4,chordSingle_Synth(chordFreq(i), chordAcc(i), chordSynthFunc(chordTrg(i))) : stereoEffect(applyVelocity(chordVel(i),chordTrg(i),9))) :> _,_;
@@ -567,9 +569,9 @@ chordTrack = chordSum : stereoChannel(4);
 F0_R = KEYNUM_R : Soni_J1_FreqWarpFactor;																					// CALCULATE F0 HZ
 riff_V1 = fmSynth(F0_R,MOD_NUM_R,FREQ_FACTOR_R,RL_R,MOD_DEPTH_R,TRG_R);														// RIFF VARIANT 1
 riff_V2 = fmSynth_Versatile(F0_R,BASSLINE_MRATIO,BASSLINE_I_FIXED,BASSLINE_I_ENV,
-											  BASSLINE_A,BASSLINE_D,BASSLINE_S,BASSLINE_R,BASSLINE_ENVTYPE,TRG_R,V_R);		// RIFF VARIANT 2
+											  BASSLINE_A,BASSLINE_D,BASSLINE_S,BASSLINE_R,BASSLINE_ENVTYPE,TRG_R,V_R,ACC_R);		// RIFF VARIANT 2
 riff_V3 = fmSynth_Versatile(F0_R,AGGRO_MRATIO,AGGRO_I_FIXED,AGGRO_I_ENV,
-											  AGGRO_A,AGGRO_D,AGGRO_S,AGGRO_R,AGGRO_ENVTYPE,TRG_R,V_R);						// RIFF VARIANT 2
+											  AGGRO_A,AGGRO_D,AGGRO_S,AGGRO_R,AGGRO_ENVTYPE,TRG_R,V_R,ACC_R);						// RIFF VARIANT 2
 riffSynth = riff_V1,riff_V2,riff_V3 : ba.selectn(3,VAR_5 - 1);
 riffTrack = riffSynth : applyVelocity(V_R,TRG_R,9) : monoChannel(5) : getPanFunction(0);
 
@@ -578,14 +580,14 @@ riffTrack = riffSynth : applyVelocity(V_R,TRG_R,9) : monoChannel(5) : getPanFunc
 F0_M = KEYNUM_M : Soni_J1_FreqWarpFactor;
 V_M_SUS = V_M : ba.sAndH(TRG_M);
 M_FreqFactor = (F0_M - 300)/700 : si.smooth(ba.tau2pole(0.001));
-M_V1(freq) = voiceSynth_FormantBP(freq,V_M_SUS,TRG_M);																		// MELODY SF - VARIANT 1
+M_V1(freq) = voiceSynth_FormantBP(freq,V_M_SUS,TRG_M,ACC_M);																// MELODY SF - VARIANT 1
 M_V2(freq) = fmSynth_Versatile(freq,MALLET_MRATIO,MALLET_I_FIXED,MALLET_I_ENV,
-											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,TRG_M,V_M);				// MELODY SF - VARIANT 2
+											  MALLET_A,MALLET_D,MALLET_S,MALLET_R,MALLET_ENVTYPE,TRG_M,V_M,ACC_M);			// MELODY SF - VARIANT 2
 M_V3(freq) = fmSynth_Versatile(freq,TRUMPET_MRATIO,TRUMPET_I_FIXED,TRUMPET_I_ENV,
-											  TRUMPET_A,TRUMPET_D,TRUMPET_S,TRUMPET_R,TRUMPET_ENVTYPE,TRG_M,V_M);			// MELODY SF - VARIANT 3
+											  TRUMPET_A,TRUMPET_D,TRUMPET_S,TRUMPET_R,TRUMPET_ENVTYPE,TRG_M,V_M,ACC_M);		// MELODY SF - VARIANT 3
 M_SynthFunc(freq) = M_V1(freq),M_V2(freq),M_V3(freq) : ba.selectn(3,VAR_6 - 1);
 M_FX1 = dotted_delay(FB_DEL_M,BT_SMPL,WET_DEL_M),dotted_delay(FB_DEL_M,2*BT_SMPL,WET_DEL_M);								// DEFINE STEREO DOTTED DELAY
-melodySynth = leadSynth(F0_M,M_SynthFunc,V_M,TRG_M,RL_M,FC_LP_M);														// SYNTHESIZE MELODY
+melodySynth = leadSynth(F0_M,M_SynthFunc,V_M,TRG_M,RL_M,FC_LP_M,ACC_M);														// SYNTHESIZE MELODY
 melodyTrack = melodySynth : M_FX1 : stereoChannel(6);
 
 //Chord Stabs
