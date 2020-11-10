@@ -8,6 +8,7 @@
   ==============================================================================
 */
 #include "MidiTrack.h"
+#include "musicPerfRules.h"
 
 #pragma once
 
@@ -17,26 +18,12 @@ public:
 	TempoTickInc() {};
 	~TempoTickInc() {};
 	float percent_IncChange[10000] = {0.0};			 // CURVE VECTOR - RESOLUTION = 0.01% OF SONG
-
-	// RULE PARAMETERS
-	
-	// TEMPO RITARDANDO
-	float ritardando_percent_song_start = 90;
-	float ritardando_percent_tempo_min = 0;
-	float ritardando_shape_order = 5;
-
-	// NOISE CONTROL
 	Random noiseControl_Gen;
-	int noiseControl_Range = 500;
-
-	// FASTER UPHILL
-	float fasterUphill_ORDER = 1.2;
-	float fasterUphill_SCALEFACTOR = 0.7;
 
 	// TEMPO AP SKEW
 	float ap_forSkew = 0.5;
 
-	void generateTempoCurve(MidiTrack *melody)		 // TEMPO RULES WILL BE APPLIED HERE BASED ON THE MELODY
+	void generateTempoCurve(MidiTrack *melody, MusicPerfRules *ruleSet)	 // TEMPO RULES APPLIED HERE
 	{
 		float songPercent = 0;
 
@@ -69,7 +56,10 @@ public:
 
 			// APPLY TEMPO RITARDANDO AT END
 			contribution_TR = getPercentVal_fromFuncBounds(songPercent, 100,
-				ritardando_percent_tempo_min, ritardando_percent_song_start, 100, ritardando_shape_order);
+				ruleSet->ritardando_percent_tempo_min, 
+				ruleSet->ritardando_percent_song_start,
+				100, 
+				ruleSet->ritardando_shape_order);
 			contribution_TR = fmax(-100, contribution_TR);
 
 			// FASTER UPHILL
@@ -80,14 +70,17 @@ public:
 					noteVal_PREV = noteOns[j][0];
 					noteVal_NEXT = noteOns[j + 1][0];
 					contribution_FU = getPercentVals_fromFuncBounds_UphillONLY(melodyTicks_CURRENT, noteOns[j][1],
-						noteOns[j + 1][1], noteVal_PREV, noteVal_NEXT, fasterUphill_ORDER);
+						noteOns[j + 1][1], noteVal_PREV, noteVal_NEXT, ruleSet->fasterUphill_ORDER, ruleSet->fasterUphill_SCALEFACTOR);
 				}
 			}
 
 			// NOISE CONTROL
-			contribution_NC = fetchNewRandomPercent(noiseControl_Range);
+			contribution_NC = fetchNewRandomPercent(ruleSet->noiseControl_Range);
 
-			percent_IncChange[i] += contribution_TR + contribution_NC + contribution_FU;
+			percent_IncChange[i] += 
+				ruleSet->rules_k[4] * contribution_TR +
+				ruleSet->rules_k[5] * contribution_NC +
+				ruleSet->rules_k[6] * contribution_FU;
 		}
 	}
 
@@ -116,14 +109,14 @@ public:
 	};
 
 	float getPercentVals_fromFuncBounds_UphillONLY(float ticksPresent, float ticksStart, float ticksEnd,
-		float keyPrev, float keyNext, float order)
+		float keyPrev, float keyNext, float order, float scaleFactor)
 	{
 		if (keyNext > keyPrev)
 		{
 			float key_changeRange = keyNext - keyPrev;
 			float ticks_changeRange = ticksEnd - ticksStart;
 			float songPosition_Frac = pow((ticksPresent - ticksStart) / ticks_changeRange, order);
-			float tempoContribution = songPosition_Frac * key_changeRange * fasterUphill_SCALEFACTOR;
+			float tempoContribution = songPosition_Frac * key_changeRange * scaleFactor;
 			return tempoContribution;
 		}
 		else return 0;

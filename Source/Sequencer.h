@@ -10,6 +10,7 @@
 #include "ScaleTonicTrans.h"
 #include "mixerSettings.h"
 #include "FaustStrings.h"
+#include "musicPerfRules.h"
 #include "tempoTickIncCalculation.h"
 #include "accentCalculation.h"
 
@@ -27,6 +28,7 @@ public:
 	MixerSettings mixerSettings;
 	FaustStrings faustStrings;
 	TempoTickInc tempoTickInc;
+	MusicPerfRules musicPerfRules;
 	AccentCalculation accentCalculation;
 	
 	void resetCounters();
@@ -45,7 +47,7 @@ public:
 	{
 		currentMusic.loadMidiFile(name);
 		tempoTickInc.flushIncVector();
-		tempoTickInc.generateTempoCurve(&currentMusic.midiTracks[0]);
+		tempoTickInc.generateTempoCurve(&currentMusic.midiTracks[0], &musicPerfRules);
 		if (!isFileLoaded)
 			isFileLoaded = true;
 	}

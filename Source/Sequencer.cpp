@@ -286,7 +286,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						// CALCULATE MELODIC ACCENT
 						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
 						accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
-						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
+						currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3], &musicPerfRules);
 
 						// LIMIT AND STORE FINAL PITCHES
 						pitches[nextVoiceIndex[trackIndex]][trackIndex] = midiNoteLimit(
@@ -314,7 +314,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 						// CALCULATE MELODIC ACCENT
 						accent_Voices[nextVoiceIndex[trackIndex]][trackIndex] =
 							accentCalculation.getFinalAccentValue(trackIndex, nextVoiceIndex[trackIndex], scaleDegree_Voices,
-								currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3]);
+								currentMusic.midiTracks[trackIdx_to_midiTrack_map[trackIndex]].infoMatrix[j][3], &musicPerfRules);
 
 						targetTrackIdx = trackIdx_to_midiTrack_map[trackIndex];
 						for (int l = 0; l < numTracks; l++)
@@ -416,7 +416,7 @@ void Sequencer::checkNew_MIDIEvents_SINGLE(int trackIndex, double tickInc)
 							accent_Voices[i][trackIndex] +=
 							accentCalculation.addRhythmicAccent(
 								percObj->infoMatrix[eventIdx_LOOP_Trackwise][3],
-								vels[i][trackIndex]);
+								vels[i][trackIndex], &musicPerfRules);
 							accent_Voices[i][trackIndex] = fmin(1, accent_Voices[i][trackIndex]);
 					
 							percObj->incrementEventsHandled(trackIndex, ticksPerMeasure);	 			// INCREMENT EVENT COUNT
@@ -463,7 +463,7 @@ void Sequencer::mapNew_MIDIEvents()
 					faustAddress = faustStrings.getMusicAddress(presentTrack, "P", currentVoice);
 					pitch_Hz = accentCalculation.applyHighSharp
 					(pitches[currentVoice - 1][presentTrack - 1],
-					 &vels[currentVoice - 1][presentTrack - 1]);
+					 &vels[currentVoice - 1][presentTrack - 1], &musicPerfRules, presentTrack);
 					dspFaust.setParamValue(faustAddress.c_str(), pitch_Hz);
 
 					// ADD ACCENT MAPPING HERE
