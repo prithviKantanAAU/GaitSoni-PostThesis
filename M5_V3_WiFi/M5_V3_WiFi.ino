@@ -11,7 +11,7 @@
 
 // CHANGE WHEN REPROGRAMMING SENSORS
 
-short sensorIdx = 1;                            // SENSOR NUMBER
+short sensorIdx = 0;                            // SENSOR NUMBER
 
 // CHANGE WHEN PROGRAMMING FOR NEW NETWORK
 
@@ -44,6 +44,7 @@ void setup() {
     M5.Lcd.setTextSize(2);
     M5.Lcd.setBrightness(0);
     IMU.initMPU9250();
+    IMU.initAK8963(IMU.magCalibration);
     M5.Lcd.setCursor(0,0);
     M5.Lcd.print("Not Connected - IDLE");    
 }
@@ -70,10 +71,10 @@ void updateBatteryInfo()
 
    M5.Lcd.setCursor(170,220); 
    int currentBattery = getBatteryLevel();
-   if (currentBattery != lastBatteryValue)
-   {
-      M5.Speaker.beep();
-   }
+   //if (currentBattery != lastBatteryValue)
+   //{
+   //   M5.Speaker.beep();
+   //}
    M5.Lcd.print("BAT: " + String(getBatteryLevel()));
    lastBatteryValue = currentBattery;
 }
@@ -167,6 +168,15 @@ void fetchIMUData()
     IMU.gx = (float)IMU.gyroCount[0]*IMU.gRes;
     IMU.gy = (float)IMU.gyroCount[1]*IMU.gRes;
     IMU.gz = (float)IMU.gyroCount[2]*IMU.gRes;
+
+    IMU.readMagData(IMU.magCount);  // Read the x/y/z adc values
+    IMU.getMres();
+    IMU.mx = (float)IMU.magCount[0] * IMU.mRes * IMU.magCalibration[0] -
+             IMU.magbias[0];
+    IMU.my = (float)IMU.magCount[1] * IMU.mRes * IMU.magCalibration[1] -
+             IMU.magbias[1];
+    IMU.mz = (float)IMU.magCount[2] * IMU.mRes * IMU.magCalibration[2] -
+             IMU.magbias[2];
     
     IMU.updateTime();
     IMU.count = millis();
@@ -187,6 +197,9 @@ void buildAndSendOSCMsg()
     msg.add(IMU.gy);
     msg.add(IMU.gz);
     msg.add((float)lastBatteryValue);
+    msg.add(IMU.mx);
+    msg.add(IMU.my);
+    msg.add(IMU.mz);
 
     // CREATE UDP PACKET AND SEND MESSAGE
     Udp.beginPacket(remote_IP_REC, Port_REMOTE[sensorIdx]);
