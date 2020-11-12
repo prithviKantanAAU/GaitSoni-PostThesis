@@ -1197,7 +1197,7 @@ void GaitSonificationAudioProcessorEditor::updateProjectionZoneVisualizer()
 	ui_zv_2d.ZV_InnerRect_AP.setBounds(ui_zv_2d.ZV_ML_startX_MIN[dispIdx], innerRect_AP_startingY, ui_zv_2d.ZV_totalLength[dispIdx], innerRect_AP_height);
 	
 	// CURRENT POSITION BOX - CALCULATE X AND Y POSITIONS
-	float currentPos_H = ui_zv_2d.ZV_zeroPos_H[dispIdx] - max(-18, min(MPVal_ML, 18)) * pixelsPerDegree;
+	float currentPos_H = ui_zv_2d.ZV_zeroPos_H[dispIdx] + max(-18, min(MPVal_ML, 18)) * pixelsPerDegree;
 	float currentPos_V = ui_zv_2d.ZV_zeroPos_V[dispIdx] - max(-18, min(MPVal_AP, 18)) * pixelsPerDegree;
 
 	// CURRENT POSITION BOX - SET BOUNDS, ZONE TEXT AND COLOUR

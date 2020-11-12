@@ -5,8 +5,11 @@
 #include "gaitParamInfo.h"
 #include "SensorInfo.h"
 #include "HFEN_HPF.h"
+#include "quaternionFilters.h"
 #include "../JuceLibraryCode/JuceHeader.h"
-# define M_PI           3.14159265358979323846  /* pi */
+#define M_PI           3.14159265358979323846  /* pi */
+#define RAD_TO_DEG		180 / M_PI
+#define DEG_TO_RAD		M_PI / 180.0
 
 class GaitAnalysis
 {
@@ -24,6 +27,9 @@ public:
 	HFEN_HPF hfen_trunk;
 	HFEN_HPF hfen_foot_L;
 	HFEN_HPF hfen_foot_R;
+
+	QuaternionFilter quaternionFilter;
+	void getOrientation_Quaternion(float *accBuf, float *gyrBuf, float *magBuf);
 
 	void setFc_imuSmooth(float freq)
 	{

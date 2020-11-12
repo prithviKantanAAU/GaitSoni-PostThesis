@@ -12,12 +12,14 @@ public:
 	int portNumber = 0;
 	MedianFilter medFilter_ACC[3];
 	MedianFilter medFilter_GYR[3];
+	MedianFilter medFilter_MAG[3];
 	
 	// DATA BUFFERS
 	float oscDataArray[10] = { 0.0 };
-	short messageSize = 7;
+	short messageSize = 10;
 	float acc[3] = { 0.0 }; float acc_Buf[3] = { 0.0 };
 	float gyr[3] = { 0.0 }; float gyr_Buf[3] = { 0.0 };
+	float mag[3] = { 0.0 }; float mag_Buf[3] = { 0.0 };
 	
 	// BATTERY LEVEL
 	float level_Battery = 0.0;
@@ -33,12 +35,15 @@ public:
 	float fs = 100;
 	BiQuad LPF_Acc[3];
 	BiQuad LPF_Gyr[3];
+	BiQuad LPF_Mag[3];
 
 	BiQuad LPF_Acc_2[3];
 	BiQuad LPF_Gyr_2[3];
+	BiQuad LPF_Mag_2[3];
 
 	BiQuad LPF_Acc_3[3];
 	BiQuad LPF_Gyr_3[3];
+	BiQuad LPF_Mag_3[3];
 
 	float filterFc = 20;
 	short oscSampleReceived_BUFFER[200] = { 0 };
@@ -69,16 +74,22 @@ public:
 			LPF_Acc[i].calculateLPFCoeffs(filterFc, 0.7,fs);
 			LPF_Gyr[i].flushDelays();
 			LPF_Gyr[i].calculateLPFCoeffs(filterFc, 0.7,fs);
+			LPF_Mag[i].flushDelays();
+			LPF_Mag[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 
 			LPF_Acc_2[i].flushDelays();
 			LPF_Acc_2[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 			LPF_Gyr_2[i].flushDelays();
 			LPF_Gyr_2[i].calculateLPFCoeffs(filterFc, 0.7, fs);
+			LPF_Mag_2[i].flushDelays();
+			LPF_Mag_2[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 
 			LPF_Acc_3[i].flushDelays();
 			LPF_Acc_3[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 			LPF_Gyr_3[i].flushDelays();
 			LPF_Gyr_3[i].calculateLPFCoeffs(filterFc, 0.7, fs);
+			LPF_Mag_3[i].flushDelays();
+			LPF_Mag_3[i].calculateLPFCoeffs(filterFc, 0.7, fs);
 		}
 	}
 
@@ -105,6 +116,7 @@ public:
 		{
 			medFilter_ACC[i].filterLength = n;
 			medFilter_GYR[i].filterLength = n;
+			medFilter_MAG[i].filterLength = n;
 		}
 	}
 
@@ -119,32 +131,29 @@ public:
 		return oscDataArray[index];
 	}
 
-	float getSensorValue(int index)
-	{
-		if (index < 3)
-			return acc[index % 3];
-		else return gyr[index % 3];
-	}
-
 	void updateBuffers()
 	{
 		for (int i = 0; i < 3; i++)
 		{
 			acc[i] = medFilter_ACC[i].doFiltering(acc[i]);
 			gyr[i] = medFilter_GYR[i].doFiltering(gyr[i]);
+			mag[i] = medFilter_MAG[i].doFiltering(mag[i]);
 
 			// 6th ORDER FILTERING
 			// First 2 degrees
 			acc_Buf[i] = LPF_Acc[i].doBiQuad(acc[i], 0);
 			gyr_Buf[i] = LPF_Gyr[i].doBiQuad(gyr[i], 0);
+			mag_Buf[i] = LPF_Mag[i].doBiQuad(mag[i], 0);
 
 			// Next 2 degrees
 			acc_Buf[i] = LPF_Acc_2[i].doBiQuad(acc_Buf[i], 0);
 			gyr_Buf[i] = LPF_Gyr_2[i].doBiQuad(gyr_Buf[i], 0);
+			mag_Buf[i] = LPF_Mag_2[i].doBiQuad(mag_Buf[i], 0);
 
 			// Last 2 degrees
 			acc_Buf[i] = LPF_Acc_3[i].doBiQuad(acc_Buf[i], 0);
 			gyr_Buf[i] = LPF_Gyr_3[i].doBiQuad(gyr_Buf[i], 0);
+			mag_Buf[i] = LPF_Mag_3[i].doBiQuad(mag_Buf[i], 0);
 		}
 		updateBias(acc_Buf, gyr_Buf);
 		compensateBias(acc_Buf, gyr_Buf);
@@ -194,6 +203,15 @@ public:
 						break;
 					case 6:
 						level_Battery = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 7:
+						mag[0] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 8:
+						mag[1] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
+						break;
+					case 9:
+						mag[2] = jlimit(-10000.0f, 10000.0f, message[i].getFloat32());
 						break;
 					default:
 						break;
