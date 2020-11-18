@@ -48,5 +48,18 @@ public:
 		}
 		return (isAssignedAndOnline_L && isAssignedAndOnline_R) ? true : false;
 	}
+
+	bool check_isAssignedAndOnline_JointSensors()
+	{
+		bool isAssignedAndOnline_Upper = false;
+		bool isAssignedAndOnline_Lower = false;
+
+		for (int i = 0; i < numSensorsMax; i++)
+		{
+			isAssignedAndOnline_Upper = (bodyLocation[i] == 5 && isOnline[i]) ? true : isAssignedAndOnline_Upper;
+			isAssignedAndOnline_Lower = (bodyLocation[i] == 6 && isOnline[i]) ? true : isAssignedAndOnline_Lower;
+		}
+		return (isAssignedAndOnline_Upper && isAssignedAndOnline_Lower) ? true : false;
+	}
 };
 

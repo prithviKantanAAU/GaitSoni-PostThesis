@@ -13,7 +13,7 @@ public:
 	short indices_MP[10][30] = { 0 };				// PER EXERCISE MODE - MP INDICES
 	short num_MP[10] = { 0 };						// PER EXERCISE MODE - MP COUNT
 	float apVal_DYN_TaskDependent[2] = { 0.0 };		// X and Y INFO
-	short numSensorLocations = 3;					// BODILY LOCATIONS
+	short numSensorLocations = 5;					// BODILY LOCATIONS
 	String exerciseModes[10] = { "Testing","Static Upright","Dynamic Trunk","Jerk Feedback","STS Angle Cue","Gait" };
 	short exerciseMode_Present = 1;
 	short feedback_DIM = 1;
@@ -202,11 +202,10 @@ public:
 		gaitParam_ObjectArray[13].setCalibrationType(1);
 		numMovementParams++;
 
-		// 14				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
 		bool useCaseArray14[10] = { true, false, false, false, false, false, false };
-		//							TRUNK FEET
-		bool sensorReqArray14[5] = { true, false };
-		gaitParam_ObjectArray[14].setName_SensorReq("Pitch Q",
+		//							TRUNK FEET	  JOINT
+		bool sensorReqArray14[5] = { true, false, true};
+		gaitParam_ObjectArray[14].setName_SensorReq("Joint Angle",
 			sensorReqArray14, numSensorLocations);
 		gaitParam_ObjectArray[14].set_isIncluded_UseScenarios(useCaseArray14, num_UseScenarios);
 		gaitParam_ObjectArray[14].storeFilterInfo(50, 1);
@@ -214,29 +213,41 @@ public:
 		gaitParam_ObjectArray[14].setCalibrationType(1);
 		numMovementParams++;
 
-		// 15				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray15[10] = { true, false, false, false, false, false, false };
-		//							TRUNK FEET
-		bool sensorReqArray15[5] = { true, false };
-		gaitParam_ObjectArray[15].setName_SensorReq("Roll Q",
-			sensorReqArray15, numSensorLocations);
-		gaitParam_ObjectArray[15].set_isIncluded_UseScenarios(useCaseArray15, num_UseScenarios);
-		gaitParam_ObjectArray[15].storeFilterInfo(50, 1);
-		gaitParam_ObjectArray[15].initialize(-180, 180, 0, 0);
-		gaitParam_ObjectArray[15].setCalibrationType(1);
-		numMovementParams++;
+		//// 14				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
+		//bool useCaseArray14[10] = { true, false, false, false, false, false, false };
+		////							TRUNK FEET
+		//bool sensorReqArray14[5] = { true, false };
+		//gaitParam_ObjectArray[14].setName_SensorReq("Pitch Q",
+		//	sensorReqArray14, numSensorLocations);
+		//gaitParam_ObjectArray[14].set_isIncluded_UseScenarios(useCaseArray14, num_UseScenarios);
+		//gaitParam_ObjectArray[14].storeFilterInfo(50, 1);
+		//gaitParam_ObjectArray[14].initialize(-180, 180, 0, 0);
+		//gaitParam_ObjectArray[14].setCalibrationType(1);
+		//numMovementParams++;
 
-		// 16				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
-		bool useCaseArray16[10] = { true, false, false, false, false, false, false };
-		//							TRUNK FEET
-		bool sensorReqArray16[5] = { true, false };
-		gaitParam_ObjectArray[16].setName_SensorReq("Yaw Q",
-			sensorReqArray16, numSensorLocations);
-		gaitParam_ObjectArray[16].set_isIncluded_UseScenarios(useCaseArray16, num_UseScenarios);
-		gaitParam_ObjectArray[16].storeFilterInfo(50, 1);
-		gaitParam_ObjectArray[16].initialize(-180, 180, 0, 0);
-		gaitParam_ObjectArray[16].setCalibrationType(1);
-		numMovementParams++;
+		//// 15				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
+		//bool useCaseArray15[10] = { true, false, false, false, false, false, false };
+		////							TRUNK FEET
+		//bool sensorReqArray15[5] = { true, false };
+		//gaitParam_ObjectArray[15].setName_SensorReq("Roll Q",
+		//	sensorReqArray15, numSensorLocations);
+		//gaitParam_ObjectArray[15].set_isIncluded_UseScenarios(useCaseArray15, num_UseScenarios);
+		//gaitParam_ObjectArray[15].storeFilterInfo(50, 1);
+		//gaitParam_ObjectArray[15].initialize(-180, 180, 0, 0);
+		//gaitParam_ObjectArray[15].setCalibrationType(1);
+		//numMovementParams++;
+
+		//// 16				   	    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
+		//bool useCaseArray16[10] = { true, false, false, false, false, false, false };
+		////							TRUNK FEET
+		//bool sensorReqArray16[5] = { true, false };
+		//gaitParam_ObjectArray[16].setName_SensorReq("Yaw Q",
+		//	sensorReqArray16, numSensorLocations);
+		//gaitParam_ObjectArray[16].set_isIncluded_UseScenarios(useCaseArray16, num_UseScenarios);
+		//gaitParam_ObjectArray[16].storeFilterInfo(50, 1);
+		//gaitParam_ObjectArray[16].initialize(-180, 180, 0, 0);
+		//gaitParam_ObjectArray[16].setCalibrationType(1);
+		//numMovementParams++;
 		
 		populate_MP_Matrix();
 

@@ -9,7 +9,14 @@ public:
 	};
 	~UI_SensorConfig() {};
 
-	String Locations[4] = { "Trunk", "Left Foot", "Right Foot", "<UNASSIGNED>" };
+	String Locations[6] = { 
+		"Trunk", 
+		"Left Foot", 
+		"Right Foot", 
+		"<UNASSIGNED>",
+		"Joint Above",
+		"Joint Below"
+	};
 	Label IP_Header;					// Column Header - Sr. No
 	Label Status_Header;				// Column Header - Online status
 	Label Status[3];					// Column Values - Online status
@@ -45,6 +52,8 @@ public:
 			Location[i].addItem(Locations[1], 2);
 			Location[i].addItem(Locations[2], 3);
 			Location[i].addItem(Locations[3], 4);
+			Location[i].addItem(Locations[4], 5);
+			Location[i].addItem(Locations[5], 6);
 			Location[i].setSelectedId(4);						
 			
 			BiasComp[i].setButtonText("Calibrate");				

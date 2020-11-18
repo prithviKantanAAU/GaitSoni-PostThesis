@@ -28,8 +28,19 @@ public:
 	HFEN_HPF hfen_foot_L;
 	HFEN_HPF hfen_foot_R;
 
-	QuaternionFilter quaternionFilter;
-	void getOrientation_Quaternion(float *accBuf, float *gyrBuf, float *magBuf);
+	QuaternionFilter qFilt_Trunk;
+	QuaternionFilter qFilt_Joint_Upper;
+	QuaternionFilter qFilt_Joint_Lower;
+
+	void getOrientation_Quaternion(float *accBuf, float *gyrBuf, float *magBuf, QuaternionFilter *qFilt, 
+	float *pitch, float *roll, float *yaw);
+
+	void getOrientation_Trunk()
+	{
+	};
+	void getOrientation_Joint()
+	{
+	};
 
 	void setFc_imuSmooth(float freq)
 	{
@@ -52,15 +63,19 @@ public:
 	bool areRequiredSensorsOnline()
 	{
 		if
-				(
-				// CHECK TRUNK SENSOR
-				gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].isSensorRequired[0]
-				== sensorInfo.check_isAssignedAndOnline_TrunkSensor()
-				&&
-				// CHECK FOOT SENSORS
-				gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].isSensorRequired[1]
-				== sensorInfo.check_isAssignedAndOnline_FootSensors()
-				)
+			(
+			// CHECK TRUNK SENSOR
+			gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].isSensorRequired[0]
+			== sensorInfo.check_isAssignedAndOnline_TrunkSensor()
+			&&
+			// CHECK FOOT SENSORS
+			gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].isSensorRequired[1]
+			== sensorInfo.check_isAssignedAndOnline_FootSensors()
+			&&
+			// CHECK JOINT SENSORS
+			gaitParams.gaitParam_ObjectArray[gaitParams.activeGaitParam].isSensorRequired[2]
+			== sensorInfo.check_isAssignedAndOnline_JointSensors()
+			)
 			return true;
 		return false;
 	};
@@ -76,12 +91,15 @@ public:
 		}
 		sensorInfo.check_isAssignedAndOnline_FootSensors();
 		sensorInfo.check_isAssignedAndOnline_TrunkSensor();
+		sensorInfo.check_isAssignedAndOnline_JointSensors();
 	};
 
 	// SENSOR LOCATION INDICES
 	short idx_Sensor_Trunk = 0;
 	short idx_Sensor_Foot_L = 0;
 	short idx_Sensor_Foot_R = 0;
+	short idx_Sensor_Joint_Upper = 0;
+	short idx_Sensor_Joint_Lower = 0;
 
 	void setupReceivers();
 

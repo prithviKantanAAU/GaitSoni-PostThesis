@@ -55,6 +55,12 @@ void GaitAnalysis::compute(short currentGaitParam, bool isCalibrating)
 		case 3:
 			idx_Sensor_Foot_R = j;
 			break;
+		case 5:
+			idx_Sensor_Joint_Upper = j;
+			break;
+		case 6:
+			idx_Sensor_Joint_Lower = j;
+			break;
 		}	
 	} 
 
@@ -190,14 +196,10 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 		return;
 	}
 
-	// 14 || 15 || 16 
-	if (mpName == "Pitch Q" || mpName == "Roll Q" || mpName == "Yaw Q")
+	// 14
+	if (mpName == "Joint Angle")
 	{
-		getOrientation_Quaternion(
-			sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf,
-			sensors_OSCReceivers[idx_Sensor_Trunk].mag_Buf
-		);
+		getOrientation_Joint();
 		return;
 	}
 }
@@ -212,44 +214,42 @@ void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 	R_acc_est[2] = accBuf[1] / magnitude;
 }
 
-void GaitAnalysis::getOrientation_Quaternion(float *accBuf, float *gyrBuf, float *magBuf)
+void GaitAnalysis::getOrientation_Quaternion(float *accBuf, float *gyrBuf,
+	float *magBuf, QuaternionFilter *qFilt, float *pitch, float *roll, float *yaw)
 {
-	float angle_Deg_Pitch = 0;
-	float angle_Deg_Roll = 0;
-	float angle_Deg_Yaw = 0;
 	float q0, q1, q2, q3 = 0;
 
-	quaternionFilter.MadgwickQuaternionUpdate(accBuf[0], accBuf[1], accBuf[2], gyrBuf[0] * DEG_TO_RAD,
+	qFilt->MadgwickQuaternionUpdate(accBuf[0], accBuf[1], accBuf[2], gyrBuf[0] * DEG_TO_RAD,
 		gyrBuf[1] * DEG_TO_RAD, gyrBuf[2] * DEG_TO_RAD, magBuf[0], magBuf[1], magBuf[2], 1.0 / fs);
 
-	angle_Deg_Yaw = atan2(2.0f * (*(quaternionFilter.getQ() + 1) * *(quaternionFilter.getQ() + 2)
-		+ *quaternionFilter.getQ() * *(quaternionFilter.getQ() + 3)), *quaternionFilter.getQ() * 
-		*quaternionFilter.getQ() + *(quaternionFilter.getQ() + 1) * *(quaternionFilter.getQ() + 1)
-		- *(quaternionFilter.getQ() + 2) * *(quaternionFilter.getQ() + 2) - *(quaternionFilter.getQ() + 3)
-		* *(quaternionFilter.getQ() + 3));
+	*yaw = atan2(2.0f * (*(qFilt->getQ() + 1) * *(qFilt->getQ() + 2)
+		+ *qFilt->getQ() * *(qFilt->getQ() + 3)), *qFilt->getQ() * 
+		*qFilt->getQ() + *(qFilt->getQ() + 1) * *(qFilt->getQ() + 1)
+		- *(qFilt->getQ() + 2) * *(qFilt->getQ() + 2) - *(qFilt->getQ() + 3)
+		* *(qFilt->getQ() + 3));
 
-	angle_Deg_Roll = -asin(2.0f * (*(quaternionFilter.getQ() + 1) * *(quaternionFilter.getQ() + 3)
-		- *quaternionFilter.getQ() * *(quaternionFilter.getQ() + 2)));
+	*roll = -asin(2.0f * (*(qFilt->getQ() + 1) * *(qFilt->getQ() + 3)
+		- *qFilt->getQ() * *(qFilt->getQ() + 2)));
 
-	angle_Deg_Pitch = atan2(2.0f * (*quaternionFilter.getQ() * *(quaternionFilter.getQ() + 1) +
-		*(quaternionFilter.getQ() + 2) * *(quaternionFilter.getQ() + 3)), *quaternionFilter.getQ() * 
-		*quaternionFilter.getQ() - *(quaternionFilter.getQ() + 1) * *(quaternionFilter.getQ() + 1)
-		- *(quaternionFilter.getQ() + 2) * *(quaternionFilter.getQ() + 2) + *(quaternionFilter.getQ() + 3)
-		* *(quaternionFilter.getQ() + 3));
+	*pitch = atan2(2.0f * (*qFilt->getQ() * *(qFilt->getQ() + 1) +
+		*(qFilt->getQ() + 2) * *(qFilt->getQ() + 3)), *qFilt->getQ() * 
+		*qFilt->getQ() - *(qFilt->getQ() + 1) * *(qFilt->getQ() + 1)
+		- *(qFilt->getQ() + 2) * *(qFilt->getQ() + 2) + *(qFilt->getQ() + 3)
+		* *(qFilt->getQ() + 3));
 	
-	angle_Deg_Roll *= RAD_TO_DEG;
-	angle_Deg_Yaw *= RAD_TO_DEG;
-	angle_Deg_Yaw -= 8.5;
-	angle_Deg_Pitch *= RAD_TO_DEG;
-	angle_Deg_Pitch -= 90;
+	*roll *= RAD_TO_DEG;
+	*yaw *= RAD_TO_DEG;
+	*yaw -= 8.5;
+	*pitch *= RAD_TO_DEG;
+	*pitch -= 90;
 
-	boundValuesAndStore("Pitch Q", -1 * angle_Deg_Pitch);
-	boundValuesAndStore("Roll Q", angle_Deg_Roll);
-	boundValuesAndStore("Yaw Q", angle_Deg_Yaw);
+	//boundValuesAndStore("Pitch Q", -1 * angle_Deg_Pitch);
+	//boundValuesAndStore("Roll Q", angle_Deg_Roll);
+	//boundValuesAndStore("Yaw Q", angle_Deg_Yaw);
 
-	// ALSO ML AP (TEST)
-	boundValuesAndStore("Inclination (+-) - ML", angle_Deg_Roll);
-	boundValuesAndStore("Inclination (+-) - AP", -1 * angle_Deg_Pitch);
+	//// ALSO ML AP (TEST)
+	//boundValuesAndStore("Inclination (+-) - ML", angle_Deg_Roll);
+	//boundValuesAndStore("Inclination (+-) - AP", -1 * angle_Deg_Pitch);
 }
 
 // CALCULATE ML AND AP ORIENTATION
