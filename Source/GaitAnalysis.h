@@ -37,9 +37,53 @@ public:
 
 	void getOrientation_Trunk()
 	{
+		float angle_ML = 0.0;
+		float angle_AP = 0.0;
+		float angle_yaw = 0.0;
+
+		getOrientation_Quaternion(
+			sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf,
+			sensors_OSCReceivers[idx_Sensor_Trunk].mag_Buf,
+			&qFilt_Trunk,
+			&angle_AP,
+			&angle_ML,
+			&angle_yaw
+		);
+
+	boundValuesAndStore("Inclination (+-) - ML", angle_ML);
+	boundValuesAndStore("Inclination (+-) - AP", -1 * angle_AP);
 	};
+
 	void getOrientation_Joint()
 	{
+		float angle_ML_J_Upper, angle_ML_J_Lower = 0.0;
+		float angle_AP_J_Upper, angle_AP_J_Lower = 0.0;
+		float angle_yaw_J_Upper, angle_yaw_J_Lower = 0.0;
+		float jointAngle = 0.0;
+
+		getOrientation_Quaternion(
+			sensors_OSCReceivers[idx_Sensor_Joint_Upper].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Joint_Upper].gyr_Buf,
+			sensors_OSCReceivers[idx_Sensor_Joint_Upper].mag_Buf,
+			&qFilt_Joint_Upper,
+			&angle_AP_J_Upper,
+			&angle_ML_J_Upper,
+			&angle_yaw_J_Upper
+		);
+
+		getOrientation_Quaternion(
+			sensors_OSCReceivers[idx_Sensor_Joint_Lower].acc_Buf,
+			sensors_OSCReceivers[idx_Sensor_Joint_Lower].gyr_Buf,
+			sensors_OSCReceivers[idx_Sensor_Joint_Lower].mag_Buf,
+			&qFilt_Joint_Lower,
+			&angle_AP_J_Lower,
+			&angle_ML_J_Lower,
+			&angle_yaw_J_Lower
+		);
+
+		jointAngle = angle_AP_J_Upper - angle_AP_J_Lower;
+		boundValuesAndStore("Joint Angle", -1*jointAngle);
 	};
 
 	void setFc_imuSmooth(float freq)

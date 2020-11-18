@@ -16,9 +16,6 @@ public:
 	float beta = sqrt(3.0f / 4.0f) * GyroMeasError;
 	float q[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
 	float eInt[3] = { 0.0f, 0.0f, 0.0f };
-	float angle_Pitch = 0.0;
-	float angle_Roll = 0.0;
-	float angle_Yaw = 0.0;
 
 	void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy,
 		float gz, float mx, float my, float mz,

@@ -77,16 +77,18 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	// 0
 	if (mpName == "Inclination (+-) - ML")
 	{
-		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getOrientation_Trunk();
+		//getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+		//					 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
 	// 1
 	if (mpName == "Inclination (+-) - AP")
 	{
-		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-							 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getOrientation_Trunk();
+		//getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+		//					 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
 		calibrateMaximum(mpName, isCalibrating);
 		return;
 	}
@@ -95,11 +97,7 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	{
 		//getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
 		//					 sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
-		getOrientation_Quaternion(
-			sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-			sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf,
-			sensors_OSCReceivers[idx_Sensor_Trunk].mag_Buf
-		);
+		getOrientation_Trunk();
 		getProjection_ML_AP();
 		return;
 	}
@@ -190,8 +188,9 @@ void GaitAnalysis::calc_CurrentMP(String mpName, bool isCalibrating)
 	// 13
 	if (mpName == "STS Cue")
 	{
-		getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
-		sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
+		getOrientation_Trunk();
+		//getOrientation_Fused(sensors_OSCReceivers[idx_Sensor_Trunk].acc_Buf,
+		//sensors_OSCReceivers[idx_Sensor_Trunk].gyr_Buf);
 		getSitStandCueFeature();
 		return;
 	}
@@ -217,8 +216,6 @@ void GaitAnalysis::trunk_CalibrateRest(float *accBuf)
 void GaitAnalysis::getOrientation_Quaternion(float *accBuf, float *gyrBuf,
 	float *magBuf, QuaternionFilter *qFilt, float *pitch, float *roll, float *yaw)
 {
-	float q0, q1, q2, q3 = 0;
-
 	qFilt->MadgwickQuaternionUpdate(accBuf[0], accBuf[1], accBuf[2], gyrBuf[0] * DEG_TO_RAD,
 		gyrBuf[1] * DEG_TO_RAD, gyrBuf[2] * DEG_TO_RAD, magBuf[0], magBuf[1], magBuf[2], 1.0 / fs);
 

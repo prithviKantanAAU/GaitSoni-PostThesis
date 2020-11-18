@@ -204,7 +204,7 @@ public:
 
 		bool useCaseArray14[10] = { true, false, false, false, false, false, false };
 		//							TRUNK FEET	  JOINT
-		bool sensorReqArray14[5] = { true, false, true};
+		bool sensorReqArray14[5] = { false, false, true};
 		gaitParam_ObjectArray[14].setName_SensorReq("Joint Angle",
 			sensorReqArray14, numSensorLocations);
 		gaitParam_ObjectArray[14].set_isIncluded_UseScenarios(useCaseArray14, num_UseScenarios);
