@@ -159,6 +159,7 @@ Soni_X_J1_MelBaseFreq = 				soniSlider(9,0.5);									// Melody Tonic Frequency
 Soni_X_J2_Pitched = 					soniSlider(10,0);									// Pitched Disturbance
 Soni_X_J3_Whoosh = 						soniSlider(11,0);									// Noise Disturbance
 Soni_X_D1_Spatialize = 					soniSlider(12,0.5);									// Spatialization
+Soni_X_D1_Vowel =						soniSlider(13,0);									// Vowel
 
 SONI_GAIN_DB = masterGainGroup(vslider("Soni Buss Gain",-8,-10,2,0.01));
 masterGain = masterGainGroup(vslider("Master Gain",-6,-96,12,0.01) : ba.db2linear);
@@ -374,7 +375,8 @@ voiceSynth_FormantBP(freq,vel,trigger,acc) = pm.SFFormantModelBP(2,vowel_H,fric,
 {
   	fric = 0.13 - acc/10.0 * 0.13 : max(0);
 	freqLow = freq / 2.0;
-  	vowel_idx = _~+(trigger) : %(4) : _ + 0.2;
+  	//vowel_idx = _~+(trigger) : %(4) : _ + 0.2;
+  	vowel_idx = Soni_X_D1_Vowel;
 	env = en.ar(0.02, 1.5  / tempo * 78.6 * tempo_RelFactor * (1 + acc/5.0), trigger);
   	vowel_H = vowel_idx : si.smooth(ba.tau2pole(0.01));
 };
