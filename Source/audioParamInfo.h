@@ -131,8 +131,16 @@ public:
 		indices_AP_OVERALL[numSoni_Musical] = 13;
 		numSoni_Musical++;
 
+		// 15					    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
+		bool useCaseArray17[10] = { true, false, false, false, false, false, false };
+		audioParam_ObjectArray[14].set_nameTypeAddress("Tempo 1D", 0, 2);
+		audioParam_ObjectArray[14].set_isIncluded_UseScenarios(useCaseArray17, num_UseScenarios);
+		audioParam_ObjectArray[14].initializeSoniParams(1, 0, 1, 0, 0, 100, 1);
+		indices_AP_OVERALL[numSoni_Musical] = 14;
+		numSoni_Musical++;
+
 		// 40 - NONE
-		// 14					    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
+		// 40					    TEST   SB     DB    JERK  ANGLE  GAIT   PHASE
 		bool useCaseArray42[10] = { true, true, true, true, true, true, true };
 		audioParam_ObjectArray[39].set_nameTypeAddress("NONE", 0, 2);
 		audioParam_ObjectArray[39].set_isIncluded_UseScenarios(useCaseArray42, num_UseScenarios);

@@ -209,7 +209,7 @@ public:
 			sensorReqArray14, numSensorLocations);
 		gaitParam_ObjectArray[14].set_isIncluded_UseScenarios(useCaseArray14, num_UseScenarios);
 		gaitParam_ObjectArray[14].storeFilterInfo(50, 1);
-		gaitParam_ObjectArray[14].initialize(-180, 180, 0, 0);
+		gaitParam_ObjectArray[14].initialize(-100, 100, 0, 0);
 		gaitParam_ObjectArray[14].setCalibrationType(1);
 		numMovementParams++;
 

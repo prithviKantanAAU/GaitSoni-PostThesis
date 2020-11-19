@@ -281,6 +281,10 @@ public:
 		// TEMPO
 		if (apName == "Tempo")
 			sequencer.tempoTickInc.ap_forSkew = resetValue_ACTUAL;
+
+		// TEMPO 1D
+		if (apName == "Tempo 1D")
+			sequencer.tempoTickInc.ap_forSkew_1D = resetValue_ACTUAL;
 	}
 	
 	void applySequencerSonifications();							// Apply Sequencer-based Sonifications

@@ -83,7 +83,8 @@ public:
 		);
 
 		jointAngle = angle_AP_J_Upper - angle_AP_J_Lower;
-		boundValuesAndStore("Joint Angle", -1*jointAngle);
+		if (jointAngle > 90) jointAngle = -jointAngle;
+		boundValuesAndStore("Joint Angle", -jointAngle);
 	};
 
 	void setFc_imuSmooth(float freq)

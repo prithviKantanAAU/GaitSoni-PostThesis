@@ -164,6 +164,9 @@ void GaitSonificationAudioProcessor::mapMBFvar_FAUST(float mapVal_1D, float mapV
 		{
 			if (apNames[i] == "Tempo")
 				sequencer.tempoTickInc.ap_forSkew = apVals[i];
+
+			if (apNames[i] == "Tempo 1D")
+				sequencer.tempoTickInc.ap_forSkew_1D = 1 - apVals[i];
 		}
 	}	
 }

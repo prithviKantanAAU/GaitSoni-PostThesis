@@ -22,6 +22,7 @@ public:
 
 	// TEMPO AP SKEW
 	float ap_forSkew = 0.5;
+	float ap_forSkew_1D = 1;
 
 	void generateTempoCurve(MidiTrack *melody, MusicPerfRules *ruleSet)	 // TEMPO RULES APPLIED HERE
 	{
@@ -86,9 +87,9 @@ public:
 
 	double getNewTickIncrement(double ticks_Elapsed, double ticks_Total, double tickIncrement_Base)
 	{
-		float apMult = 1;
+		float apMult = 1 * ap_forSkew_1D;
 		if (fabs(ap_forSkew - 0.5) > 0.02)
-			apMult = 0.5 + ap_forSkew;
+			apMult = (0.5 + ap_forSkew);
 
 		double percent_SongComplete = ticks_Elapsed / ticks_Total * 100.0;
 		int percent_IncChange_ReadIdx = (int)(percent_SongComplete * 100);
