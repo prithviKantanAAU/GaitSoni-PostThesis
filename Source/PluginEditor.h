@@ -186,6 +186,7 @@ private:
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_CurrentValue);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_targetValue);
 		addAndMakeVisible(ui_bmbf_gen.gaitParam_setTarget);
+		addAndMakeVisible(ui_bmbf_gen.gaitParam_setMPBounds);
 		addAndMakeVisible(ui_bmbf_gen.soni_isSliderSource);
 		addAndMakeVisible(ui_bmbf_gen.soni_sliderSource);
 		addAndMakeVisible(ui_bmbf_gen.soni_isSliderSource_Label);

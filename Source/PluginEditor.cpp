@@ -330,6 +330,43 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 	("Target Value: " + String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN, 2), dontSendNotification);
 
+	// SET MP BOUNDS
+	ui_bmbf_gen.gaitParam_setMPBounds.setMinValue(0);
+	ui_bmbf_gen.gaitParam_setMPBounds.setMaxValue(1);
+	ui_bmbf_gen.gaitParam_setMPBounds.onValueChange = [this]
+	{
+		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].skew_mpMin =
+			ui_bmbf_gen.gaitParam_setMPBounds.getMinValue();
+		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].skew_mpMax =
+			ui_bmbf_gen.gaitParam_setMPBounds.getMaxValue();
+		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].adjustMPBounds();
+		float minBound = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal_postSkew;
+		float maxBound = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal_postSkew;
+		ui_rtv_1d.configureBounds(minBound, maxBound);
+
+		float targetMin_Norm, targetMax_Norm = 0;
+		processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+			[processor.gaitAnalysis.gaitParams.activeGaitParam].updateNormTarget(&targetMin_Norm, &targetMax_Norm);
+		
+		processor.gaitAnalysis.gaitParams.setTargetValue(targetMin_Norm, false);
+		processor.gaitAnalysis.gaitParams.setTargetValue(targetMax_Norm, true);
+		ui_bmbf_gen.gaitParam_setTarget.setMaxValue(targetMax_Norm);
+		ui_bmbf_gen.gaitParam_setTarget.setMinValue(targetMin_Norm);
+		ui_bmbf_gen.gaitParam_targetValue.setText
+		(
+			"Target Range: " + String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MIN, 2) + " to " +
+			String(processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
+				[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MAX, 2),
+			dontSendNotification
+		);
+	};
+
 	// SONIFICATION MODE: SLIDER / SENSOR
 
 	ui_bmbf_gen.soni_isSliderSource.onStateChange = [this]
@@ -688,9 +725,9 @@ void GaitSonificationAudioProcessorEditor::configureSonificationControls()
 void GaitSonificationAudioProcessorEditor::configureRealTimeVisualizer()
 {
 	float minValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal_postSkew;
 	float maxValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal;
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal_postSkew;
 	ui_rtv_1d.rtv_minBound.setText(String((int)minValue), dontSendNotification);
 	ui_rtv_1d.rtv_maxBound.setText(String((int)maxValue), dontSendNotification);
 	ui_rtv_1d.configureBounds(minValue, maxValue);
@@ -934,6 +971,8 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 	float target_MAX = 0;
 	float fc_LPF = 0;
 	int medFilt_L = 0;
+	float skewMin = 0;
+	float skewMax = 1;
 	gaitParamInfo *gaitParamPointer = &processor.gaitAnalysis.gaitParams;
 	int reps_numDone = processor.gaitAnalysis.gaitParams.reps_Completed[processor.exerciseMode_Present - 1];
 	float reps_avgTime = processor.gaitAnalysis.gaitParams.repTime_AVG_GLOBAL[processor.exerciseMode_Present - 1];
@@ -972,18 +1011,24 @@ void GaitSonificationAudioProcessorEditor::updateControls_gaitParam(bool isCallb
 		target_MAX = gaitParamPointer->gaitParam_ObjectArray
 			[gaitParamPointer->activeGaitParam].target_MAX;
 		gp_MIN = gaitParamPointer->gaitParam_ObjectArray
-			[gaitParamPointer->activeGaitParam].minVal;
+			[gaitParamPointer->activeGaitParam].minVal_postSkew;
 		gp_MAX = gaitParamPointer->gaitParam_ObjectArray
-			[gaitParamPointer->activeGaitParam].maxVal;
+			[gaitParamPointer->activeGaitParam].maxVal_postSkew;
 		fc_LPF = gaitParamPointer->gaitParam_ObjectArray
 			[gaitParamPointer->activeGaitParam].filterFc_OPT;
 		medFilt_L = gaitParamPointer->gaitParam_ObjectArray
 			[gaitParamPointer->activeGaitParam].medianFilt_L_OPT;
+		skewMin = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].skew_mpMin;
+		skewMax = gaitParamPointer->gaitParam_ObjectArray
+			[gaitParamPointer->activeGaitParam].skew_mpMax;
 
 		ui_bmbf_gen.gaitParam_setTarget.setMinValue((target_MIN - gp_MIN) / (gp_MAX - gp_MIN));
 		ui_bmbf_gen.gaitParam_setTarget.setMaxValue((target_MAX - gp_MIN) / (gp_MAX - gp_MIN));
 		ui_bmbf_gen.imuSmooth_Fc.setValue(fc_LPF);
 		ui_bmbf_gen.medianFilter_Length.setValue(medFilt_L);
+		ui_bmbf_gen.gaitParam_setMPBounds.setMinValue(skewMin);
+		ui_bmbf_gen.gaitParam_setMPBounds.setMaxValue(skewMax);
 	}
 }
 
@@ -1222,9 +1267,9 @@ void GaitSonificationAudioProcessorEditor::updateRealTimeVisualizer()
 	float originalTarget_MAX = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].target_MAX;
 	float minValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal;
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].minVal_postSkew;
 	float maxValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
-		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal;
+		[processor.gaitAnalysis.gaitParams.activeGaitParam].maxVal_postSkew;
 	float currentValue = processor.gaitAnalysis.gaitParams.gaitParam_ObjectArray
 		[processor.gaitAnalysis.gaitParams.activeGaitParam].currentValue;
 

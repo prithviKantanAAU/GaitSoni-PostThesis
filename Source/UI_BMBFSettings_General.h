@@ -16,6 +16,7 @@ public:
 	TextButton recordGaitParam;
 	Label gaitParam_targetValue;
 	Slider gaitParam_setTarget;
+	Slider gaitParam_setMPBounds;
 	ToggleButton enable_dynTarget;
 	Label enable_dynTarget_Label;
 	ToggleButton soni_isSliderSource;
@@ -66,6 +67,14 @@ public:
 		gaitParam_setTarget.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 1, 1);
 		gaitParam_setTarget.setColour(gaitParam_setTarget.backgroundColourId, Colours::red);
 		gaitParam_setTarget.setColour(gaitParam_setTarget.trackColourId, Colours::green);
+
+		// MP BOUND MANIPULATE
+		gaitParam_setMPBounds.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
+		gaitParam_setMPBounds.setRange(0, 1);
+		gaitParam_setMPBounds.setNumDecimalPlacesToDisplay(2);
+		gaitParam_setMPBounds.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 1, 1);
+		gaitParam_setMPBounds.setColour(gaitParam_setMPBounds.backgroundColourId, Colours::red);
+		gaitParam_setMPBounds.setColour(gaitParam_setMPBounds.trackColourId, Colours::green);
 
 		// SONIFICATION MODE: SLIDER / SENSOR
 
@@ -165,6 +174,7 @@ public:
 		recordGaitParam.setVisible(on);
 		gaitParam_targetValue.setVisible(on);
 		gaitParam_setTarget.setVisible(on);
+		gaitParam_setMPBounds.setVisible(on);
 		soni_isSliderSource.setVisible(on);
 		soni_sliderSource.setVisible(on);
 		soni_isMusical_Label.setVisible(on);
@@ -222,6 +232,7 @@ public:
 		// MISC
 		rtv_Expand.setBounds(350, 590, 40, 40);
 		zv_Expand.setBounds(1155, 410, 40, 40);
+		gaitParam_setMPBounds.setBounds(48, 415, 625, 20);
 	}
 };
 

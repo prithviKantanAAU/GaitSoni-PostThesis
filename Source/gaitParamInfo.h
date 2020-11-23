@@ -272,9 +272,9 @@ public:
 
 	void setTargetValue(float normVal, bool isMax)
 	{
-		float realVal = gaitParam_ObjectArray[activeGaitParam].minVal
-			+ normVal * (gaitParam_ObjectArray[activeGaitParam].maxVal 
-				- gaitParam_ObjectArray[activeGaitParam].minVal);
+		float realVal = gaitParam_ObjectArray[activeGaitParam].minVal_postSkew
+			+ normVal * (gaitParam_ObjectArray[activeGaitParam].maxVal_postSkew
+				- gaitParam_ObjectArray[activeGaitParam].minVal_postSkew);
 
 		gaitParam_ObjectArray[activeGaitParam].updateValue_Target(realVal, isMax);
 	};
@@ -285,14 +285,15 @@ public:
 		float MP_Val = 0;
 		float adaptiveRange = 0;
 		float error = 0;
-		float MP_MIN = present_MP_Obj->minVal;
-		float MP_MAX = present_MP_Obj->maxVal;
+		float MP_MIN = present_MP_Obj->minVal_postSkew;
+		float MP_MAX = present_MP_Obj->maxVal_postSkew;
 		float MP_MIN_TGT = present_MP_Obj->target_MIN;
 		float MP_MAX_TGT = present_MP_Obj->target_MAX;
 
 		if (isSliderMode)
 		{
-			MP_Val = present_MP_Obj->minVal + sliderVal * (present_MP_Obj->maxVal - present_MP_Obj->minVal);
+			MP_Val = present_MP_Obj->minVal_postSkew + sliderVal 
+				* (present_MP_Obj->maxVal_postSkew - present_MP_Obj->minVal_postSkew);
 		}
 		else
 		{

@@ -162,8 +162,8 @@ public:
 		}
 		
 		// FETCH BOUNDS AND STORE PRESENT VALUE
-		float minVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].minVal;
-		float maxVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].maxVal;
+		float minVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].minVal_postSkew;
+		float maxVal = gaitParams.gaitParam_ObjectArray[gaitParamIndex].maxVal_postSkew;
 		gaitParams.gaitParam_ObjectArray[gaitParamIndex].currentValue = jlimit(minVal, maxVal, value);
 	};
 
