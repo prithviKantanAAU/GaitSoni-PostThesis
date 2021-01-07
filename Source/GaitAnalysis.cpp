@@ -217,7 +217,8 @@ void GaitAnalysis::getOrientation_Quaternion(float *accBuf, float *gyrBuf,
 	float *magBuf, QuaternionFilter *qFilt, float *pitch, float *roll, float *yaw)
 {
 	qFilt->MadgwickQuaternionUpdate(accBuf[0], accBuf[1], accBuf[2], gyrBuf[0] * DEG_TO_RAD,
-		gyrBuf[1] * DEG_TO_RAD, gyrBuf[2] * DEG_TO_RAD, magBuf[0], magBuf[1], magBuf[2], 1.0 / fs);
+		gyrBuf[1] * DEG_TO_RAD, gyrBuf[2] * DEG_TO_RAD,
+		magBuf[0], magBuf[1], magBuf[2], 1.0 / fs);
 
 	*yaw = atan2(2.0f * (*(qFilt->getQ() + 1) * *(qFilt->getQ() + 2)
 		+ *qFilt->getQ() * *(qFilt->getQ() + 3)), *qFilt->getQ() * 

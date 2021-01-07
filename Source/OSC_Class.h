@@ -156,7 +156,7 @@ public:
 			mag_Buf[i] = LPF_Mag_3[i].doBiQuad(mag_Buf[i], 0);
 		}
 		updateBias(acc_Buf, gyr_Buf);
-		compensateBias(acc_Buf, gyr_Buf);
+		compensateBias(acc_Buf, gyr_Buf, mag_Buf);
 
 		messageCount_Recvd_smpl_z0 = messageCount_Recvd;
 		isMessageRecvd_smpl_z0 = (messageCount_Recvd_smpl_z0 > messageCount_Recvd_smpl_z1) ? 1.0 : 0.0;
@@ -240,6 +240,8 @@ public:
 	double bias_mean_gyr[3] = { 0.0 };
 	double rest_mean_acc[3] = { 0.0, 0.0, -1.0 };
 	double rest_mean_gyr[3] = { 0.0, 0.0, 0.0 };
+	double maxs_mag[3] = { 0.0, 0.0, 0.0 };
+	double mins_mag[3] = { 0.0, 0.0, 0.0 };
 	float biasComp_avgInterval_sec = 10;
 	float biasComp_avgInterval_smpl = biasComp_avgInterval_sec * fs;
 	int biasComp_elapsedInterval_smpl = 0;
@@ -276,12 +278,35 @@ public:
 		}
 	};
 
-	void compensateBias(float *accBuf, float *gyrBuf)
+	void compensateBias(float *accBuf, float *gyrBuf, float *magBuf)
 	{
+		float mag_offset[3] = { 0.0, 0.0, 0.0 };
+		float mag_delta[3] = { 0.0, 0.0, 0.0 };
+		float scale[3] = { 0.0, 0.0, 0.0 };
+
+		mag_offset[0] = (maxs_mag[0] + mins_mag[0]) / 2;
+		mag_offset[1] = (maxs_mag[1] + mins_mag[1]) / 2;
+		mag_offset[2] = (maxs_mag[2] + mins_mag[2]) / 2;
+
+		mag_delta[0] = (maxs_mag[0] - mins_mag[0]) / 2;
+		mag_delta[1] = (maxs_mag[1] - mins_mag[1]) / 2;
+		mag_delta[2] = (maxs_mag[2] - mins_mag[2]) / 2;
+		
+		float mag_delta_avg = (mag_delta[0] + mag_delta[1] + mag_delta[2])/3.0;
+
 		for (int i = 0; i < 3; i++)
 		{
 			accBuf[i] -= bias_mean_acc[i];
 			gyrBuf[i] -= bias_mean_gyr[i];
+
+			if (magBuf[i] > maxs_mag[i])	maxs_mag[i] = magBuf[i];
+			if (magBuf[i] < mins_mag[i])	mins_mag[i] = magBuf[i];
+
+			magBuf[i] -= mag_offset[i];
+
+			scale[i] = mag_delta_avg / mag_delta[i];
+
+			magBuf[i] *= scale[i];
 		}
 	}
 
